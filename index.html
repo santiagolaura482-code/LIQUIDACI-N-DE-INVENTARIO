@@ -10,115 +10,251 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 :root{
   --bg:#0d0f14;--sur:#161921;--s2:#1e2330;--bor:#2a3045;
-  --blue:#4f8ef7;--grn:#22d98e;--red:#f75b5b;--ylw:#f7c44f;
+  --blue:#4f8ef7;--grn:#22d98e;--red:#f75b5b;--ylw:#f7c44f;--pur:#a78bfa;
   --txt:#e8ecf4;--mut:#7a869e;--r:12px;
   --f:'Inter',sans-serif;--m:'JetBrains Mono',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--txt);font-family:var(--f);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px}
+
+/* ── LOGIN SCREEN ─────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;padding:20px;
+}
+.login-box{
+  background:var(--sur);border:1px solid var(--bor);border-radius:16px;
+  padding:40px 36px;width:100%;max-width:400px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;justify-content:center}
+.login-logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--blue),var(--grn));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.login-title{font-size:20px;font-weight:700;background:linear-gradient(135deg,#e8ecf4 40%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-sub{text-align:center;color:var(--mut);font-size:12px;margin-bottom:28px;margin-top:-16px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.login-field input{
+  width:100%;background:var(--s2);border:1px solid var(--bor);border-radius:9px;
+  color:var(--txt);font-family:var(--f);font-size:14px;padding:11px 14px;
+  outline:none;transition:border-color .15s;
+}
+.login-field input:focus{border-color:var(--blue)}
+.login-field input::placeholder{color:var(--mut)}
+.login-btn{
+  width:100%;margin-top:8px;padding:13px;
+  background:linear-gradient(135deg,var(--blue),#6a5af7);
+  border:none;border-radius:10px;color:#fff;
+  font-family:var(--f);font-size:14px;font-weight:600;
+  cursor:pointer;transition:opacity .15s;
+}
+.login-btn:hover{opacity:.88}
+.login-btn:active{opacity:.75}
+.login-err{
+  display:none;margin-top:14px;padding:10px 14px;
+  background:rgba(247,91,91,.12);border:1px solid rgba(247,91,91,.4);
+  border-radius:8px;color:var(--red);font-size:12px;text-align:center;
+}
+.login-err.show{display:block}
+.login-footer{text-align:center;margin-top:20px;font-size:11px;color:var(--mut)}
+.login-user-info{
+  display:none;align-items:center;justify-content:space-between;
+  margin-bottom:18px;padding:8px 14px;
+  background:var(--s2);border:1px solid var(--bor);border-radius:8px;
+}
+.login-user-info.show{display:flex}
+.login-user-name{font-size:12px;font-weight:600;color:var(--txt)}
+.login-user-role{font-size:11px;color:var(--mut);margin-top:1px}
+.logout-btn{background:none;border:1px solid var(--bor);border-radius:6px;color:var(--mut);font-size:11px;font-family:var(--f);padding:4px 10px;cursor:pointer;transition:all .15s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* App oculta hasta login */
+#app{display:none}
 header{text-align:center;margin-bottom:32px}
 .logo{display:inline-flex;align-items:center;gap:12px;margin-bottom:8px}
 .logo-icon{width:46px;height:46px;background:linear-gradient(135deg,var(--blue),var(--grn));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px}
 h1{font-size:22px;font-weight:700;background:linear-gradient(135deg,#e8ecf4 40%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sub{color:var(--mut);font-size:12px;margin-top:4px}
-.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);width:100%;max-width:960px}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);width:100%;max-width:1100px}
+/* drop */
 .dz{border:2px dashed var(--bor);border-radius:10px;margin:22px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
 .dz:hover,.dz.over{border-color:var(--blue);background:rgba(79,142,247,.08)}
 .dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .dz-icon{font-size:36px;margin-bottom:10px;display:block}
 .dz-title{font-size:15px;font-weight:600;margin-bottom:4px}
-.dz-hint{font-size:12px;color:var(--mut)}
-.dz-hint b{color:var(--blue);font-weight:500}
+.dz-hint{font-size:12px;color:var(--mut)}.dz-hint b{color:var(--blue);font-weight:500}
+/* file info */
 .finfo{display:none;align-items:center;gap:12px;margin:0 22px 18px;padding:11px 14px;background:var(--s2);border:1px solid var(--bor);border-radius:9px}
 .finfo.show{display:flex}
 .fi-ic{font-size:24px}.fi-mt{flex:1;min-width:0}
 .fi-nm{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fi-sz{font-size:11px;color:var(--mut);margin-top:1px}
-.rm{background:none;border:none;cursor:pointer;color:var(--mut);font-size:16px;padding:4px;border-radius:5px;flex-shrink:0;transition:color .15s}
-.rm:hover{color:var(--red)}
+.rm{background:none;border:none;cursor:pointer;color:var(--mut);font-size:16px;padding:4px;border-radius:5px;flex-shrink:0;transition:color .15s}.rm:hover{color:var(--red)}
 hr{height:1px;background:var(--bor);border:none;margin:0 22px 18px}
+/* btn */
 .cvt{display:flex;align-items:center;justify-content:center;gap:9px;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(135deg,var(--blue),#6a5af7);border:none;border-radius:10px;color:#fff;font-family:var(--f);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;position:relative;overflow:hidden}
-.cvt:disabled{opacity:.35;cursor:not-allowed}
-.cvt:not(:disabled):hover{opacity:.88}
-.cvt:not(:disabled):active{transform:scale(.98)}
+.cvt:disabled{opacity:.35;cursor:not-allowed}.cvt:not(:disabled):hover{opacity:.88}.cvt:not(:disabled):active{transform:scale(.98)}
 .shine{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:translateX(-100%);animation:shine 2.2s infinite}
 @keyframes shine{0%{transform:translateX(-100%)}60%,100%{transform:translateX(120%)}}
+/* progress */
 .pw{display:none;margin:0 22px 18px}.pw.show{display:block}
 .pl{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:6px}
 .pt{background:var(--s2);border-radius:99px;height:7px;overflow:hidden}
 .pb{height:100%;background:linear-gradient(90deg,var(--blue),var(--grn));border-radius:99px;transition:width .3s;width:0}
-.lw{margin:0 22px 18px;background:#090b0f;border:1px solid var(--bor);border-radius:9px;overflow:hidden;display:none}
-.lw.show{display:block}
+/* log */
+.lw{margin:0 22px 18px;background:#090b0f;border:1px solid var(--bor);border-radius:9px;overflow:hidden;display:none}.lw.show{display:block}
 .lh{padding:8px 12px;background:var(--s2);border-bottom:1px solid var(--bor);font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:7px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--grn);animation:pulse 1s infinite}
 .dot.done{animation:none}.dot.err{background:var(--red);animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 .lb{padding:9px 12px;max-height:130px;overflow-y:auto;font-family:var(--m);font-size:11px;line-height:1.65}
 .ll{color:var(--mut)}.ll.ok{color:var(--grn)}.ll.er{color:var(--red)}.ll.in{color:var(--blue)}
-.st{display:none;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 22px 18px}
-.st.show{display:grid}
+/* stats */
+.st{display:none;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 22px 18px}.st.show{display:grid}
 .sb{background:var(--s2);border:1px solid var(--bor);border-radius:9px;padding:11px;text-align:center}
-.sn{font-size:19px;font-weight:700;background:linear-gradient(135deg,var(--blue),var(--grn));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sn{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--blue),var(--grn));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.3px}
 .sl{font-size:10px;color:var(--mut);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+/* section label */
 .sec{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;padding:0 22px;margin-bottom:8px;display:none;align-items:center;gap:8px}
-.sec::after{content:'';flex:1;height:1px;background:var(--bor)}
-.sec.show{display:flex}
+.sec::after{content:'';flex:1;height:1px;background:var(--bor)}.sec.show{display:flex}
+/* meta */
 .mw{margin:0 22px 20px;display:none}.mw.show{display:block}
 .mt{width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--bor);border-radius:10px;overflow:hidden}
 .mt th{background:rgba(79,142,247,.1);color:var(--blue);padding:9px 14px;text-align:left;font-weight:600;border-bottom:1px solid var(--bor);white-space:nowrap;min-width:200px}
 .mt td{padding:9px 14px;color:var(--txt);border-bottom:1px solid rgba(42,48,69,.4);font-weight:500}
 .mt tr:last-child td,.mt tr:last-child th{border-bottom:none}
-.dw{margin:0 22px 22px;display:none}.dw.show{display:block}
-.dph{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+/* ── SISTEMA DE LAYOUT UNIFICADO ─────────────────────── */
+/* Todos los bloques de contenido usan el mismo margen lateral */
+.bloque{margin:0 22px 18px}
+
+/* Tabla compartida: borde externo en el contenedor, no en la tabla */
+.ts{overflow-x:auto;border:1px solid var(--bor);border-radius:10px;max-height:360px;overflow-y:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+table.dt th{background:var(--s2);padding:9px 10px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;position:sticky;top:0;z-index:1;overflow:hidden;text-overflow:ellipsis}
+table.dt th.ht{color:var(--ylw)}table.dt th.hp{color:var(--blue)}table.dt th.hd{color:var(--grn)}
+table.dt td{padding:7px 10px;border-bottom:1px solid rgba(42,48,69,.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.dt th:first-child,table.dt td:first-child{width:40%}
+table.dt th:nth-child(2),table.dt td:nth-child(2){width:15%}
+table.dt th:nth-child(3),table.dt td:nth-child(3){width:12%}
+table.dt th:nth-child(4),table.dt td:nth-child(4){width:12%}
+table.dt th:nth-child(5),table.dt td:nth-child(5){width:15%}
+table.dt tr:last-child td{border-bottom:none}table.dt tr:hover td{background:var(--s2)}
+td.pos{color:var(--grn);font-weight:600}td.neg{color:var(--red);font-weight:600}td.zer{color:var(--mut)}td.nr{text-align:right}
+
+/* Stats */
+.st{display:none;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 22px 18px}.st.show{display:grid}
+.sb{background:var(--s2);border:1px solid var(--bor);border-radius:9px;padding:11px;text-align:center}
+.sn{font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--blue),var(--grn));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.3px}
+.sl{font-size:10px;color:var(--mut);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+
+/* Section label */
+.sec{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;padding:0 22px;margin-bottom:8px;display:none;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bor)}.sec.show{display:flex}
+
+/* Meta tabla */
+.mw{margin:0 22px 18px;display:none}.mw.show{display:block}
+.mt{width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--bor);border-radius:10px;overflow:hidden}
+.mt th{background:rgba(79,142,247,.1);color:var(--blue);padding:9px 14px;text-align:left;font-weight:600;border-bottom:1px solid var(--bor);white-space:nowrap;min-width:200px}
+.mt td{padding:9px 14px;color:var(--txt);border-bottom:1px solid rgba(42,48,69,.4);font-weight:500}
+.mt tr:last-child td,.mt tr:last-child th{border-bottom:none}
+
+/* Preview tabs */
+.dw{margin:0 22px 18px;display:none}.dw.show{display:block}
+.dph{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .dpt{font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
 .dpc{font-size:11px;color:var(--mut);background:var(--s2);padding:3px 9px;border-radius:99px;border:1px solid var(--bor)}
-.ts{overflow-x:auto;border:1px solid var(--bor);border-radius:10px;max-height:420px;overflow-y:auto}
-table.dt{width:100%;border-collapse:collapse;font-size:11.5px}
-table.dt th{background:var(--s2);padding:9px 13px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;position:sticky;top:0;z-index:1}
-table.dt th.ht{color:var(--ylw)}
-table.dt th.hp{color:var(--blue)}
-table.dt th.hd{color:var(--grn)}
-table.dt td{padding:8px 13px;border-bottom:1px solid rgba(42,48,69,.4);white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}
-table.dt tr:last-child td{border-bottom:none}
-table.dt tr:hover td{background:var(--s2)}
-td.pos{color:var(--grn);font-weight:600}
-td.neg{color:var(--red);font-weight:600}
-td.zer{color:var(--mut)}
-td.nr{text-align:right}
-/* VACÍOS */
-.vw{margin:0 22px 22px;display:none}.vw.show{display:block}
-.v-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.v-card{background:var(--s2);border:1px solid var(--bor);border-radius:10px;padding:14px 16px}
-.v-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.tab-bar{display:flex;gap:8px;margin-bottom:10px}
+.tab-btn{background:var(--s2);border:1px solid var(--bor);border-radius:7px;color:var(--mut);font-family:var(--f);font-size:11px;font-weight:600;padding:5px 14px;cursor:pointer;transition:all .15s}
+.tab-btn.active{background:rgba(79,142,247,.15);border-color:var(--blue);color:var(--blue)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ── CUADRO DIFERENCIAS ≠ 0 ──────────────────────────── */
+.diffw{margin:0 22px 18px;display:none}.diffw.show{display:block}
+.diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.diff-card{background:var(--s2);border:1px solid var(--bor);border-radius:10px;overflow:hidden}
+.diff-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:12px 14px;border-bottom:1px solid var(--bor)}
+/* Tabla dentro de diff-card: sin borde propio, contenida por el padre */
+.diff-card .ts{border:none;border-radius:0;max-height:300px;overflow-x:hidden}
+
+/* ── RESUMEN VACÍOS ───────────────────────────────────── */
+.vw{margin:0 22px 18px;display:none}.vw.show{display:block}
+/* Grid de tarjetas botellas/cajas */
+.v-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;align-items:start}
+.v-card{background:var(--s2);border:1px solid var(--bor);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column}
+.v-card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .v-card-title.bot{color:var(--ylw)}.v-card-title.caj{color:var(--blue)}
-.v-rows table{width:100%;border-collapse:collapse;font-size:11px}
-.v-rows th{color:var(--mut);font-weight:600;padding:5px 7px;text-align:left;border-bottom:1px solid var(--bor);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
-.v-rows td{padding:5px 7px;border-bottom:1px solid rgba(42,48,69,.3);overflow:hidden;text-overflow:ellipsis;max-width:180px;white-space:nowrap}
+.v-rows{flex:1}
+.v-rows table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.v-rows th{color:var(--mut);font-weight:600;padding:6px 8px;text-align:left;border-bottom:1px solid var(--bor);font-size:10px;text-transform:uppercase}
+.v-rows th:first-child{width:60%}.v-rows th:nth-child(2){width:20%}.v-rows th:nth-child(3){width:20%}
+.v-rows td{padding:6px 8px;border-bottom:1px solid rgba(42,48,69,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .v-rows tr:last-child td{border-bottom:none}
 .v-rows td.nr{text-align:right}
 .v-rows td.neg{color:var(--red);font-weight:600}.v-rows td.pos{color:var(--grn);font-weight:600}.v-rows td.zer{color:var(--mut)}
-.v-totals{background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+/* Badge pirañitas */
+.badge-pir{display:inline-block;background:rgba(167,139,250,.18);border:1px solid var(--pur);color:var(--pur);font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;margin-left:5px;text-transform:uppercase;letter-spacing:.4px;vertical-align:middle}
+/* Tfoot */
+table tfoot tr{background:rgba(42,48,69,.45)}
+table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
+/* Totales por tipo */
+.v-totals{background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:14px 16px;margin-bottom:12px}
 .v-totals-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--grn);margin-bottom:10px}
-.v-tot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.v-tot-box{background:var(--s2);border:1px solid var(--bor);border-radius:8px;padding:10px;text-align:center}
-.v-tot-val{font-size:16px;font-weight:700}
-.v-tot-val.ylw{color:var(--ylw)}.v-tot-val.blu{color:var(--blue)}
-.v-tot-lbl{font-size:10px;color:var(--mut);margin-top:3px;line-height:1.3}
-.v-grand{background:linear-gradient(135deg,rgba(79,142,247,.15),rgba(34,217,142,.15));border:1px solid var(--grn);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+/* Grilla de multiplicación */
+.v-calc-grid{display:flex;flex-direction:column;gap:8px}
+.v-calc-row{display:grid;grid-template-columns:120px 1fr;align-items:center;background:var(--s2);border:1px solid var(--bor);border-radius:9px;padding:10px 16px;gap:8px}
+.v-calc-label{font-size:12px;font-weight:700}
+.v-calc-label.ylw{color:var(--ylw)}.v-calc-label.pur{color:var(--pur)}.v-calc-label.blu{color:var(--blue)}
+.v-calc-expr{display:grid;grid-template-columns:60px 16px 60px 16px 90px;align-items:center;gap:4px;font-size:13px}
+.v-calc-num{font-weight:700;color:var(--txt);text-align:right}
+.v-calc-num.pos{color:var(--grn)}.v-calc-num.neg{color:var(--red)}
+.v-calc-op{color:var(--mut);text-align:center}
+.v-calc-price{color:var(--mut);font-size:12px;text-align:center}
+.v-calc-result{font-weight:700;font-size:14px;text-align:right}
+.v-calc-result.ylw{color:var(--ylw)}.v-calc-result.pur{color:var(--pur)}.v-calc-result.blu{color:var(--blue)}
+/* Grand total */
+.v-grand{background:linear-gradient(135deg,rgba(79,142,247,.12),rgba(34,217,142,.12));border:1px solid var(--grn);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
 .v-grand-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt)}
 .v-grand-val{font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--blue),var(--grn));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* Download */
 .dl{display:none;align-items:center;justify-content:center;gap:9px;width:calc(100% - 44px);margin:0 22px 22px;padding:13px;background:rgba(34,217,142,.08);border:1px solid var(--grn);border-radius:10px;color:var(--grn);font-family:var(--f);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s}
-.dl.show{display:flex}
-.dl:hover{background:rgba(34,217,142,.16)}
+.dl.show{display:flex}.dl:hover{background:rgba(34,217,142,.16)}
 footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">
-    <div class="logo-icon">🍺</div>
-    <h1>Liquidación de Inventario BEES → Excel</h1>
+<!-- ── PANTALLA DE LOGIN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">🍺</div>
+      <span class="login-title">Liquidación BEES</span>
+    </div>
+    <p class="login-sub">Ingresa tus credenciales para acceder al sistema</p>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Tu usuario" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="login-btn">Ingresar al sistema</button>
+    <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
+    <p class="login-footer">Sistema de liquidación de inventario · Centro Oriente</p>
   </div>
+</div>
+
+<!-- ── APLICACIÓN PRINCIPAL ── -->
+<div id="app">
+<div class="login-user-info" id="user-info-bar">
+  <div>
+    <div class="login-user-name" id="bar-username">—</div>
+    <div class="login-user-role" id="bar-role">—</div>
+  </div>
+  <button class="logout-btn" id="logout-btn">Cerrar sesión</button>
+</div>
+  <div class="logo"><div class="logo-icon">🍺</div><h1>Liquidación de Inventario BEES → Excel</h1></div>
   <p class="sub">Convierte el PDF de liquidación en Excel estructurado · procesamiento 100% local</p>
 </header>
 <div class="card">
@@ -130,10 +266,7 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
   </div>
   <div class="finfo" id="finfo">
     <span class="fi-ic">📑</span>
-    <div class="fi-mt">
-      <div class="fi-nm" id="fnm">—</div>
-      <div class="fi-sz" id="fsz">—</div>
-    </div>
+    <div class="fi-mt"><div class="fi-nm" id="fnm">—</div><div class="fi-sz" id="fsz">—</div></div>
     <button class="rm" id="rm">✕</button>
   </div>
   <hr>
@@ -146,48 +279,167 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
     <div class="lh"><div class="dot" id="dot"></div><span id="ltit">Procesando</span></div>
     <div class="lb" id="lb"></div>
   </div>
+
+  <!-- STATS: placa | productos | vacíos | con diferencia -->
   <div class="st" id="st">
-    <div class="sb"><div class="sn" id="spg">0</div><div class="sl">Páginas</div></div>
+    <div class="sb"><div class="sn" id="spg">—</div><div class="sl" id="spg-lbl">Placa</div></div>
     <div class="sb"><div class="sn" id="spr">0</div><div class="sl">Productos</div></div>
+    <div class="sb"><div class="sn" id="svac">0</div><div class="sl">Vacíos</div></div>
     <div class="sb"><div class="sn" id="sdi">0</div><div class="sl">Con diferencia</div></div>
-    <div class="sb"><div class="sn" id="scl">5</div><div class="sl">Columnas</div></div>
   </div>
+
+  <!-- INFORMACIÓN DEL DOCUMENTO -->
   <div class="sec" id="sec-meta">Información del documento</div>
   <div class="mw" id="mw"><div class="ts"><table class="mt" id="mt"></table></div></div>
-  <div class="sec" id="sec-data">Vista previa — productos</div>
+
+  <!-- VISTA PREVIA con tabs Productos / Vacíos -->
+  <div class="sec" id="sec-data">Vista previa</div>
   <div class="dw" id="dw">
-    <div class="dph"><span class="dpt">Tabla de productos</span><span class="dpc" id="dpc"></span></div>
-    <div class="ts"><table class="dt" id="dt"></table></div>
+    <div class="dph"><span class="dpt">Productos extraídos</span><span class="dpc" id="dpc"></span></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-prod" onclick="switchTab('prod')">📦 Productos</button>
+      <button class="tab-btn" id="tab-btn-vac" onclick="switchTab('vac')">🗑️ Vacíos</button>
+    </div>
+    <div class="tab-panel active" id="tab-prod"><div class="ts"><table class="dt" id="dt-prod"></table></div></div>
+    <div class="tab-panel" id="tab-vac"><div class="ts"><table class="dt" id="dt-vac"></table></div></div>
   </div>
+
+  <!-- DIFERENCIAS ≠ 0 -->
+  <div class="sec" id="sec-diff">Productos con diferencia ≠ 0</div>
+  <div class="diffw" id="diffw">
+    <div class="diff-grid">
+      <div class="diff-card">
+        <div class="diff-card-title" style="color:var(--blue)">📦 Productos con diff ≠ 0</div>
+        <div class="ts"><table class="dt" id="diff-prod"></table></div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-card-title" style="color:var(--red)">🗑️ Vacíos con diff ≠ 0</div>
+        <div class="ts"><table class="dt" id="diff-vac"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUMEN VACÍOS -->
   <div class="sec" id="sec-vacios">Resumen de Vacíos · Botellas &amp; Cajas</div>
   <div class="vw" id="vw">
     <div class="v-grid">
       <div class="v-card">
-        <div class="v-card-title bot">🍾 Botellas <span style="color:var(--mut);font-weight:400">× S/ 0.60</span></div>
-        <div class="v-rows"><table id="tbl-bot"><thead><tr><th>Producto</th><th class="nr">Dif.</th><th class="nr">S/ Total</th></tr></thead><tbody></tbody></table></div>
+        <div class="v-card-title bot">🍾 Botellas × S/ 0.60 &nbsp;<span class="badge-pir">pirañitas × 0.50</span></div>
+        <div class="v-rows">
+          <table id="tbl-bot">
+            <thead><tr><th>Producto</th><th class="nr">Diff</th><th class="nr">S/ Subtotal</th></tr></thead>
+            <tbody></tbody>
+            <tfoot id="tbl-bot-foot"></tfoot>
+          </table>
+        </div>
       </div>
       <div class="v-card">
-        <div class="v-card-title caj">📦 Cajas <span style="color:var(--mut);font-weight:400">× S/ 3.80</span></div>
-        <div class="v-rows"><table id="tbl-caj"><thead><tr><th>Producto</th><th class="nr">Dif.</th><th class="nr">S/ Total</th></tr></thead><tbody></tbody></table></div>
+        <div class="v-card-title caj">📦 Cajas × S/ 3.80</div>
+        <div class="v-rows">
+          <table id="tbl-caj">
+            <thead><tr><th>Producto</th><th class="nr">Diff</th><th class="nr">S/ Subtotal</th></tr></thead>
+            <tbody></tbody>
+            <tfoot id="tbl-caj-foot"></tfoot>
+          </table>
+        </div>
       </div>
     </div>
     <div class="v-totals">
       <div class="v-totals-title">Totales por tipo</div>
-      <div class="v-tot-grid">
-        <div class="v-tot-box"><div class="v-tot-val ylw" id="tot-bot-u">0</div><div class="v-tot-lbl">Total botellas</div></div>
-        <div class="v-tot-box"><div class="v-tot-val ylw" id="tot-bot-s">S/ 0.00</div><div class="v-tot-lbl">Botellas × 0.60</div></div>
-        <div class="v-tot-box"><div class="v-tot-val blu" id="tot-caj-u">0</div><div class="v-tot-lbl">Total cajas</div></div>
-        <div class="v-tot-box"><div class="v-tot-val blu" id="tot-caj-s">S/ 0.00</div><div class="v-tot-lbl">Cajas × 3.80</div></div>
+      <div class="v-calc-grid">
+        <div class="v-calc-row">
+          <div class="v-calc-label ylw">🍾 Botellas</div>
+          <div class="v-calc-expr">
+            <span class="v-calc-num" id="calc-bot-u">0</span>
+            <span class="v-calc-op">×</span>
+            <span class="v-calc-price">S/ 0.60</span>
+            <span class="v-calc-op">=</span>
+            <span class="v-calc-result ylw" id="calc-bot-s">S/ 0.00</span>
+          </div>
+        </div>
+        <div class="v-calc-row">
+          <div class="v-calc-label pur">🐟 Pirañitas</div>
+          <div class="v-calc-expr">
+            <span class="v-calc-num" id="calc-pir-u">0</span>
+            <span class="v-calc-op">×</span>
+            <span class="v-calc-price">S/ 0.50</span>
+            <span class="v-calc-op">=</span>
+            <span class="v-calc-result pur" id="calc-pir-s">S/ 0.00</span>
+          </div>
+        </div>
+        <div class="v-calc-row">
+          <div class="v-calc-label blu">📦 Cajas</div>
+          <div class="v-calc-expr">
+            <span class="v-calc-num" id="calc-caj-u">0</span>
+            <span class="v-calc-op">×</span>
+            <span class="v-calc-price">S/ 3.80</span>
+            <span class="v-calc-op">=</span>
+            <span class="v-calc-result blu" id="calc-caj-s">S/ 0.00</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="v-grand">
-      <div class="v-grand-label">TOTAL GENERAL (Botellas + Cajas)</div>
+      <div class="v-grand-label">Total General (Botellas + Pirañitas + Cajas)</div>
       <div class="v-grand-val" id="tot-general">S/ 0.00</div>
     </div>
   </div>
+
   <a class="dl" id="dl" href="#" download="liquidacion.xlsx">📥 Descargar Excel (.xlsx)</a>
 </div>
+</div><!-- fin #app -->
 <footer>Tu archivo nunca sale del navegador · Todo el procesamiento es local</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// USUARIOS AUTORIZADOS
+// Para agregar usuarios: { user:'nombre', pass:'clave', nombre:'Nombre completo', rol:'Cargo' }
+// ═══════════════════════════════════════════════════════
+const USUARIOS = [
+  { user:'admin',    pass:'bees2024',  nombre:'Administrador',          rol:'Supervisor' },
+  { user:'guillermo',pass:'centro123', nombre:'Guillermo',               rol:'Supervisor de Distribución' },
+  { user:'revisor',  pass:'rev2024',   nombre:'Revisor de Liquidaciones', rol:'Revisor' },
+];
+
+const loginScreen = document.getElementById('login-screen');
+const appDiv      = document.getElementById('app');
+const loginBtn    = document.getElementById('login-btn');
+const loginErr    = document.getElementById('login-err');
+const userInfoBar = document.getElementById('user-info-bar');
+const barUsername = document.getElementById('bar-username');
+const barRole     = document.getElementById('bar-role');
+const logoutBtn   = document.getElementById('logout-btn');
+
+function doLogin(){
+  const u = document.getElementById('login-user').value.trim().toLowerCase();
+  const p = document.getElementById('login-pass').value;
+  const found = USUARIOS.find(x=>x.user.toLowerCase()===u && x.pass===p);
+  if(found){
+    loginErr.classList.remove('show');
+    loginScreen.style.display='none';
+    appDiv.style.display='block';
+    barUsername.textContent = found.nombre;
+    barRole.textContent     = found.rol;
+    userInfoBar.classList.add('show');
+  } else {
+    loginErr.classList.add('show');
+    document.getElementById('login-pass').value='';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+loginBtn.addEventListener('click', doLogin);
+document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+
+logoutBtn.addEventListener('click',()=>{
+  appDiv.style.display='none';
+  loginScreen.style.display='flex';
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  userInfoBar.classList.remove('show');
+});
+</script>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -199,8 +451,10 @@ const dzEl=$('dz'),fiEl=$('fi'),finfoEl=$('finfo'),fnmEl=$('fnm'),fszEl=$('fsz')
 const rmEl=$('rm'),cvtEl=$('cvt'),pwEl=$('pw'),plblEl=$('plbl'),ppctEl=$('ppct');
 const pbEl=$('pb'),lwEl=$('lw'),dotEl=$('dot'),ltitEl=$('ltit'),lbEl=$('lb');
 const stEl=$('st'),secMeta=$('sec-meta'),mwEl=$('mw'),mtEl=$('mt');
-const secData=$('sec-data'),dwEl=$('dw'),dpcEl=$('dpc'),dtEl=$('dt'),dlEl=$('dl');
-const secVacios=$('sec-vacios'),vwEl=$('vw'),tblBot=$('tbl-bot'),tblCaj=$('tbl-caj');
+const secData=$('sec-data'),dwEl=$('dw'),dpcEl=$('dpc');
+const secDiff=$('sec-diff'),diffwEl=$('diffw');
+const secVacios=$('sec-vacios'),vwEl=$('vw');
+const dlEl=$('dl');
 
 const fmt=b=>b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB';
 function prog(p,l){pbEl.style.width=p+'%';ppctEl.textContent=Math.round(p)+'%';if(l)plblEl.textContent=l}
@@ -208,9 +462,9 @@ function log(m,t=''){const d=document.createElement('div');d.className='ll'+(t?'
   d.textContent=(t==='ok'?'✓ ':t==='er'?'✗ ':t==='in'?'→ ':'  ')+m;
   lbEl.appendChild(d);lbEl.scrollTop=lbEl.scrollHeight}
 function resetUI(){
-  [pwEl,lwEl,stEl,mwEl,dwEl,vwEl].forEach(e=>e.classList.remove('show'));
+  [pwEl,lwEl,stEl,mwEl,dwEl,diffwEl,vwEl].forEach(e=>e.classList.remove('show'));
   dlEl.classList.remove('show');
-  [secMeta,secData,secVacios].forEach(e=>e.classList.remove('show'));
+  [secMeta,secData,secDiff,secVacios].forEach(e=>e.classList.remove('show'));
   lbEl.innerHTML='';prog(0);
 }
 function handleFile(f){
@@ -222,258 +476,265 @@ fiEl.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.file
 dzEl.addEventListener('dragover',e=>{e.preventDefault();dzEl.classList.add('over')});
 dzEl.addEventListener('dragleave',()=>dzEl.classList.remove('over'));
 dzEl.addEventListener('drop',e=>{e.preventDefault();dzEl.classList.remove('over');handleFile(e.dataTransfer.files[0])});
-rmEl.addEventListener('click',()=>{PDF=null;fiEl.value='';finfoEl.classList.remove('show');
-  dzEl.style.display='';cvtEl.disabled=true;resetUI()});
+rmEl.addEventListener('click',()=>{PDF=null;fiEl.value='';finfoEl.classList.remove('show');dzEl.style.display='';cvtEl.disabled=true;resetUI()});
+
+function switchTab(tab){
+  ['prod','vac'].forEach(t=>{
+    $('tab-btn-'+t).classList.toggle('active',t===tab);
+    $('tab-'+t).classList.toggle('active',t===tab);
+  });
+}
 
 // ═══════════════════════════════════════════════════════
-// PASO 1: Extraer items RAW del PDF con coordenadas X,Y exactas
+// PASO 1: Extraer items RAW del PDF
 // ═══════════════════════════════════════════════════════
 async function extractItems(file){
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({data:buf}).promise;
   const total = pdf.numPages;
   log(`PDF cargado — ${total} página(s)`,'in');
-
-  const pageItems = []; // [{y, x, text}, ...]  por página
+  const pageItems=[];
   for(let pn=1;pn<=total;pn++){
     prog(10+(pn/total)*50,`Extrayendo página ${pn}/${total}…`);
-    const page = await pdf.getPage(pn);
-    const tc   = await page.getTextContent();
-    const items = tc.items
-      .map(it=>({y: it.transform[5], x: it.transform[4], text: it.str.trim()}))
-      .filter(it=>it.text!=='');
+    const page=await pdf.getPage(pn);
+    const tc=await page.getTextContent();
+    const items=tc.items.map(it=>({y:it.transform[5],x:it.transform[4],text:it.str.trim()})).filter(it=>it.text!=='');
     pageItems.push(items);
     log(`Pág ${pn}: ${items.length} items`,'ok');
   }
-  return {pageItems, totalPages: total};
+  return {pageItems,totalPages:total};
 }
 
 // ═══════════════════════════════════════════════════════
-// PASO 2: Agrupar items en "bloques lógicos" por proximidad Y
-//
-// El truco clave: en lugar de agrupar por Y exacto (que parte
-// "1068" y "/636" en filas distintas), usamos una ventana de
-// ±15pt para fusionar fragmentos del mismo registro visual.
-//
-// Algoritmo:
-//  1. Ordenar items por Y desc (arriba → abajo en pantalla)
-//  2. Abrir un "bloque" con el primer item
-//  3. Si el siguiente item está a ≤15pt de Y del bloque → fusionar
-//  4. Si está a >15pt → cerrar bloque y abrir uno nuevo
-//
-// Dentro de cada bloque, ordenamos por X (izquierda → derecha)
+// PASO 2: Agrupar items en bloques lógicos por Y (±15pt)
 // ═══════════════════════════════════════════════════════
-function groupIntoBlocks(items, yTolerance=15){
-  // Ordenar por Y descendente (PDF: Y=0 abajo; más alto Y = más arriba en pantalla)
-  const sorted = [...items].sort((a,b)=>b.y-a.y);
-  const blocks = [];
-  let cur = null;
-
+function groupIntoBlocks(items,yTolerance=15){
+  const sorted=[...items].sort((a,b)=>b.y-a.y);
+  const blocks=[];
+  let cur=null;
   for(const it of sorted){
-    if(!cur || Math.abs(cur.refY - it.y) > yTolerance){
-      // Nuevo bloque
-      cur = {refY: it.y, minY: it.y, maxY: it.y, items: [it]};
+    if(!cur||Math.abs(cur.refY-it.y)>yTolerance){
+      cur={refY:it.y,items:[it]};
       blocks.push(cur);
     } else {
       cur.items.push(it);
-      cur.minY = Math.min(cur.minY, it.y);
-      cur.maxY = Math.max(cur.maxY, it.y);
     }
   }
-
-  // Ordenar items dentro de cada bloque por X
-  return blocks.map(b=>({
-    y: b.refY,
-    texts: b.items.sort((a,b2)=>a.x-b2.x).map(it=>it.text)
-  }));
+  return blocks.map(b=>({y:b.refY,texts:b.items.sort((a,b)=>a.x-b.x).map(it=>it.text)}));
 }
 
 // ═══════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════
-const isCode  = s => /^\d{4,7}$/.test(s);
-// TRAE/PIDE: "0/0", "1068/636", "90/68", "0/252"
-// NO debe matchear fechas "26/06/2026" ni nombres "620/630/650ML"
-const isSlash = s => /^\d{1,5}\/\d{1,5}$/.test(s.trim());
-const isRightFrag = s => /^\/\d{1,5}$/.test(s.trim());   // "/636"
-const isLeftNum   = s => /^\d{1,5}$/.test(s.trim()) && parseInt(s)<100000;
-const isDiff  = s => /^Diff\.$/i.test(s.trim());
+const isCode      = s=>/^\d{4,7}$/.test(s);
+const isSlash     = s=>/^\d{1,5}\/\d{1,5}$/.test(s.trim());
+const isRightFrag = s=>/^\/\d{1,5}$/.test(s.trim());
+const isLeftNum   = s=>/^\d{1,5}$/.test(s.trim())&&parseInt(s)<100000;
+const isDiff      = s=>/^Diff\.$/i.test(s.trim());
+const isDate      = s=>/^\d{2}\/\d{2}\/\d{4}$/.test(s);
 
-const EXCL = [
-  /^acuerdo de liquidaci/i,
-  /inconsistencia/i,
-  /firma del (conductor|revisor)/i,
-  /^alexander/i,
-];
-const rowExcluded = texts => EXCL.some(p=>p.test(texts.join(' ')));
+const EXCL=[/^acuerdo de liquidaci/i,/inconsistencia/i,/firma del (conductor|revisor)/i,/^luis/i,/^alexander/i];
+const rowExcluded=texts=>EXCL.some(p=>p.test(texts.join(' ')));
 
-const META_L = [/nombre del conductor/i,/n[°º].*viaje/i,/placa del veh/i,/fecha de entrega/i,/fecha de revisi/i];
-const isMetaLabel = texts => META_L.filter(p=>p.test(texts.join(' '))).length>=2;
-const isMetaVal   = texts => texts.some(t=>/^R\d[A-Z]/i.test(t)) && texts.some(t=>/\d{2}\/\d{2}\/\d{4}/.test(t));
+const META_L=[/nombre del conductor/i,/n[°º].*viaje/i,/placa del veh/i,/fecha de entrega/i,/fecha de revisi/i];
+const isMetaLabel=texts=>META_L.filter(p=>p.test(texts.join(' '))).length>=2;
+// Detectar fila de valores: tiene código PE... y fechas (viaje puede empezar con cualquier letra)
+const isMetaVal=texts=>texts.some(t=>/^PE[A-Z]+-?\d*/i.test(t))&&texts.some(t=>isDate(t));
 
-const SECC_CHANGE = [
-  [/^vac[ií]os$/i,  'vacios'],
-  [/^bloqueados$/i, 'bloqueados'],
-  [/^activos$/i,    'activos'],
-  [/^productos$/i,  'productos'],
-];
+// Clasificar por nombre: BOTELLA, CAJA, BOT → vacío; resto → producto
+const isVacioName=name=>/botella|caja|\bBOT\b/i.test(name);
+
+const SECC_CHANGE=[[/^vac[ií]os$/i,'vacios'],[/^bloqueados$/i,'bloqueados'],[/^activos$/i,'activos'],[/^productos$/i,'productos']];
 
 // ═══════════════════════════════════════════════════════
-// PASO 3: Parsear bloques → productos + meta
+// PASO 3: Parsear bloques
 // ═══════════════════════════════════════════════════════
+// Extraer meta de pageItems raw con tolerancia pequeña (5pt)
+// para NO fusionar etiquetas(y=60) con valores(y=72)
+function extractMeta(pageItems){
+  const items = pageItems[0] || [];
+  const rowMap = {};
+  for(const it of items){
+    const yKey = Math.round(it.y / 5) * 5;
+    if(!rowMap[yKey]) rowMap[yKey] = [];
+    rowMap[yKey].push({x:it.x, text:it.text});
+  }
+  const ys = Object.keys(rowMap).map(Number).sort((a,b)=>b-a);
+  let labelRow=null, valueRow=null;
+  for(const y of ys){
+    const row = rowMap[y];
+    const joined = row.map(r=>r.text).join(' ');
+    if(!labelRow && /conductor/i.test(joined) && /viaje/i.test(joined) && /placa/i.test(joined)){
+      labelRow = row.sort((a,b)=>a.x-b.x);
+    }
+    if(!valueRow && row.some(r=>isDate(r.text)) && row.some(r=>/^PE/i.test(r.text))){
+      valueRow = row.sort((a,b)=>a.x-b.x);
+    }
+    if(labelRow && valueRow) break;
+  }
+  if(!labelRow || !valueRow) return [];
+  // Mapear cada valor a su grupo de palabras de etiqueta por X
+  const pairs=[];
+  for(let i=0;i<valueRow.length;i++){
+    const val=valueRow[i];
+    const xMin=i>0?(valueRow[i-1].x+val.x)/2:-Infinity;
+    const xMax=i<valueRow.length-1?(val.x+valueRow[i+1].x)/2:Infinity;
+    const words=labelRow.filter(l=>l.x>=xMin&&l.x<=xMax).map(l=>l.text);
+    if(words.length) pairs.push({label:words.join(' '),value:val.text});
+  }
+  return pairs;
+}
+
 function parseBlocks(blocks){
-  const metaLabels=[], metaValues=[], products=[];
+  const allProducts=[];
   let seccion='productos';
 
   for(const {texts} of blocks){
-    // Cambio de sección
-    const sc = SECC_CHANGE.find(([p])=>p.test(texts[0]||''));
-    if(sc && texts.length<=3){ seccion=sc[1]; continue; }
-
-    // Excluir
+    const sc=SECC_CHANGE.find(([p])=>p.test(texts[0]||''));
+    if(sc&&texts.length<=3){seccion=sc[1];continue;}
     if(rowExcluded(texts)) continue;
+    if(isMetaLabel(texts)) continue;
+    if(isMetaVal(texts)) continue;
 
-    // Meta
-    if(isMetaLabel(texts)){ if(!metaLabels.length) metaLabels.push(...texts); continue; }
-    if(isMetaVal(texts))   { if(!metaValues.length) metaValues.push(...texts); continue; }
-
-    // ── Parsear como producto ──
-    // Buscar índice del código (4-7 dígitos)
     let codeIdx=-1;
-    for(let k=0;k<texts.length;k++){
-      if(isCode(texts[k])){ codeIdx=k; break; }
-    }
+    for(let k=0;k<texts.length;k++){if(isCode(texts[k])){codeIdx=k;break;}}
     if(codeIdx<0) continue;
+    const name=texts.slice(0,codeIdx).join(' ').trim();
+    const code=texts[codeIdx];
+    if(!name) continue;
 
-    const name = texts.slice(0,codeIdx).join(' ').trim();
-    const code = texts[codeIdx];
-    if(!name) continue; // fila solo con números
+    const rest=texts.slice(codeIdx+1).filter(t=>!isDiff(t));
+    let trae=null,pide=null;
 
-    // Todo lo que viene DESPUÉS del código
-    const rest = texts.slice(codeIdx+1).filter(t=>!isDiff(t)); // ignorar "Diff."
-
-    let trae=null, pide=null;
-
-    // Estrategia: buscar en rest un valor TRAE/PIDE
-    // Caso A: celda "X/Y" directa → "0/0", "90/68", "0/252"
     for(const c of rest){
-      if(isSlash(c)){
-        const p=c.split('/');
-        trae=parseFloat(p[0]);
-        pide=parseFloat(p[1]);
-        break;
-      }
+      if(isSlash(c)){const p=c.split('/');trae=parseFloat(p[0]);pide=parseFloat(p[1]);break;}
     }
-
-    // Caso B: el bloque ya fusionó "1068" + "/636" en texts
-    // porque están a ≤15pt de Y. Buscamos número suelto + /NNN
     if(trae===null){
       for(let k=0;k<rest.length;k++){
         if(isRightFrag(rest[k])){
-          // buscar número izquierdo antes en rest
-          let leftVal=null;
           for(let j=k-1;j>=0;j--){
-            if(isLeftNum(rest[j])){ leftVal=parseFloat(rest[j]); break; }
+            if(isLeftNum(rest[j])){trae=parseFloat(rest[j]);pide=parseFloat(rest[k].replace('/',''));break;}
           }
-          if(leftVal!==null){
-            trae=leftVal;
-            pide=parseFloat(rest[k].replace('/',''));
-            break;
-          }
+          if(trae!==null) break;
         }
       }
     }
+    if(trae===null){for(const c of rest){if(isLeftNum(c)){trae=parseFloat(c);break;}}}
+    if(trae===null) continue;
 
-    // Caso C: número izquierdo suelto en rest sin /NNN aún
-    // (puede que /NNN haya quedado en otro bloque si Y>15pt)
-    // En ese caso lo guardamos con flag y lo completamos si aparece
-    if(trae===null){
-      for(const c of rest){
-        if(isLeftNum(c)){ trae=parseFloat(c); break; }
-      }
-    }
-
-    if(trae===null) continue; // sin datos numéricos
-
-    const diff = pide!==null ? (trae-pide) : null;
-    products.push({name,code,trae,pide,diff,seccion,_needsPide: pide===null});
+    const diff=pide!==null?(trae-pide):null;
+    const tipo=isVacioName(name)?'vacios':'productos';
+    allProducts.push({name,code,trae,pide,diff,seccion:tipo});
   }
 
-  // Segundo paso: completar productos con _needsPide
-  // buscando bloques que sean solo "/NNN" y asignándolos al producto anterior
-  // (ya manejado dentro del groupIntoBlocks con yTolerance=15,
-  //  pero si aún quedan huérfanos, los ignoramos — en tu PDF el tolerance=15 los captura)
-
-  const metaPairs=[];
-  for(let k=0;k<metaLabels.length;k++){
-    if(metaLabels[k]) metaPairs.push({label:metaLabels[k],value:metaValues[k]||''});
-  }
-  return {metaPairs,products};
+  const products=allProducts.filter(p=>p.seccion==='productos');
+  const vacios  =allProducts.filter(p=>p.seccion==='vacios');
+  return {products,vacios};
 }
 
 // ═══════════════════════════════════════════════════════
-// VACÍOS
+// CALCULAR VACÍOS
 // ═══════════════════════════════════════════════════════
-const PRECIO_BOT=0.60, PRECIO_CAJ=3.80;
-function calcularVacios(products){
-  const vacios  = products.filter(p=>p.seccion==='vacios');
-  const bots    = vacios.filter(p=>/^botella/i.test(p.name.trim()));
-  const cajas   = vacios.filter(p=>/^caja/i.test(p.name.trim()));
-  const enrich  = (list,precio)=>list.map(p=>({...p,cantidad:p.diff??0,subtotal:+((p.diff??0)*precio).toFixed(2)}));
-  const b=enrich(bots,PRECIO_BOT), c=enrich(cajas,PRECIO_CAJ);
-  const totBotU=b.reduce((s,p)=>s+p.cantidad,0);
-  const totBotS=+(totBotU*PRECIO_BOT).toFixed(2);
-  const totCajU=c.reduce((s,p)=>s+p.cantidad,0);
-  const totCajS=+(totCajU*PRECIO_CAJ).toFixed(2);
-  return {bots:b,cajas:c,totBotU,totBotS,totCajU,totCajS,total:+(totBotS+totCajS).toFixed(2)};
+const P_BOT=0.60,P_PIR=0.50,P_CAJ=3.80;
+
+function calcularVacios(vacios){
+  const botList=vacios.filter(p=>/^botella/i.test(p.name.trim()));
+  const pirList=vacios.filter(p=>/\bBOT\b/i.test(p.name)&&!/^botella/i.test(p.name.trim()));
+  const cajList=vacios.filter(p=>/^caja/i.test(p.name.trim()));
+
+  const enrich=(list,precio,tag)=>list.map(p=>({
+    ...p,
+    cantidad:p.diff!==null?p.diff:0,
+    subtotal:+((p.diff!==null?p.diff:0)*precio).toFixed(2),
+    tag
+  }));
+
+  const bots=enrich(botList,P_BOT,'bot');
+  const pirs=enrich(pirList,P_PIR,'pir');
+  const cajs=enrich(cajList,P_CAJ,'caj');
+  const botTable=[...bots,...pirs];
+
+  const totBotU=bots.reduce((s,p)=>s+p.cantidad,0);
+  const totBotS=+bots.reduce((s,p)=>s+p.subtotal,0).toFixed(2);
+  const totPirU=pirs.reduce((s,p)=>s+p.cantidad,0);
+  const totPirS=+pirs.reduce((s,p)=>s+p.subtotal,0).toFixed(2);
+  const totCajU=cajs.reduce((s,p)=>s+p.cantidad,0);
+  const totCajS=+cajs.reduce((s,p)=>s+p.subtotal,0).toFixed(2);
+  const totalGeneral=+(totBotS+totPirS+totCajS).toFixed(2);
+
+  return{botTable,cajs,totBotU,totBotS,totPirU,totPirS,totCajU,totCajS,totalGeneral};
 }
 
 // ═══════════════════════════════════════════════════════
-// BUILD XLSX
+// BUILD XLSX — 5 hojas
 // ═══════════════════════════════════════════════════════
-function buildXLSX(metaPairs,products,vacios){
+function buildXLSX(metaPairs,products,vacios,resumen){
   const wb=XLSX.utils.book_new();
-  // Hoja 1
-  const h1=['PRODUCTO','CÓDIGO','TRAE','PIDE','DIFERENCIA'];
-  const r1=products.map(p=>[p.name,p.code,p.trae,p.pide??'',p.diff??'']);
-  const ws1=XLSX.utils.aoa_to_sheet([h1,...r1]);
+  const H=['PRODUCTO','CÓDIGO','TRAE','PIDE','DIFERENCIA'];
+  const fmtD=p=>(p.diff!==null?(p.diff>0?'+':'')+p.diff:'');
+
+  // Hoja 1: Productos
+  const ws1=XLSX.utils.aoa_to_sheet([H,...products.map(p=>[p.name,p.code,p.trae,p.pide??'',fmtD(p)])]);
   ws1['!cols']=[{wch:42},{wch:12},{wch:9},{wch:9},{wch:16}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Liquidacion');
-  // Hoja 2
+  XLSX.utils.book_append_sheet(wb,ws1,'Productos');
+
+  // Hoja 2: Vacíos
+  const ws2=XLSX.utils.aoa_to_sheet([H,...vacios.map(p=>[p.name,p.code,p.trae,p.pide??'',fmtD(p)])]);
+  ws2['!cols']=[{wch:42},{wch:12},{wch:9},{wch:9},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Vacios');
+
+  // Hoja 3: Info documento
   if(metaPairs.length){
-    const ws2=XLSX.utils.aoa_to_sheet(metaPairs.map(p=>[p.label,p.value]));
-    ws2['!cols']=[{wch:38},{wch:28}];
-    XLSX.utils.book_append_sheet(wb,ws2,'Info_Documento');
+    const ws3=XLSX.utils.aoa_to_sheet(metaPairs.map(p=>[p.label,p.value]));
+    ws3['!cols']=[{wch:38},{wch:28}];
+    XLSX.utils.book_append_sheet(wb,ws3,'Info_Documento');
   }
-  // Hoja 3
-  const vr=[];
-  vr.push(['RESUMEN DE VACÍOS']);
-  vr.push(['']);
-  vr.push(['BOTELLAS × S/ 0.60']);
-  vr.push(['Producto','Código','Diferencia','S/ Subtotal']);
-  vacios.bots.forEach(p=>vr.push([p.name,p.code,p.cantidad,p.subtotal]));
-  vr.push(['TOTAL BOTELLAS','',vacios.totBotU,vacios.totBotS]);
-  vr.push(['']);
-  vr.push(['CAJAS × S/ 3.80']);
-  vr.push(['Producto','Código','Diferencia','S/ Subtotal']);
-  vacios.cajas.forEach(p=>vr.push([p.name,p.code,p.cantidad,p.subtotal]));
-  vr.push(['TOTAL CAJAS','',vacios.totCajU,vacios.totCajS]);
-  vr.push(['']);
-  vr.push(['TOTAL GENERAL (Botellas + Cajas)','','',vacios.total]);
-  const ws3=XLSX.utils.aoa_to_sheet(vr);
-  ws3['!cols']=[{wch:42},{wch:12},{wch:12},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws3,'Resumen_Vacios');
+
+  // Hoja 4: Diferencias ≠ 0
+  const pd=products.filter(p=>p.diff!==null&&p.diff!==0);
+  const vd=vacios.filter(p=>p.diff!==null&&p.diff!==0);
+  const dr=[['PRODUCTOS CON DIFERENCIA ≠ 0','','','',''],H,...pd.map(p=>[p.name,p.code,p.trae,p.pide??'',fmtD(p)]),
+            [''],['VACÍOS CON DIFERENCIA ≠ 0','','','',''],H,...vd.map(p=>[p.name,p.code,p.trae,p.pide??'',fmtD(p)])];
+  const ws4=XLSX.utils.aoa_to_sheet(dr);
+  ws4['!cols']=[{wch:42},{wch:12},{wch:9},{wch:9},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws4,'Diferencias');
+
+  // Hoja 5: Resumen Vacíos
+  const{botTable,cajs,totBotU,totBotS,totPirU,totPirS,totCajU,totCajS,totalGeneral}=resumen;
+  const botsNorm=botTable.filter(p=>p.tag==='bot');
+  const pirsNorm=botTable.filter(p=>p.tag==='pir');
+  const vr=[
+    ['RESUMEN DE VACÍOS','','',''],[''],
+    ['BOTELLAS (× S/ 0.60)','','',''],['Producto','Código','Diferencia','S/ Subtotal'],
+    ...botsNorm.map(p=>[p.name,p.code,p.cantidad,p.subtotal]),
+    ['TOTAL BOTELLAS','',totBotU,totBotS],[''],
+    ['PIRAÑITAS (× S/ 0.50)','','',''],['Producto','Código','Diferencia','S/ Subtotal'],
+    ...pirsNorm.map(p=>[p.name,p.code,p.cantidad,p.subtotal]),
+    ['TOTAL PIRAÑITAS','',totPirU,totPirS],[''],
+    ['CAJAS (× S/ 3.80)','','',''],['Producto','Código','Diferencia','S/ Subtotal'],
+    ...cajs.map(p=>[p.name,p.code,p.cantidad,p.subtotal]),
+    ['TOTAL CAJAS','',totCajU,totCajS],[''],
+    ['TOTAL GENERAL','','',totalGeneral]
+  ];
+  const ws5=XLSX.utils.aoa_to_sheet(vr);
+  ws5['!cols']=[{wch:42},{wch:12},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws5,'Resumen_Vacios');
+
   const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
   return new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 
 // ═══════════════════════════════════════════════════════
-// RENDER META
+// RENDER HELPERS
 // ═══════════════════════════════════════════════════════
+const fmtU=n=>(n>0?'+':n<0?'':'')+n;
+const clsU=n=>n>0?'pos':n<0?'neg':'zer';
+const fmtS=(n,el)=>{if(!el)return;el.textContent='S/ '+n.toFixed(2);el.style.color=n<0?'var(--red)':'';}
+
 function renderMeta(metaPairs){
   mtEl.innerHTML='';
   const tb=document.createElement('tbody');
-  for(const {label,value} of metaPairs){
+  for(const{label,value}of metaPairs){
     const tr=document.createElement('tr');
     const th=document.createElement('th');th.textContent=label;
     const td=document.createElement('td');td.textContent=value;
@@ -482,58 +743,85 @@ function renderMeta(metaPairs){
   mtEl.appendChild(tb);
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER PREVIEW
-// ═══════════════════════════════════════════════════════
-function renderPreview(products){
-  dtEl.innerHTML='';
+function buildTable(tblEl,rows,emptyMsg='Sin datos'){
+  tblEl.innerHTML='';
   const HEADS=[['PRODUCTO',''],['CÓDIGO',''],['TRAE','ht'],['PIDE','hp'],['DIFERENCIA','hd']];
   const thead=document.createElement('thead');
   const trh=document.createElement('tr');
-  HEADS.forEach(([h,c])=>{const th=document.createElement('th');th.textContent=h;if(c)th.classList.add(c);trh.appendChild(th)});
-  thead.appendChild(trh);dtEl.appendChild(thead);
-  const tb=document.createElement('tbody');
-  products.forEach(p=>{
+  HEADS.forEach(([h,cls])=>{const th=document.createElement('th');th.textContent=h;if(cls)th.classList.add(cls);trh.appendChild(th);});
+  thead.appendChild(trh);tblEl.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  if(!rows.length){
     const tr=document.createElement('tr');
-    const vals=[p.name,p.code,p.trae,p.pide??'—',p.diff??'—'];
-    vals.forEach((v,i)=>{
-      const td=document.createElement('td');td.textContent=v;
-      if(i>=2) td.classList.add('nr');
-      if(i===4){const n=parseFloat(v);if(!isNaN(n)){td.classList.add(n>0?'pos':n<0?'neg':'zer')}}
-      tr.appendChild(td);
+    const td=document.createElement('td');td.colSpan=5;td.textContent=emptyMsg;
+    td.style.cssText='color:var(--mut);padding:12px;text-align:center';tr.appendChild(td);tbody.appendChild(tr);
+  } else {
+    rows.forEach(p=>{
+      const tr=document.createElement('tr');
+      const diffTxt=p.diff!==null?(p.diff>0?'+':'')+p.diff:'—';
+      [p.name,p.code,p.trae??'—',p.pide??'—',diffTxt].forEach((v,i)=>{
+        const td=document.createElement('td');td.textContent=v;
+        if(i>=2)td.classList.add('nr');
+        if(i===4){const n=parseFloat(v);if(!isNaN(n))td.classList.add(n>0?'pos':n<0?'neg':'zer');}
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
     });
-    tb.appendChild(tr);
-  });
-  dtEl.appendChild(tb);
-  dpcEl.textContent=`${products.length} productos`;
+  }
+  tblEl.appendChild(tbody);
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER VACÍOS
-// ═══════════════════════════════════════════════════════
-function renderVacios(v){
-  function fill(tbl,items){
-    const tb=tbl.querySelector('tbody');tb.innerHTML='';
+function renderVacios(resumen){
+  const{botTable,cajs,totBotU,totBotS,totPirU,totPirS,totCajU,totCajS,totalGeneral}=resumen;
+
+  function fillVacTable(tblEl,footEl,items,totU,totS,color){
+    const tbody=tblEl.querySelector('tbody');tbody.innerHTML='';
     if(!items.length){
       const tr=document.createElement('tr');
       const td=document.createElement('td');td.colSpan=3;td.textContent='Sin registros';
-      td.style.cssText='color:var(--mut);padding:8px';tr.appendChild(td);tb.appendChild(tr);return;
+      td.style.cssText='color:var(--mut);padding:8px';tr.appendChild(td);tbody.appendChild(tr);
+    } else {
+      items.forEach(p=>{
+        const tr=document.createElement('tr');
+        const td0=document.createElement('td');td0.textContent=p.name;td0.title=p.name;
+        if(p.tag==='pir'){const b=document.createElement('span');b.className='badge-pir';b.textContent='pirañita';td0.appendChild(b);}
+        tr.appendChild(td0);
+        const td1=document.createElement('td');td1.classList.add('nr');
+        td1.textContent=fmtU(p.cantidad);td1.classList.add(clsU(p.cantidad));tr.appendChild(td1);
+        const td2=document.createElement('td');td2.classList.add('nr');
+        td2.textContent='S/ '+p.subtotal.toFixed(2);
+        td2.style.color=p.subtotal<0?'var(--red)':'';tr.appendChild(td2);
+        tbody.appendChild(tr);
+      });
     }
-    items.forEach(p=>{
-      const tr=document.createElement('tr');
-      const td0=document.createElement('td');td0.textContent=p.name;td0.title=p.name;tr.appendChild(td0);
-      const td1=document.createElement('td');td1.classList.add('nr');td1.textContent=p.cantidad;
-      td1.classList.add(p.cantidad>0?'pos':p.cantidad<0?'neg':'zer');tr.appendChild(td1);
-      const td2=document.createElement('td');td2.classList.add('nr');td2.textContent='S/ '+p.subtotal.toFixed(2);tr.appendChild(td2);
-      tb.appendChild(tr);
-    });
+    // Pie de tabla
+    footEl.innerHTML='';
+    const tr=document.createElement('tr');
+    const tl=document.createElement('td');tl.style.fontWeight='700';tl.style.color='var(--txt)';tl.textContent='TOTAL';tr.appendChild(tl);
+    const tu=document.createElement('td');tu.classList.add('nr');tu.style.fontWeight='700';
+    tu.textContent=fmtU(totU);tu.classList.add(clsU(totU));tr.appendChild(tu);
+    const ts=document.createElement('td');ts.classList.add('nr');ts.style.fontWeight='700';
+    ts.style.color=totS<0?'var(--red)':'var(--'+color+')';ts.textContent='S/ '+totS.toFixed(2);tr.appendChild(ts);
+    footEl.appendChild(tr);
   }
-  fill(tblBot,v.bots);fill(tblCaj,v.cajas);
-  $('tot-bot-u').textContent=v.totBotU;
-  $('tot-bot-s').textContent='S/ '+v.totBotS.toFixed(2);
-  $('tot-caj-u').textContent=v.totCajU;
-  $('tot-caj-s').textContent='S/ '+v.totCajS.toFixed(2);
-  $('tot-general').textContent='S/ '+v.total.toFixed(2);
+
+  const totBotCombU=totBotU+totPirU;
+  const totBotCombS=+(totBotS+totPirS).toFixed(2);
+  fillVacTable($('tbl-bot'),$('tbl-bot-foot'),botTable,totBotCombU,totBotCombS,'ylw');
+  fillVacTable($('tbl-caj'),$('tbl-caj-foot'),cajs,totCajU,totCajS,'blue');
+
+  // Grilla de multiplicación con signos
+  const setCalcU=(id,val)=>{const el=$(id);if(!el)return;el.textContent=fmtU(val);el.className='v-calc-num '+clsU(val);};
+  setCalcU('calc-bot-u',totBotU);
+  setCalcU('calc-pir-u',totPirU);
+  setCalcU('calc-caj-u',totCajU);
+  fmtS(totBotS,$('calc-bot-s'));
+  fmtS(totPirS,$('calc-pir-s'));
+  fmtS(totCajS,$('calc-caj-s'));
+
+  const tg=$('tot-general');
+  tg.textContent='S/ '+totalGeneral.toFixed(2);
+  tg.style.cssText=totalGeneral<0?'color:var(--red)':'';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -543,8 +831,8 @@ cvtEl.addEventListener('click',async()=>{
   if(!PDF) return;
   cvtEl.disabled=true;
   pwEl.classList.add('show');lwEl.classList.add('show');
-  [stEl,mwEl,dwEl,vwEl,dlEl].forEach(e=>e.classList.remove('show'));
-  [secMeta,secData,secVacios].forEach(e=>e.classList.remove('show'));
+  [stEl,mwEl,dwEl,diffwEl,vwEl,dlEl].forEach(e=>e.classList.remove('show'));
+  [secMeta,secData,secDiff,secVacios].forEach(e=>e.classList.remove('show'));
   lbEl.innerHTML='';dotEl.className='dot';ltitEl.textContent='Procesando';prog(5,'Iniciando…');
 
   try{
@@ -552,42 +840,63 @@ cvtEl.addEventListener('click',async()=>{
     const {pageItems,totalPages}=await extractItems(PDF);
 
     prog(65,'Agrupando fragmentos…');
-    // Agrupar cada página con yTolerance=15pt para fusionar "1068" + "/636"
     const allBlocks=pageItems.flatMap(items=>groupIntoBlocks(items,15));
     log(`Bloques lógicos: ${allBlocks.length}`,'in');
 
-    prog(75,'Parseando productos…');
-    const {metaPairs,products}=parseBlocks(allBlocks);
-    log(`Productos: ${products.length}`,'in');
+    prog(72,'Extrayendo información del documento…');
+    const metaPairs=extractMeta(pageItems);
+    log(`Meta: ${metaPairs.length} campos — Placa: ${metaPairs.find(p=>/placa/i.test(p.label))?.value||'no detectada'}`,'in');
 
-    if(!products.length){
+    prog(75,'Parseando productos…');
+    const {products,vacios}=parseBlocks(allBlocks);
+    log(`Productos: ${products.length} | Vacíos: ${vacios.length}`,'in');
+    log(`Meta: ${metaPairs.length} campos — Placa: ${metaPairs.find(p=>/placa/i.test(p.label))?.value||'no detectada'}`,'in');
+
+    if(!products.length&&!vacios.length){
       log('Sin productos detectados.','er');
       dotEl.className='dot err';ltitEl.textContent='Sin datos';
       prog(100);cvtEl.disabled=false;return;
     }
 
     prog(86,'Calculando vacíos…');
-    const vacios=calcularVacios(products);
-    log(`Botellas vacíos: ${vacios.bots.length} | Cajas vacíos: ${vacios.cajas.length}`,'in');
+    const resumen=calcularVacios(vacios);
+    log(`Botellas: ${resumen.botTable.filter(p=>p.tag==='bot').length} | Pirañitas: ${resumen.botTable.filter(p=>p.tag==='pir').length} | Cajas: ${resumen.cajs.length}`,'in');
 
     prog(92,'Generando Excel…');
-    const blob=buildXLSX(metaPairs,products,vacios);
-    log('3 hojas generadas: Liquidacion, Info_Documento, Resumen_Vacios','ok');
+    const blob=buildXLSX(metaPairs,products,vacios,resumen);
+    log('5 hojas: Productos, Vacios, Info_Documento, Diferencias, Resumen_Vacios','ok');
 
     prog(97,'Preparando descarga…');
     dlEl.href=URL.createObjectURL(blob);
     dlEl.download=PDF.name.replace(/\.pdf$/i,'')+'.xlsx';
     dlEl.classList.add('show');
 
-    $('spg').textContent=totalPages;
+    // Stats
+    const placaPair=metaPairs.find(p=>/placa/i.test(p.label));
+    $('spg').textContent=placaPair?.value||'—';
     $('spr').textContent=products.length;
-    $('sdi').textContent=products.filter(p=>p.diff&&p.diff!==0).length;
-    $('scl').textContent=5;
+    $('svac').textContent=vacios.length;
+    $('sdi').textContent=[...products,...vacios].filter(p=>p.diff!==null&&p.diff!==0).length;
     stEl.classList.add('show');
 
-    if(metaPairs.length){renderMeta(metaPairs);secMeta.classList.add('show');mwEl.classList.add('show')}
-    renderPreview(products);secData.classList.add('show');dwEl.classList.add('show');
-    renderVacios(vacios);secVacios.classList.add('show');vwEl.classList.add('show');
+    // Meta
+    renderMeta(metaPairs);
+    secMeta.classList.add('show');mwEl.classList.add('show');
+
+    // Preview tabs
+    buildTable($('dt-prod'),products,'Sin productos');
+    buildTable($('dt-vac'),vacios,'Sin vacíos');
+    dpcEl.textContent=`${products.length} productos · ${vacios.length} vacíos`;
+    secData.classList.add('show');dwEl.classList.add('show');
+
+    // Diferencias
+    buildTable($('diff-prod'),products.filter(p=>p.diff!==null&&p.diff!==0),'Sin diferencias');
+    buildTable($('diff-vac'),vacios.filter(p=>p.diff!==null&&p.diff!==0),'Sin diferencias');
+    secDiff.classList.add('show');diffwEl.classList.add('show');
+
+    // Resumen vacíos
+    renderVacios(resumen);
+    secVacios.classList.add('show');vwEl.classList.add('show');
 
     prog(100,'¡Conversión completada!');
     log('Excel listo para descargar.','ok');
