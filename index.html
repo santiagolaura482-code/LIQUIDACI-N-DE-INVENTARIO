@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>CONTROLES JRGRODVAL</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -263,27 +265,91 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 .mk-empty td{text-align:center;color:var(--mut);padding:40px;font-style:italic}
 .mk-table tfoot td{padding:8px 12px;font-weight:700;border-top:2px solid var(--grn);color:var(--grn);font-size:11px}
 footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
+
+/* ── RESPONSIVE MÓVIL ──────────────────────────────────────── */
+@media (max-width: 700px){
+  body{padding:16px 10px 40px}
+  /* Login */
+  .login-box{padding:28px 20px}
+  .login-title{font-size:14px}
+  /* Welcome */
+  .welcome-title{font-size:17px}
+  .modules-grid{grid-template-columns:1fr}
+  .module-card{padding:20px 16px}
+  /* Topbar */
+  .app-topbar{flex-wrap:wrap;gap:8px;padding:8px 12px}
+  .app-topbar-info{order:3;width:100%;text-align:left;font-size:11px}
+  .back-btn{font-size:11px;padding:5px 10px}
+  /* Cards */
+  .card,.mk-card,.a-card{border-radius:10px}
+  /* Stats */
+  .st{grid-template-columns:repeat(2,1fr)}
+  .mk-stats{grid-template-columns:repeat(2,1fr)}
+  /* Tablas generales */
+  .ts{max-height:280px}
+  table.dt td,table.dt th{padding:6px 6px;font-size:10.5px}
+  .diff-grid{grid-template-columns:1fr}
+  .v-grid{grid-template-columns:1fr}
+  /* Vacíos */
+  .v-calc-expr{grid-template-columns:50px 14px 55px 14px 75px;font-size:11px}
+  .v-grand{flex-direction:column;gap:8px;text-align:center}
+  .v-grand-val{font-size:20px}
+  /* Asistencias */
+  .a-form{grid-template-columns:1fr}
+  .a-field.full{grid-column:1}
+  .a-toolbar{flex-wrap:wrap}
+  .a-table thead th:nth-child(n+5){display:none}
+  .a-table tbody td:nth-child(n+5){display:none}
+  /* Marcajes filtros */
+  .mk-table thead th:nth-child(3){display:none}
+  .mk-table tbody td:nth-child(3){display:none}
+  /* Botones toolbar */
+  .mk-toolbar{flex-wrap:wrap;gap:6px}
+  .mk-btn{font-size:11px;padding:6px 10px}
+  /* Desplan iframe */
+  #desplan-frame{min-height:70vh}
+  /* Liquidación */
+  .dz{padding:24px 16px}
+  .dz-icon{font-size:28px}
+  .cvt{font-size:13px;padding:12px}
+}
+@media (max-width: 400px){
+  .st{grid-template-columns:repeat(2,1fr)}
+  .mk-stats{grid-template-columns:repeat(2,1fr)}
+  .welcome-title{font-size:15px}
+  .module-name{font-size:14px}
+}
+/* Evitar zoom en inputs iOS */
+input, select, textarea{font-size:16px !important}
+@media (min-width:701px){
+  input, select, textarea{font-size:inherit !important}
+}
+/* Viewport meta ya está en head — agregar también para escritorio request */
+
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-box">
+  <form class="login-box" action="#" onsubmit="window.doLogin();return false;" autocomplete="on">
     <div class="login-logo"><div class="login-logo-icon">🍺</div><span class="login-title">CONTROLES JRGRODVAL</span></div>
     <p class="login-sub">Ingresa tus credenciales para acceder al sistema</p>
-    <div class="login-field"><label>Usuario</label><input type="text" id="login-user" placeholder="Tu usuario" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()"></div>
-    <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')window.doLogin()"></div>
-    <button class="login-btn" onclick="window.doLogin()">Ingresar</button>
+    <div class="login-field"><label>Usuario</label><input type="text" id="login-user" name="username" placeholder="Tu usuario" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()"></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" name="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')window.doLogin()"></div>
+    <button class="login-btn" type="submit">Ingresar</button>
     <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
-  </div>
+  </form>
 </div>
 
 <!-- WELCOME -->
 <div id="welcome-screen">
   <div class="welcome-header">
     <div><div class="welcome-title">Bienvenido, <span id="wel-name">—</span></div><div class="welcome-role" id="wel-role">—</div></div>
-    <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+    <div style="display:flex;gap:8px">
+      <button class="logout-btn" onclick="guardarTodo()" style="border-color:rgba(34,217,142,.4);color:var(--grn)">💾 Guardar</button>
+      <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+    </div>
   </div>
   <div class="welcome-sub">Selecciona el módulo al que deseas acceder</div>
   <div class="modules-grid">
@@ -459,6 +525,8 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
       <button class="mk-btn mk-btn-grn" onclick="mkCopyTable()">📋 Copiar</button>
       <button class="mk-btn mk-btn-grn" onclick="mkExport()">📥 Excel</button>
       <button class="mk-btn" onclick="mkPrint()" style="color:var(--ylw);border-color:rgba(247,196,79,.4);background:rgba(247,196,79,.08)">🖨️ Imprimir</button>
+      <button class="mk-btn" id="mk-cloud-btn" onclick="mkCloudSave()" style="color:var(--pur);border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.08)">☁️ Guardar nube</button>
+      <button class="mk-btn" id="mk-cloud-load-btn" onclick="mkCloudLoad()" style="color:var(--blue);border-color:rgba(79,142,247,.4);background:rgba(79,142,247,.08)">☁️ Cargar nube</button>
     </div>
     <div class="mk-table-wrap">
       <table class="mk-table">
@@ -488,84 +556,120 @@ const USUARIOS = [
 ];
 
 var currentUser = null;
-var currentScreen = 'login'; // login | welcome | app | app2 | app3 | app4
+var currentScreen = 'login';
 
-// ── Persistencia de sesión en localStorage ────────────────────
-// Solo aplica al dispositivo actual — cada dispositivo tiene su propio localStorage
+// ── PERSISTENCIA DE SESIÓN ────────────────────────────────────
 function sesionGuardar(user, screen){
-  try{
-    localStorage.setItem('jrg_user',   JSON.stringify(user));
-    localStorage.setItem('jrg_screen', screen || 'welcome');
-  }catch(e){}
+  try{ localStorage.setItem('jrg_user', JSON.stringify(user)); localStorage.setItem('jrg_screen', screen||'welcome'); }catch(e){}
 }
 function sesionLimpiar(){
-  try{
-    localStorage.removeItem('jrg_user');
-    localStorage.removeItem('jrg_screen');
-  }catch(e){}
+  try{ localStorage.removeItem('jrg_user'); localStorage.removeItem('jrg_screen'); }catch(e){}
 }
 function sesionCargar(){
-  try{
-    var u = localStorage.getItem('jrg_user');
-    var s = localStorage.getItem('jrg_screen');
-    if(u){ return { user: JSON.parse(u), screen: s || 'welcome' }; }
-  }catch(e){}
+  try{ var u=localStorage.getItem('jrg_user'); if(u) return {user:JSON.parse(u), screen:localStorage.getItem('jrg_screen')||'welcome'}; }catch(e){}
   return null;
 }
 
-// ── Manejo del historial para el botón atrás ─────────────────
-// Cada vez que navegamos a una pantalla, empujamos un estado.
-// Al presionar atrás, popstate nos devuelve al estado anterior
-// en lugar de cerrar la sesión o salir de la app.
-function pushHistory(screen){
-  history.pushState({ screen: screen }, '', '');
+// ── GUARDAR ARCHIVO EXCEL (todos los módulos que tengan datos) ─
+function guardarTodo(){
+  try{
+    // Asistencias → guardar en localStorage ya lo hace automáticamente
+    // Marcajes/Desplan → guardar referencia del último archivo cargado
+    // Crear un Excel resumen con los datos de asistencias
+    if(typeof ASIST_RECORDS !== 'undefined' && ASIST_RECORDS.length){
+      var wb=XLSX.utils.book_new();
+      var data=[['#','Documento','Nombres y Apellidos','Ruta','Placa','Cargo','Fecha','Hora']];
+      ASIST_RECORDS.forEach(function(r,i){ data.push([i+1,r.documento,r.nombre,r.ruta,r.placa,r.cargo,r.fecha,r.hora]); });
+      var ws=XLSX.utils.aoa_to_sheet(data);
+      ws['!cols']=[{wch:5},{wch:14},{wch:32},{wch:12},{wch:10},{wch:14},{wch:12},{wch:8}];
+      XLSX.utils.book_append_sheet(wb,ws,'Asistencias');
+      // Marcajes si hay datos
+      if(typeof MK_DATA !== 'undefined' && MK_DATA.length){
+        var data2=[['#','Ruta','IDCli','Nombre Cliente','Orden de Compra']];
+        MK_DATA.forEach(function(r,i){ data2.push([i+1,r.ruta,r.idcli,r.nombre,r.oc]); });
+        var ws2=XLSX.utils.aoa_to_sheet(data2);
+        ws2['!cols']=[{wch:5},{wch:10},{wch:12},{wch:36},{wch:22}];
+        XLSX.utils.book_append_sheet(wb,ws2,'Marcajes ZPP5');
+      }
+      XLSX.writeFile(wb,'CONTROLES_JRGRODVAL_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    } else if(typeof MK_DATA !== 'undefined' && MK_DATA.length){
+      var wb=XLSX.utils.book_new();
+      var data=[['#','Ruta','IDCli','Nombre Cliente','Orden de Compra']];
+      MK_DATA.forEach(function(r,i){ data.push([i+1,r.ruta,r.idcli,r.nombre,r.oc]); });
+      var ws=XLSX.utils.aoa_to_sheet(data);
+      ws['!cols']=[{wch:5},{wch:10},{wch:12},{wch:36},{wch:22}];
+      XLSX.utils.book_append_sheet(wb,ws,'Marcajes ZPP5');
+      XLSX.writeFile(wb,'CONTROLES_JRGRODVAL_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    } else {
+      alert('No hay datos para guardar.');
+      return;
+    }
+    alert('✅ Datos guardados correctamente.');
+  }catch(e){ alert('Error al guardar: '+e.message); }
 }
 
-window.addEventListener('popstate', function(e){
-  // El usuario presionó "atrás" en el teléfono
-  var state = e.state;
-  var target = state ? state.screen : 'welcome';
+// ── PERSISTIR EXCEL DE BREXIMAR EN INDEXEDDB ─────────────────
+// Compartido entre Desplanificación y Marcajes
+var BRX_DB_NAME='breximar_excel_db', BRX_DB_VER=1, BRX_STORE='excel';
 
-  // Si estamos en una app, volver al menú
-  if(currentScreen === 'app'  || currentScreen === 'app2' ||
-     currentScreen === 'app3' || currentScreen === 'app4'){
-    // No cerramos sesión — volvemos al menú
+function brxOpenDB(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open(BRX_DB_NAME,BRX_DB_VER);
+    r.onupgradeneeded=function(e){ try{e.target.result.createObjectStore(BRX_STORE);}catch(x){} };
+    r.onsuccess=function(e){ res(e.target.result); };
+    r.onerror=function(){ rej(); };
+  });
+}
+window.brxSaveExcel=function(arrayBuffer, fileName){
+  brxOpenDB().then(function(db){
+    var tx=db.transaction(BRX_STORE,'readwrite');
+    tx.objectStore(BRX_STORE).put({data:arrayBuffer, name:fileName, ts:Date.now()},'last');
+  }).catch(function(){});
+};
+window.brxLoadExcel=function(callback){
+  brxOpenDB().then(function(db){
+    var r=db.transaction(BRX_STORE,'readonly').objectStore(BRX_STORE).get('last');
+    r.onsuccess=function(){ callback(r.result||null); };
+    r.onerror=function(){ callback(null); };
+  }).catch(function(){ callback(null); });
+};
+window.brxClearExcel=function(){
+  brxOpenDB().then(function(db){
+    db.transaction(BRX_STORE,'readwrite').objectStore(BRX_STORE).delete('last');
+  }).catch(function(){});
+};
+
+// ── HISTORIAL Y NAVEGACIÓN ────────────────────────────────────
+function pushHistory(screen){ history.pushState({screen:screen},'',''); }
+
+window.addEventListener('popstate',function(e){
+  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'){
     if(currentUser) _showWelcomeRaw(currentUser);
     else _showLoginRaw();
-  } else if(currentScreen === 'welcome'){
-    // En el menú, el atrás no hace nada (evita salir)
+  } else if(currentScreen==='welcome'){
     pushHistory('welcome');
   } else {
-    // En login, no hay a dónde volver
     pushHistory('login');
   }
 });
 
-// ── Funciones internas de render (sin pushState) ─────────────
 function _hideAll(){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('welcome-screen').style.display='none';
-  document.getElementById('app').style.display='none';
-  document.getElementById('app2').style.display='none';
-  document.getElementById('app3').style.display='none';
-  document.getElementById('app4').style.display='none';
+  ['login-screen','welcome-screen','app','app2','app3','app4'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
 }
 function _showLoginRaw(){
-  currentScreen='login';
-  _hideAll();
+  currentScreen='login'; _hideAll();
   document.getElementById('login-screen').style.display='flex';
-  document.getElementById('login-user').value='';
-  document.getElementById('login-pass').value='';
   document.getElementById('login-err').classList.remove('show');
 }
 function _showWelcomeRaw(user){
-  currentUser=user; currentScreen='welcome';
-  _hideAll();
+  currentUser=user; currentScreen='welcome'; _hideAll();
   document.getElementById('welcome-screen').style.display='block';
   document.getElementById('wel-name').textContent=user.nombre;
   document.getElementById('wel-role').textContent=user.rol;
 }
-function _showAppRaw(id, barU, barR){
+function _showAppRaw(id,barU,barR){
   currentScreen=id; _hideAll();
   document.getElementById(id).style.display='block';
   var eu=document.getElementById(barU), er=document.getElementById(barR);
@@ -573,52 +677,44 @@ function _showAppRaw(id, barU, barR){
   if(er) er.textContent=currentUser.rol;
 }
 
-// ── Funciones públicas (con persistencia y pushState) ─────────
-window.showLogin = function(){
-  sesionLimpiar();
-  currentUser=null;
-  _showLoginRaw();
-  pushHistory('login');
+window.showLogin=function(){
+  sesionLimpiar(); currentUser=null;
+  _showLoginRaw(); pushHistory('login');
 };
-window.showWelcome = function(user){
-  _showWelcomeRaw(user);
-  sesionGuardar(user,'welcome');
-  pushHistory('welcome');
+window.showWelcome=function(user){
+  _showWelcomeRaw(user); sesionGuardar(user,'welcome'); pushHistory('welcome');
 };
-window.showApp = function(){
+window.showApp=function(){
   _showAppRaw('app','bar-username','bar-role');
-  sesionGuardar(currentUser,'app');
-  pushHistory('app');
+  sesionGuardar(currentUser,'app'); pushHistory('app');
 };
-window.showApp2 = function(){
+window.showApp2=function(){
   _showAppRaw('app2','bar2-username','bar2-role');
-  sesionGuardar(currentUser,'app2');
-  pushHistory('app2');
+  sesionGuardar(currentUser,'app2'); pushHistory('app2');
   if(window.initDesplanFrame) window.initDesplanFrame();
 };
-window.showApp3 = function(){
+window.showApp3=function(){
   _showAppRaw('app3','bar3-username','bar3-role');
-  sesionGuardar(currentUser,'app3');
-  pushHistory('app3');
+  sesionGuardar(currentUser,'app3'); pushHistory('app3');
   if(window.asistenciaInit) window.asistenciaInit();
 };
-window.showApp4 = function(){
+window.showApp4=function(){
   _showAppRaw('app4','bar4-username','bar4-role');
-  sesionGuardar(currentUser,'app4');
-  pushHistory('app4');
+  sesionGuardar(currentUser,'app4'); pushHistory('app4');
+  setTimeout(function(){ if(window.mkRestoreExcel) window.mkRestoreExcel(); },100);
 };
-window.openModule = function(mod){
+window.openModule=function(mod){
   if(mod==='liquidacion') window.showApp();
   if(mod==='desplan')     window.showApp2();
   if(mod==='asistencia')  window.showApp3();
   if(mod==='marcajes')    window.showApp4();
 };
-window.doLogin = function(){
+window.doLogin=function(){
   var u=document.getElementById('login-user').value.trim().toLowerCase();
   var p=document.getElementById('login-pass').value;
   var found=null;
   for(var i=0;i<USUARIOS.length;i++){
-    if(USUARIOS[i].user.toLowerCase()===u && USUARIOS[i].pass===p){found=USUARIOS[i];break;}
+    if(USUARIOS[i].user.toLowerCase()===u&&USUARIOS[i].pass===p){found=USUARIOS[i];break;}
   }
   if(found){
     document.getElementById('login-err').classList.remove('show');
@@ -630,18 +726,21 @@ window.doLogin = function(){
   }
 };
 
-// ── Restaurar sesión al cargar la página ─────────────────────
+// ── RESTAURAR SESIÓN AL CARGAR ────────────────────────────────
 (function iniciarApp(){
-  var saved = sesionCargar();
-  if(saved && saved.user){
-    // Sesión activa en este dispositivo — restaurar
-    currentUser = saved.user;
-    var screen  = saved.screen || 'welcome';
-    // Siempre volver al menú al recargar (más seguro)
+  var saved=sesionCargar();
+  if(saved&&saved.user){
+    currentUser=saved.user;
     _showWelcomeRaw(saved.user);
     pushHistory('welcome');
+    // Intentar restaurar el Excel de Breximar si estaba cargado
+    window.brxLoadExcel(function(rec){
+      if(rec && window.mkParseData){
+        // Notificar al módulo de marcajes que hay un Excel previo
+        window._brxPendingExcel = rec;
+      }
+    });
   } else {
-    // Sin sesión — mostrar login
     _showLoginRaw();
     pushHistory('login');
   }
@@ -829,7 +928,124 @@ function asistClearAll(){
 
 
 </script>
-<script>// ── MÓDULO 4: CONTROL DE MARCAJES ─────────────────────────
+<script>
+// ── SYNC EN LA NUBE (JSONBin.io) ─────────────────────────────
+// Los datos ZPP5 procesados se guardan en la nube para que
+// todos los usuarios del sistema puedan verlos sin subir el Excel.
+// Configuración: reemplaza BIN_ID y API_KEY con los tuyos de jsonbin.io
+var MK_CLOUD_BIN   = '$2a$10$CONFIGURAR'; // ← tu Bin ID de jsonbin.io
+var MK_CLOUD_KEY   = '$2a$10$CONFIGURAR'; // ← tu Master Key de jsonbin.io
+var MK_CLOUD_SAVED = false;
+
+function mkCloudSave(){
+  if(!MK_DATA.length){ alert('No hay datos ZPP5 para guardar en la nube.'); return; }
+  if(MK_CLOUD_BIN.includes('CONFIGURAR')){
+    // Modo sin configurar: guardar en localStorage compartido simulado
+    // y mostrar instrucciones
+    _mkSaveLocalFallback();
+    return;
+  }
+  var payload = {
+    records: MK_DATA,
+    savedBy: currentUser ? currentUser.nombre : 'Sistema',
+    savedAt: new Date().toISOString(),
+    total:   MK_DATA.length
+  };
+  var btn = document.getElementById('mk-cloud-btn');
+  if(btn){ btn.textContent='⏳ Guardando…'; btn.disabled=true; }
+  fetch('https://api.jsonbin.io/v3/b/'+MK_CLOUD_BIN, {
+    method:'PUT',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Master-Key': MK_CLOUD_KEY,
+      'X-Bin-Versioning': 'false'
+    },
+    body: JSON.stringify(payload)
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      MK_CLOUD_SAVED = true;
+      if(btn){ btn.textContent='☁️ Guardado ✓'; btn.disabled=false; }
+      setTimeout(function(){ if(btn) btn.textContent='☁️ Guardar nube'; }, 3000);
+    })
+    .catch(function(e){
+      if(btn){ btn.textContent='☁️ Guardar nube'; btn.disabled=false; }
+      alert('Error al guardar en la nube: '+e.message+'\n\nGuardando localmente…');
+      _mkSaveLocalFallback();
+    });
+}
+
+function mkCloudLoad(){
+  if(MK_CLOUD_BIN.includes('CONFIGURAR')){
+    _mkLoadLocalFallback();
+    return;
+  }
+  var btn = document.getElementById('mk-cloud-load-btn');
+  if(btn){ btn.textContent='⏳ Cargando…'; btn.disabled=true; }
+  fetch('https://api.jsonbin.io/v3/b/'+MK_CLOUD_BIN+'/latest', {
+    headers:{'X-Master-Key': MK_CLOUD_KEY}
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.record && d.record.records && d.record.records.length){
+        MK_DATA    = d.record.records;
+        MK_VISIBLE = MK_DATA.slice();
+        MK_SEL_RUTA= new Set();
+        var rutaSet= new Set(MK_DATA.map(function(r){return r.ruta;}).filter(Boolean));
+        MK_RUTAS   = [...rutaSet].sort();
+        var savedAt= d.record.savedAt ? new Date(d.record.savedAt).toLocaleDateString('es-PE') : '—';
+        var savedBy= d.record.savedBy || '—';
+        document.getElementById('mk-file-name').textContent = '☁️ Datos de la nube';
+        document.getElementById('mk-file-info').textContent =
+          MK_DATA.length+' registros ZPP5 · Guardado: '+savedAt+' por '+savedBy;
+        document.getElementById('mk-file-loaded').classList.add('show');
+        mkUpdateStats(MK_DATA);
+        mkBuildRutaSelect(rutaSet);
+        document.getElementById('mk-filters-card').style.display='block';
+        document.getElementById('mk-results-card').style.display='block';
+        mkRenderRutaTags();
+        mkRender(MK_DATA);
+        if(btn){ btn.textContent='☁️ Cargar nube'; btn.disabled=false; }
+      } else {
+        if(btn){ btn.textContent='☁️ Cargar nube'; btn.disabled=false; }
+        alert('No hay datos en la nube todavía.\nCarga el Excel y presiona "☁️ Guardar nube" primero.');
+      }
+    })
+    .catch(function(e){
+      if(btn){ btn.textContent='☁️ Cargar nube'; btn.disabled=false; }
+      _mkLoadLocalFallback();
+    });
+}
+
+// Fallback local (cuando JSONBin no está configurado)
+function _mkSaveLocalFallback(){
+  try{
+    var payload={records:MK_DATA, savedAt:new Date().toISOString(), savedBy:currentUser?currentUser.nombre:'Sistema'};
+    localStorage.setItem('jrg_mk_cloud', JSON.stringify(payload));
+    alert('✅ Datos guardados localmente ('+MK_DATA.length+' registros).\n\nPara compartir entre equipos, configura JSONBin.io en el archivo.');
+  }catch(e){ alert('Error al guardar: '+e.message); }
+}
+function _mkLoadLocalFallback(){
+  try{
+    var raw=localStorage.getItem('jrg_mk_cloud');
+    if(!raw){ alert('No hay datos guardados.\nCarga el Excel primero.'); return; }
+    var d=JSON.parse(raw);
+    if(!d.records||!d.records.length){ alert('No hay datos guardados.'); return; }
+    MK_DATA=d.records; MK_VISIBLE=MK_DATA.slice(); MK_SEL_RUTA=new Set();
+    var rutaSet=new Set(MK_DATA.map(function(r){return r.ruta;}).filter(Boolean));
+    MK_RUTAS=[...rutaSet].sort();
+    var savedAt=d.savedAt?new Date(d.savedAt).toLocaleDateString('es-PE'):'—';
+    document.getElementById('mk-file-name').textContent='💾 Datos guardados';
+    document.getElementById('mk-file-info').textContent=MK_DATA.length+' registros ZPP5 · '+savedAt;
+    document.getElementById('mk-file-loaded').classList.add('show');
+    mkUpdateStats(MK_DATA);
+    mkBuildRutaSelect(rutaSet);
+    document.getElementById('mk-filters-card').style.display='block';
+    document.getElementById('mk-results-card').style.display='block';
+    mkRenderRutaTags();
+    mkRender(MK_DATA);
+  }catch(e){ alert('Error al cargar: '+e.message); }
+}
+
+// ── MÓDULO 4: CONTROL DE MARCAJES ─────────────────────────
 // CLVT ZPP5 = OC solo numéricas
 var MK_DATA=[], MK_VISIBLE=[], MK_RUTAS=[];
 var MK_SEL_RUTA=new Set();
@@ -839,6 +1055,8 @@ function mkLoadFile(inp){
   var reader=new FileReader();
   reader.onload=function(e){
     try{
+      // Guardar en IndexedDB para persistir entre sesiones
+      if(window.brxSaveExcel) window.brxSaveExcel(e.target.result.slice(0), file.name);
       var wb=XLSX.read(e.target.result,{type:'array'});
       var ws=wb.Sheets[wb.SheetNames[0]];
       var raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
@@ -847,6 +1065,33 @@ function mkLoadFile(inp){
     inp.value='';
   };
   reader.readAsArrayBuffer(file);
+}
+
+// Restaurar Excel previo de IndexedDB al abrir el módulo
+function mkRestoreExcel(){
+  if(MK_DATA.length) return; // ya hay datos cargados
+  if(window._brxPendingExcel){
+    var rec=window._brxPendingExcel;
+    window._brxPendingExcel=null;
+    _mkLoadFromBuffer(rec.data, rec.name);
+    return;
+  }
+  if(window.brxLoadExcel){
+    window.brxLoadExcel(function(rec){
+      if(rec && rec.data && !MK_DATA.length){
+        _mkLoadFromBuffer(rec.data, rec.name);
+      }
+    });
+  }
+}
+function _mkLoadFromBuffer(buffer, name){
+  try{
+    var wb=XLSX.read(buffer,{type:'array'});
+    var ws=wb.Sheets[wb.SheetNames[0]];
+    var raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    mkParseData(raw,{name:name, size:buffer.byteLength});
+    document.getElementById('mk-file-info').textContent+=' (restaurado)';
+  }catch(e){ console.log('No se pudo restaurar Excel Breximar:',e.message); }
 }
 
 function mkParseData(rows,file){
@@ -982,17 +1227,17 @@ function mkRender(rows){
   tbody.innerHTML='';
   document.getElementById('mk-result-count').textContent=rows.length+' registros';
   if(!rows.length){
-    tbody.innerHTML='<tr class="mk-empty"><td colspan="5">Sin resultados para los filtros aplicados.</td></tr>';
+    tbody.innerHTML='<tr class="mk-empty"><td colspan="5">Sin resultados para los filtros aplicados.<\/td><\/tr>';
     tfoot.style.display='none'; return;
   }
   rows.forEach(function(r,i){
     var tr=document.createElement('tr');
     tr.innerHTML=
-      '<td class="mk-td-num">'+(i+1)+'</td>'+
-      '<td class="mk-td-ruta">'+r.ruta+'</td>'+
-      '<td class="mk-td-idcli">'+r.idcli+'</td>'+
-      '<td class="mk-td-nom">'+r.nombre+'</td>'+
-      '<td class="mk-td-oc">'+r.oc+'</td>';
+      '<td class="mk-td-num">'+(i+1)+'<\/td>'+
+      '<td class="mk-td-ruta">'+r.ruta+'<\/td>'+
+      '<td class="mk-td-idcli">'+r.idcli+'<\/td>'+
+      '<td class="mk-td-nom">'+r.nombre+'<\/td>'+
+      '<td class="mk-td-oc">'+r.oc+'<\/td>';
     tbody.appendChild(tr);
   });
   tfoot.style.display='';
@@ -1002,6 +1247,7 @@ function mkRender(rows){
 function mkClearFile(){
   MK_DATA=[];MK_VISIBLE=[];MK_RUTAS=[];
   MK_SEL_RUTA=new Set();
+  if(window.brxClearExcel) window.brxClearExcel();
   document.getElementById('mk-file-loaded').classList.remove('show');
   document.getElementById('mk-stats').style.display='none';
   document.getElementById('mk-filters-card').style.display='none';
@@ -1019,6 +1265,11 @@ function mkPrint(){
     '<style>'+
       'body{font-family:Arial,sans-serif;font-size:12px;color:#000;padding:20px}'+
       'h2{font-size:16px;margin:0 0 4px}'+
+      '.info-box{border:2px solid #1a3a6b;border-radius:6px;padding:8px 14px;margin-bottom:10px;display:inline-block;min-width:60%}'+
+      '.info-tbl{width:100%;border-collapse:collapse}'+
+      '.info-tbl td{padding:3px 14px 3px 0;font-size:12px;white-space:nowrap}'+
+      '.info-tbl td:first-child{border-right:1px solid #1a3a6b;padding-right:14px}'+
+      '.info-tbl td:last-child{padding-left:14px}'+
       '.info{font-size:11px;color:#555;margin-bottom:14px}'+
       'table{width:100%;border-collapse:collapse;font-size:11px}'+
       'thead th{background:#1a3a6b;color:#fff;padding:7px 10px;text-align:left;font-weight:700}'+
@@ -1027,30 +1278,36 @@ function mkPrint(){
       'tfoot td{padding:7px 10px;font-weight:700;border-top:2px solid #1a3a6b;background:#e8f0fe}'+
       '.num{text-align:center;color:#888;font-size:10px;width:32px}'+
       '@media print{body{padding:10px}}'+
-    '</style></head><body>'+
+    '<\/style><\/head><body>'+
     '<h2>Control de Marcajes — CLVT ZPP5</h2>'+
+    '<div class="info-box">'+
+      '<table class="info-tbl"><tr>'+
+        '<td><b>EMPRESA:</b> JRGRODVAL DISTRIBUCIONES S.A.C.<\/td>'+
+        '<td><b>FECHA:</b> '+fecha+'<\/td>'+
+        '<td><b>CLVT:</b> ZPP5<\/td>'+
+      '<\/tr><\/table>'+
+    '</div>'+
     '<div class="info">'+
-      'Fecha: '+fecha+' &nbsp;|&nbsp; '+
       'Ruta(s): '+rutas+' &nbsp;|&nbsp; '+
       'Total: '+MK_VISIBLE.length+' registros'+
     '</div>'+
     '<table><thead><tr>'+
-      '<th class="num">#</th>'+
-      '<th>Ruta</th><th>IDCli</th><th>Nombre Cliente</th><th>Orden de Compra</th><th>Reparto</th><th>Comentarios</th>'+
-    '</tr></thead><tbody>';
+      '<th class="num">#<\/th>'+
+      '<th>Ruta<\/th><th>IDCli<\/th><th>Nombre Cliente<\/th><th>Orden de Compra<\/th><th>Reparto<\/th><th>Comentarios<\/th>'+
+    '<\/tr><\/thead><tbody>';
   MK_VISIBLE.forEach(function(r,i){
     html+='<tr>'+
-      '<td class="num">'+(i+1)+'</td>'+
-      '<td>'+r.ruta+'</td><td>'+r.idcli+'</td><td>'+r.nombre+'</td><td>'+r.oc+'</td>'+
-      '<td></td><td></td>'+
-    '</tr>';
+      '<td class="num">'+(i+1)+'<\/td>'+
+      '<td>'+r.ruta+'<\/td><td>'+r.idcli+'<\/td><td>'+r.nombre+'<\/td><td>'+r.oc+'<\/td>'+
+      '<td><\/td><td><\/td>'+
+    '<\/tr>';
   });
-  html+='</tbody><tfoot><tr>'+
-    '<td class="num"></td>'+
-    '<td colspan="3" style="text-align:right">Total registros</td>'+
-    '<td style="text-align:right">'+MK_VISIBLE.length+'</td>'+
-    '<td></td><td></td>'+
-  '</tr></tfoot></table></body></html>';
+  html+='<\/tbody><tfoot><tr>'+
+    '<td class="num"><\/td>'+
+    '<td colspan="3" style="text-align:right">Total registros<\/td>'+
+    '<td style="text-align:right">'+MK_VISIBLE.length+'<\/td>'+
+    '<td><\/td><td><\/td>'+
+  '<\/tr><\/tfoot><\/table><\/body><\/html>';
   var w=window.open('','_blank','width=900,height=700');
   w.document.write(html);
   w.document.close();
@@ -1075,17 +1332,17 @@ function mkCopyTable(){
   if(!MK_VISIBLE.length){alert('Sin registros.');return;}
   var html='<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px;"><thead><tr>';
   ['Ruta','IDCli','Nombre Cliente','Orden de Compra'].forEach(function(h){
-    html+='<th style="background:#FFD700;color:#000;font-weight:bold;border:1px solid #000;padding:6px 10px;">'+h+'</th>';
+    html+='<th style="background:#FFD700;color:#000;font-weight:bold;border:1px solid #000;padding:6px 10px;">'+h+'<\/th>';
   });
-  html+='</tr></thead><tbody>';
+  html+='<\/tr><\/thead><tbody>';
   MK_VISIBLE.forEach(function(r,i){
     html+='<tr style="background:'+(i%2===0?'#fff':'#f5f5f5')+';">';
     [r.ruta,r.idcli,r.nombre,r.oc].forEach(function(v){
-      html+='<td style="border:1px solid #000;padding:5px 10px;color:#000;">'+v+'</td>';
+      html+='<td style="border:1px solid #000;padding:5px 10px;color:#000;">'+v+'<\/td>';
     });
-    html+='</tr>';
+    html+='<\/tr>';
   });
-  html+='</tbody></table>';
+  html+='<\/tbody><\/table>';
   if(window.ClipboardItem){
     navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'})})]).then(function(){mkFlash();}).catch(function(){mkFallbackCopy(html);});
   }else{mkFallbackCopy(html);}
