@@ -239,6 +239,34 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 .mk-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:rgba(79,142,247,.15);border:1px solid var(--blue);border-radius:99px;color:var(--txt);font-size:11px;font-weight:600}
 .mk-tag button{background:none;border:none;color:var(--mut);cursor:pointer;font-size:13px;line-height:1;padding:0}
 .mk-tag button:hover{color:var(--red)}
+
+/* ── Autocomplete genérico (Ruta + Empresario) ─────────────── */
+.ac-wrap{position:relative}
+.ac-input{width:100%;background:var(--s2);border:1px solid var(--bor);border-radius:8px;
+  color:var(--txt);font-family:var(--f);font-size:13px;padding:9px 12px;outline:none;
+  transition:border-color .15s;box-sizing:border-box}
+.ac-input:focus{border-color:var(--blue)}
+.ac-input::placeholder{color:var(--mut)}
+.ac-dd{position:absolute;top:calc(100% + 3px);left:0;right:0;
+  background:var(--s2);border:1px solid var(--bor);border-radius:9px;
+  max-height:200px;overflow-y:auto;z-index:500;display:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.ac-dd.open{display:block}
+.ac-item{padding:8px 14px;cursor:pointer;font-size:12px;color:var(--txt);
+  border-bottom:1px solid rgba(42,48,69,.4);transition:background .1s}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.active{background:rgba(79,142,247,.14);color:var(--blue)}
+.ac-item mark{background:rgba(79,142,247,.25);color:var(--blue);border-radius:2px;padding:0 2px}
+.ac-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:0}
+.ac-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+  background:rgba(79,142,247,.15);border:1px solid var(--blue);border-radius:99px;
+  color:var(--txt);font-size:11px;font-weight:600}
+.ac-tag button{background:none;border:none;color:var(--mut);cursor:pointer;
+  font-size:13px;line-height:1;padding:0}
+.ac-tag button:hover{color:var(--red)}
+.mk-filter-label{font-size:11px;font-weight:600;color:var(--mut);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block}
+
 .mk-reset{background:var(--s2);border:1px solid var(--bor);border-radius:8px;color:var(--mut);font-family:var(--f);font-size:12px;padding:9px 14px;cursor:pointer;transition:all .15s}
 .mk-reset:hover{border-color:var(--red);color:var(--red)}
 .mk-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -252,13 +280,14 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 .mk-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
 .mk-table thead th{background:var(--s2);padding:9px 12px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;position:sticky;top:0;z-index:1;font-size:11px}
 .mk-col-num{width:40px;text-align:center}
-.mk-col-ruta{width:9%}.mk-col-idcli{width:10%}.mk-col-nom{width:26%}.mk-col-oc{width:18%}.mk-col-calle{width:22%}.mk-col-dist{width:12%}
+.mk-col-ruta{width:10%}.mk-col-idcli{width:11%}.mk-col-nom{width:28%}.mk-col-oc{width:18%}.mk-col-calle{width:20%}.mk-col-dist{width:11%}
 .mk-table tbody tr{border-bottom:1px solid var(--bor)}
 .mk-table tbody tr:nth-child(even){background:var(--s2)}
 .mk-table tbody tr:hover{background:rgba(79,142,247,.06)}
 .mk-table td{padding:8px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mk-td-num{text-align:center;color:var(--mut);font-size:10px;font-family:var(--m)}
 .mk-td-ruta{color:var(--blue);font-family:var(--m);font-weight:600}
+.mk-td-edt{color:var(--pur);font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .mk-td-calle{color:var(--mut);font-size:11px;overflow:hidden;text-overflow:ellipsis}
 .mk-td-dist{color:var(--ylw);font-size:11px;font-family:var(--m);font-weight:600}
 .mk-td-idcli{color:var(--grn);font-family:var(--m);font-weight:600}
@@ -357,6 +386,7 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
   .mk-table{font-size:11px}
   .mk-table thead th{padding:7px 6px;font-size:10px}
   .mk-table td{padding:6px;font-size:11px}
+  .mk-col-edt,.mk-td-edt,
   .mk-col-calle,.mk-td-calle,
   .mk-col-dist,.mk-td-dist{display:none}
 
@@ -666,16 +696,32 @@ input, select, textarea{font-size:16px !important}
     <div class="mk-stat"><div class="mk-stat-n" id="mk-st-ocs">0</div><div class="mk-stat-l">Total ZPP5</div></div>
   </div>
   <div class="mk-card" id="mk-filters-card" style="display:none">
-    <div class="mk-card-title"><span>🔍</span>Filtro por Ruta</div>
-    <div class="mk-filter-field" style="max-width:520px">
-      <label>🗺️ Ruta (múltiple)</label>
-      <div class="mk-ruta-wrap" style="position:relative">
-        <input type="text" id="mk-ruta-input" placeholder="Escribe una ruta… (ej: BK3701)" autocomplete="off" oninput="mkRutaInput()" onkeydown="mkRutaKey(event)" style="width:100%;background:var(--s2);border:1px solid var(--bor);border-radius:8px;color:var(--txt);font-family:var(--m);font-size:12px;padding:9px 12px;outline:none">
-        <div class="mk-empresa-dd" id="mk-ruta-dd"></div>
+    <div class="mk-card-title"><span>🔍</span>Filtros</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px">
+      <!-- Filtro Ruta -->
+      <div>
+        <label class="mk-filter-label">🗺️ Ruta (múltiple)</label>
+        <div class="ac-wrap mk-ruta-wrap">
+          <input type="text" id="mk-ruta-input" class="ac-input" placeholder="Escribe o ↑↓ para navegar…" autocomplete="off" oninput="mkRutaInput()" onkeydown="mkRutaKey(event)">
+          <div class="ac-dd" id="mk-ruta-dd"></div>
+        </div>
+        <div class="ac-tags" id="mk-active-ruta" style="margin-top:8px">
+          <span style="color:var(--mut);font-size:11px;font-style:italic">Todas las rutas</span>
+        </div>
       </div>
-      <div class="mk-active-empresa" id="mk-active-ruta" style="margin-top:8px"></div>
+      <!-- Filtro Empresario -->
+      <div>
+        <label class="mk-filter-label">🏢 Empresario (múltiple)</label>
+        <div class="ac-wrap mk-edt-wrap">
+          <input type="text" id="mk-edt-input" class="ac-input" placeholder="Escribe o ↑↓ para navegar…" autocomplete="off" oninput="mkEdtInput()" onkeydown="mkEdtKey(event)">
+          <div class="ac-dd" id="mk-edt-dd"></div>
+        </div>
+        <div class="ac-tags" id="mk-active-edt" style="margin-top:8px">
+          <span style="color:var(--mut);font-size:11px;font-style:italic">Todos los empresarios</span>
+        </div>
+      </div>
     </div>
-    <div style="margin-top:12px"><button class="mk-reset" onclick="mkResetFilters()">✕ Limpiar filtro</button></div>
+    <button class="mk-reset" onclick="mkResetFilters()">✕ Limpiar filtros</button>
   </div>
   <div class="mk-card" id="mk-results-card" style="display:none">
     <div class="mk-toolbar">
@@ -698,7 +744,7 @@ input, select, textarea{font-size:16px !important}
         </tr></thead>
         <tbody id="mk-tbody"></tbody>
         <tfoot id="mk-tfoot" style="display:none">
-          <tr><td colspan="3"></td><td style="color:var(--grn);font-weight:700">Total registros</td><td></td><td></td><td id="mk-tfoot-count" style="text-align:right;color:var(--grn);font-family:var(--m);font-weight:700"></td></tr>
+          <tr><td colspan="4"></td><td style="color:var(--grn);font-weight:700">Total registros</td><td></td><td></td><td></td><td id="mk-tfoot-count" style="text-align:right;color:var(--grn);font-family:var(--m);font-weight:700"></td></tr>
         </tfoot>
       </table>
     </div>
@@ -733,6 +779,19 @@ function maestroGet(idcli){
   return MAESTRO[String(idcli)]||{calle:'',distrito:''};
 }
 </script>
+
+<script>
+
+// ── EMPRESARIO (EDT) ─────────────────────────────────────────
+var RUTA_EDT = {"BK3701": "CORPORACION BREXIMAR S.A.C.", "BK3702": "CORPORACION BREXIMAR S.A.C.", "BK3703": "CORPORACION BREXIMAR S.A.C.", "BK3704": "CORPORACION BREXIMAR S.A.C.", "BK3705": "CORPORACION BREXIMAR S.A.C.", "BK3706": "CORPORACION BREXIMAR S.A.C.", "BK3707": "CORPORACION BREXIMAR S.A.C.", "BK3708": "CORPORACION BREXIMAR S.A.C.", "BK3709": "CORPORACION BREXIMAR S.A.C.", "BK3710": "CORPORACION BREXIMAR S.A.C.", "BK3711": "CORPORACION BREXIMAR S.A.C.", "BK3712": "CORPORACION BREXIMAR S.A.C.", "BK3713": "CORPORACION BREXIMAR S.A.C.", "BK3714": "CORPORACION BREXIMAR S.A.C.", "BK3715": "CORPORACION BREXIMAR S.A.C.", "BK3716": "CORPORACION BREXIMAR S.A.C.", "BK3717": "CORPORACION BREXIMAR S.A.C.", "BK3718": "CORPORACION BREXIMAR S.A.C.", "BK3719": "CORPORACION BREXIMAR S.A.C.", "BK3720": "CORPORACION BREXIMAR S.A.C.", "BK3721": "CORPORACION BREXIMAR S.A.C.", "BK3722": "CORPORACION BREXIMAR S.A.C.", "BK3723": "CORPORACION BREXIMAR S.A.C.", "BK3724": "CORPORACION BREXIMAR S.A.C.", "BK3725": "CORPORACION BREXIMAR S.A.C.", "BK3726": "CORPORACION BREXIMAR S.A.C.", "BK3727": "CORPORACION BREXIMAR S.A.C.", "BK3728": "CORPORACION BREXIMAR S.A.C.", "BK3729": "CORPORACION BREXIMAR S.A.C.", "BK3730": "CORPORACION BREXIMAR S.A.C.", "BK3731": "CORPORACION BREXIMAR S.A.C.", "BK3732": "CORPORACION BREXIMAR S.A.C.", "BK3733": "CORPORACION BREXIMAR S.A.C.", "BK3734": "CORPORACION BREXIMAR S.A.C.", "BK3735": "CORPORACION BREXIMAR S.A.C.", "BK3736": "CORPORACION BREXIMAR S.A.C.", "BK3738": "CORPORACION BREXIMAR S.A.C.", "BK3739": "CORPORACION BREXIMAR S.A.C.", "BK3740": "CORPORACION BREXIMAR S.A.C.", "BK3741": "CORPORACION BREXIMAR S.A.C.", "BK3742": "CORPORACION BREXIMAR S.A.C.", "BK3743": "CORPORACION BREXIMAR S.A.C.", "BK3744": "CORPORACION BREXIMAR S.A.C.", "BK3745": "CORPORACION BREXIMAR S.A.C.", "BK3746": "CORPORACION BREXIMAR S.A.C.", "BK3747": "CORPORACION BREXIMAR S.A.C.", "BK3748": "CORPORACION BREXIMAR S.A.C.", "BK3749": "CORPORACION BREXIMAR S.A.C.", "BK3750": "CORPORACION BREXIMAR S.A.C.", "BK3751": "DISTRIBUCIONES ROBASA S.A.C.", "BK3752": "CORPORACION BREXIMAR S.A.C.", "BK3753": "CORPORACION BREXIMAR S.A.C.", "BK3754": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3755": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3756": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3757": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3758": "SEGSOL S.A.C.", "BK3759": "CORPORACION BREXIMAR S.A.C.", "BK3760": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3761": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3762": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3763": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3764": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3765": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3766": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3767": "CORPORACION BREXIMAR S.A.C.", "BK3769": "SEGSOL S.A.C.", "BK3770": "F & B ANDINA SAC", "BK3771": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3772": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3773": "VARGAS S.R.L.", "BK3774": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3775": "F & B ANDINA SAC", "BK3776": "F & B ANDINA SAC", "BK3777": "F & B ANDINA SAC", "BK3778": "F & B ANDINA SAC", "BK3780": "F & B ANDINA SAC", "BK3781": "JRGRODVAL DISTRIBUCIONES S.A.C.", "BK3782": "VARGAS S.R.L.", "BK3783": "SEGSOL S.A.C.", "BK3784": "SEGSOL S.A.C.", "BK3785": "SEGSOL S.A.C.", "BK3786": "SEGSOL S.A.C.", "BK3787": "SEGSOL S.A.C.", "BK3788": "SEGSOL S.A.C.", "BK3789": "VARGAS S.R.L."};
+var EDTS_LIST = ["CORPORACION BREXIMAR S.A.C.", "DISTRIBUCIONES ROBASA S.A.C.", "F & B ANDINA SAC", "JRGRODVAL DISTRIBUCIONES S.A.C.", "SEGSOL S.A.C.", "VARGAS S.R.L."];
+
+function edtDeRuta(ruta){
+  return RUTA_EDT[ruta] || '';
+}
+
+</script>
+
 
 <script>
 const USUARIOS = [
@@ -1185,7 +1244,7 @@ function asistClearAll(){
 </script>
 <script>
 // ── MÓDULO 4: CONTROL DE MARCAJES ─────────────────────────────
-var MK_DATA=[], MK_VISIBLE=[], MK_RUTAS=[], MK_SEL_RUTA=new Set();
+var MK_DATA=[], MK_VISIBLE=[], MK_RUTAS=[], MK_SEL_RUTA=new Set(), MK_SEL_EDT=new Set();
 
 // Exponer mkParseData globalmente para que brxUploadFile la llame
 window.mkParseData = async function mkParseData(rows, file){
@@ -1213,7 +1272,7 @@ window.mkParseData = async function mkParseData(rows, file){
     if(idcli.startsWith('Total')||!curIDCli) continue;
     if(!/^\d+$/.test(oc)) continue; // solo ZPP5 = numérico puro
     var _m=maestroGet(curIDCli);
-    records.push({ruta:curRuta,idcli:curIDCli,nombre:curNombre,oc:oc,calle:_m.calle,distrito:_m.distrito});
+    records.push({ruta:curRuta,idcli:curIDCli,nombre:curNombre,oc:oc,calle:_m.calle,distrito:_m.distrito,empresario:edtDeRuta(curRuta)});
   }
   if(!records.length){
     alert('No se encontraron registros CLVT ZPP5 en el archivo.');
@@ -1256,6 +1315,100 @@ function mkBuildRutaSelect(rutas){
   });
 }
 
+// ── Filtro Empresario ────────────────────────────────────────
+function mkEdtInput(){
+  acInput('mk-edt-input','mk-edt-dd', EDTS_LIST, MK_SEL_EDT, mkSelectEdt, true);
+}
+function mkEdtKey(e){
+  acKey(e,'mk-edt-input','mk-edt-dd', EDTS_LIST, MK_SEL_EDT, mkSelectEdt);
+}
+function mkSelectEdt(val){
+  MK_SEL_EDT.add(val);
+  document.getElementById('mk-edt-input').value='';
+  document.getElementById('mk-edt-dd').classList.remove('open');
+  mkRenderEdtTags(); mkApplyFilters();
+}
+function mkRemoveEdt(val){
+  MK_SEL_EDT.delete(val); mkRenderEdtTags(); mkApplyFilters();
+}
+function mkRenderEdtTags(){
+  var el=document.getElementById('mk-active-edt'); if(!el) return;
+  if(!MK_SEL_EDT.size){
+    el.innerHTML='<span style="color:var(--mut);font-size:11px;font-style:italic">Todos los empresarios</span>';
+    return;
+  }
+  el.innerHTML=[...MK_SEL_EDT].map(function(e){
+    var safe=e.replace(/'/g,"&#39;");
+    return '<div class="ac-tag">'+e+'<button onclick="mkRemoveEdt(\''+safe+'\')">✕</button></div>';
+  }).join('');
+}
+
+// ── Utilidades autocomplete genérico ─────────────────────────
+// Funciones reutilizables para cualquier filtro dropdown con teclado
+function acBuildDd(ddId, items, selected, onSelectName){
+  var dd=document.getElementById(ddId); if(!dd) return;
+  var inp=dd.previousElementSibling;
+  var q=(inp?inp.value:'').trim().toLowerCase();
+  var matches=items.filter(function(x){return(!q||x.toLowerCase().includes(q))&&!selected.has(x);});
+  if(!matches.length){dd.classList.remove('open');dd.innerHTML='';return;}
+  dd.innerHTML='';
+  matches.forEach(function(x){
+    var hi=q?x.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'):x;
+    var item=document.createElement('div');
+    item.className='ac-item';
+    item.setAttribute('data-val',x);
+    item.tabIndex=-1;
+    item.innerHTML=hi;
+    item.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      var fn=window[onSelectName];
+      if(fn) fn(x);
+    });
+    dd.appendChild(item);
+  });
+  dd.classList.add('open');
+  var first=dd.querySelector('.ac-item');
+  if(first) first.classList.add('active');
+}
+function acInput(inpId, ddId, items, selected, onSelect){
+  acBuildDd(ddId, items, selected, onSelect.name||'');
+}
+function acKey(e, inpId, ddId, items, selected, onSelectFn){
+  var dd=document.getElementById(ddId);
+  var items2=dd?dd.querySelectorAll('.ac-item'):[];
+  var active=dd?dd.querySelector('.ac-item.active'):null;
+  var idx=active?[...items2].indexOf(active):-1;
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    if(items2.length){
+      if(active) active.classList.remove('active');
+      var next=items2[Math.min(idx+1,items2.length-1)];
+      if(next){next.classList.add('active');next.scrollIntoView({block:'nearest'});}
+    }
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    if(items2.length){
+      if(active) active.classList.remove('active');
+      var prev=items2[Math.max(idx-1,0)];
+      if(prev){prev.classList.add('active');prev.scrollIntoView({block:'nearest'});}
+    }
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    if(active){
+      onSelectFn(active.getAttribute('data-val'));
+    } else {
+      var q=document.getElementById(inpId).value.trim();
+      var m=items.find(function(x){return x.toLowerCase()===q.toLowerCase()&&!selected.has(x);});
+      if(m) onSelectFn(m);
+    }
+  } else if(e.key==='Escape'){
+    if(dd) dd.classList.remove('open');
+  } else {
+    // Rebuild on typing
+    setTimeout(function(){ acBuildDd(ddId, items, selected, onSelectFn.name||''); }, 0);
+  }
+}
+
 function mkRutaInput(){
   var q=document.getElementById('mk-ruta-input').value.trim().toUpperCase();
   var dd=document.getElementById('mk-ruta-dd');
@@ -1290,16 +1443,18 @@ function mkRenderRutaTags(){
     return;
   }
   el.innerHTML=[...MK_SEL_RUTA].map(function(r){
-    return '<div class="mk-tag" style="border-color:var(--blue)">'+r+'<button onclick="mkRemoveRuta(\''+r.replace(/'/g,"\\'")+'\')">✕<\/button><\/div>';
+    return '<div class="ac-tag">'+r+'<button onclick="mkRemoveRuta(\''+r.replace(/'/g,"\\'")+'\')">✕<\/button><\/div>';
   }).join('');
 }
 document.addEventListener('click',function(e){
   if(!e.target.closest('.mk-ruta-wrap')){var d=document.getElementById('mk-ruta-dd');if(d)d.classList.remove('open');}
+  if(!e.target.closest('.mk-edt-wrap')){var d=document.getElementById('mk-edt-dd');if(d)d.classList.remove('open');}
 });
 
 function mkApplyFilters(){
   MK_VISIBLE=MK_DATA.filter(function(r){
     if(MK_SEL_RUTA.size&&!MK_SEL_RUTA.has(r.ruta)) return false;
+    if(MK_SEL_EDT.size&&!MK_SEL_EDT.has(r.empresario)) return false;
     return true;
   });
   mkUpdateStats(MK_VISIBLE);
@@ -1307,7 +1462,10 @@ function mkApplyFilters(){
 }
 function mkResetFilters(){
   document.getElementById('mk-ruta-input').value='';
+  var edtInp=document.getElementById('mk-edt-input');
+  if(edtInp) edtInp.value='';
   MK_SEL_RUTA.clear(); mkRenderRutaTags();
+  MK_SEL_EDT.clear();  mkRenderEdtTags();
   MK_VISIBLE=MK_DATA.slice(); mkUpdateStats(MK_VISIBLE); mkRender(MK_VISIBLE);
 }
 
@@ -1399,36 +1557,70 @@ function mkPrint(){
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
     '<title>Control de Marcajes ZPP5<\/title>'+
     '<style>'+
-    'body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:20px}'+
-    'h2{font-size:15px;margin:0 0 4px}'+
-    '.info-box{border:2px solid #1a3a6b;border-radius:6px;padding:8px 14px;margin-bottom:10px;display:inline-block}'+
-    '.info-tbl{border-collapse:collapse}.info-tbl td{padding:3px 14px 3px 0;font-size:11px;white-space:nowrap}'+
-    '.info{font-size:10px;color:#555;margin-bottom:12px}'+
-    'table{width:100%;border-collapse:collapse;font-size:10px}'+
-    'thead th{background:#1a3a6b;color:#fff;padding:6px 8px;text-align:left;font-weight:700}'+
-    'tbody tr:nth-child(even){background:#f0f4ff}'+
-    'tbody td{padding:5px 8px;border-bottom:1px solid #ddd}'+
-    'tfoot td{padding:6px 8px;font-weight:700;border-top:2px solid #1a3a6b;background:#e8f0fe}'+
-    '.num{text-align:center;color:#888;font-size:9px;width:28px}'+
-    '@media print{body{padding:8px}}'+
+      '*{box-sizing:border-box}'+
+      'body{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:0;padding:16px}'+
+      'h2{font-size:14px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px}'+
+      /* Cuadro informativo — datos uno debajo de otro con borde negro */
+      '.info-box{border:2px solid #305496;border-radius:4px;padding:10px 18px;margin-bottom:12px;display:inline-block;min-width:300px;background:#f0f4ff}'+
+      '.info-box p{margin:4px 0;font-size:11px;font-weight:700;line-height:1.7;color:#000}'+
+      '.info-box p span{font-weight:400;color:#305496}'+
+      '.info-ruta{font-size:10px;color:#333;margin-bottom:8px}'+
+      /* Tabla con bordes negros en todo */
+      'table{width:100%;border-collapse:collapse;font-size:10px;border:2px solid #000}'+
+      'thead th{background:#305496;color:#fff;padding:7px 8px;text-align:center;font-weight:700;border:1px solid #000;font-size:10px;letter-spacing:.3px}'+
+      'tbody tr:nth-child(even){background:#f0f4ff}'+
+      'tbody td{padding:5px 7px;border:1px solid #000;vertical-align:middle;text-align:center}'+
+      'tfoot td{padding:6px 7px;font-weight:700;border:1px solid #000;background:#d9e2f3;text-align:center}'+
+      '.num{text-align:center;width:26px;font-size:10px;color:#000;font-weight:600}'+
+      '.left{text-align:left}'+
+      '@media print{body{padding:10px}@page{margin:12mm}}'+
     '<\/style><\/head><body>'+
     '<h2>Control de Marcajes — CLVT ZPP5<\/h2>'+
-    '<div class="info-box"><table class="info-tbl"><tr>'+
-    '<td><b>EMPRESA:<\/b> JRGRODVAL DISTRIBUCIONES S.A.C.<\/td>'+
-    '<td><b>FECHA:<\/b> '+fecha+'<\/td>'+
-    '<td><b>CLVT:<\/b> ZPP5<\/td>'+
-    '<\/tr><\/table><\/div>'+
-    '<div class="info">Ruta(s): '+rutas+' | Total: '+MK_VISIBLE.length+' registros<\/div>'+
-    '<table><thead><tr>'+
-    '<th class="num">#<\/th><th>Ruta<\/th><th>IDCli<\/th><th>Nombre Cliente<\/th><th>Orden de Compra<\/th><th>Calle<\/th><th>Distrito<\/th><th>Reparto<\/th><th>Comentarios<\/th>'+
-    '<\/tr><\/thead><tbody>';
+    '<div class="info-box">'+
+      '<p>FECHA: <span>'+fecha+'<\/span><\/p>'+
+      '<p>EMPRESA: <span>JRGRODVAL DISTRIBUCIONES S.A.C.<\/span><\/p>'+
+      '<p>CLVT: <span>ZPP5<\/span><\/p>'+
+    '<\/div>'+
+    '<p class="info-ruta">Ruta(s): '+rutas+' &nbsp;|&nbsp; Total: '+MK_VISIBLE.length+' registros<\/p>'+
+    '<table>'+
+      '<thead><tr>'+
+        '<th class="num">#<\/th>'+
+        '<th>Ruta<\/th>'+
+        '<th>IDCli<\/th>'+
+        '<th>Nombre Cliente<\/th>'+
+        '<th>Orden de Compra<\/th>'+
+        '<th>Calle<\/th>'+
+        '<th>Distrito<\/th>'+
+        '<th style="width:120px">Reparto<\/th>'+
+        '<th>Comentarios<\/th>'+
+      '<\/tr><\/thead>'+
+      '<tbody>';
   MK_VISIBLE.forEach(function(r,i){
-    html+='<tr><td class="num">'+(i+1)+'<\/td><td>'+r.ruta+'<\/td><td>'+r.idcli+'<\/td><td>'+r.nombre+'<\/td><td>'+r.oc+'<\/td><td>'+(r.calle||'')+'<\/td><td>'+(r.distrito||'')+'<\/td><td><\/td><td><\/td><\/tr>';
+    html+=
+      '<tr>'+
+        '<td class="num">'+(i+1)+'<\/td>'+
+        '<td>'+r.ruta+'<\/td>'+
+        '<td>'+r.idcli+'<\/td>'+
+        '<td class="left">'+r.nombre+'<\/td>'+
+        '<td>'+r.oc+'<\/td>'+
+        '<td class="left">'+(r.calle||'')+'<\/td>'+
+        '<td>'+(r.distrito||'')+'<\/td>'+
+        '<td><\/td>'+
+        '<td><\/td>'+
+      '<\/tr>';
   });
-  html+='<\/tbody><tfoot><tr><td class="num"><\/td><td colspan="3" style="text-align:right">Total<\/td><td>'+MK_VISIBLE.length+'<\/td><td><\/td><td><\/td><td><\/td><td><\/td><\/tr><\/tfoot><\/table><\/body><\/html>';
-  var w=window.open('','_blank','width=1000,height=700');
+  html+=
+    '<\/tbody>'+
+    '<tfoot><tr>'+
+      '<td class="num"><\/td>'+
+      '<td colspan="3" style="text-align:center;font-weight:700">TOTAL REGISTROS:<\/td>'+
+      '<td style="font-weight:700">'+MK_VISIBLE.length+'<\/td>'+
+      '<td><\/td><td><\/td><td><\/td><td><\/td>'+
+    '<\/tr><\/tfoot>'+
+    '<\/table><\/body><\/html>';
+  var w=window.open('','_blank','width=1100,height=750');
   w.document.write(html);w.document.close();w.focus();
-  setTimeout(function(){w.print();},400);
+  setTimeout(function(){w.print();},500);
 }
 
 // Función para cargar desde nube (llamada desde menú)
