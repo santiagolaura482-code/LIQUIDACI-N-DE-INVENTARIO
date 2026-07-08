@@ -216,7 +216,7 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 #segr-table{font-size:10.5px}
 #segr-table th,#segr-table td{width:11.11%!important;text-align:center!important;padding:5px 4px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #segr-ruta-summary{font-size:10px;table-layout:fixed}
-#segr-ruta-summary th,#segr-ruta-summary td{width:7.69%!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;vertical-align:middle;padding:5px 3px;height:30px;box-sizing:border-box}
+#segr-ruta-summary th,#segr-ruta-summary td{width:7.14%!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;vertical-align:middle;padding:5px 3px;height:30px;box-sizing:border-box}
 #segr-ruta-summary th:nth-child(1),#segr-ruta-summary td:nth-child(1){text-align:left}
 .segr-bar-cell{position:relative;width:100%;height:20px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
 .segr-bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
@@ -6903,15 +6903,21 @@ function segRutasRenderRutaSummary(merged){
   var rows = Object.keys(groups).map(function(k){ return groups[k]; });
   rows.forEach(function(g){
     g.pendientes = g.programados - g.atendidos;
+    g.rechazados = g.parcialORechazo;
     g.pctCli = g.programados ? (g.atendidos / g.programados) * 100 : 0;
     g.pctVol = g.volumeSum ? (g.delivered / g.volumeSum) * 100 : 0;
-    g.pctMRVol = g.volumeSum ? (g.refused / g.volumeSum) * 100 : 0;
-    g.pctMRPed = g.programados ? (g.parcialORechazo / g.programados) * 100 : 0;
+    if (g.rechazados === 0) {
+      g.pctMRVol = 0;
+      g.pctMRPed = 0;
+    } else {
+      g.pctMRVol = g.volumeSum ? (g.refused / g.volumeSum) * 100 : 0;
+      g.pctMRPed = g.programados ? (g.parcialORechazo / g.programados) * 100 : 0;
+    }
   });
 
   var SUMMARY_COLS = [
     { key:'ruta', label:'Ruta' }, { key:'placa', label:'Placa' }, { key:'viaje', label:'Viaje' }, { key:'transporte', label:'Transporte' },
-    { key:'programados', label:'Prog.' }, { key:'atendidos', label:'Atend.' }, { key:'pendientes', label:'Pend.' },
+    { key:'programados', label:'Prog.' }, { key:'atendidos', label:'Atend.' }, { key:'pendientes', label:'Pend.' }, { key:'rechazados', label:'Rechazados' },
     { key:'alertas', label:'Alertas' }, { key:'rechazosNoAlertados', label:'Rech. no Alert.' },
     { key:'pctCli', label:'% Cli.' }, { key:'pctVol', label:'% Vol.' },
     { key:'pctMRVol', label:'MR Vol.' }, { key:'pctMRPed', label:'MR Ped.' },
@@ -6950,6 +6956,7 @@ function segRutasRenderRutaSummary(merged){
       '<td>'+g.programados+'</td>'+
       '<td style="color:#22d98e;font-weight:700">'+g.atendidos+'</td>'+
       '<td style="color:#f75b5b;font-weight:700">'+g.pendientes+'</td>'+
+      '<td style="color:#ffc107;font-weight:700">'+g.rechazados+'</td>'+
       '<td>'+(g.alertas ? '<span style="color:#f75b5b;font-weight:700">⚠️ '+g.alertas+'</span>' : '—')+'</td>'+
       '<td>'+(g.rechazosNoAlertados ? '<span style="color:#f75b5b;font-weight:700">'+g.rechazosNoAlertados+'</span>' : '—')+'</td>'+
       barCell(g.pctCli)+
@@ -6957,7 +6964,7 @@ function segRutasRenderRutaSummary(merged){
       mrCell(g.pctMRVol)+
       mrCell(g.pctMRPed)+
     '</tr>';
-  }).join('') : '<tr><td colspan="13" style="padding:16px;text-align:center;color:var(--mut,#9db0c2)">Sin datos.</td></tr>') + '</tbody>';
+  }).join('') : '<tr><td colspan="14" style="padding:16px;text-align:center;color:var(--mut,#9db0c2)">Sin datos.</td></tr>') + '</tbody>';
 
   var tfoot = '';
   if(rows.length){
@@ -6972,14 +6979,21 @@ function segRutasRenderRutaSummary(merged){
     var totRechazosNoAlertados = rows.reduce(function(s,g){ return s+g.rechazosNoAlertados; }, 0);
     var totPctCli = totProg ? (totAtend/totProg)*100 : 0;
     var totPctVol = totVolumeSum ? (totDelivered/totVolumeSum)*100 : 0;
-    var totPctMRVol = totVolumeSum ? (totRefused/totVolumeSum)*100 : 0;
-    var totPctMRPed = totProg ? (totParcialORechazo/totProg)*100 : 0;
+    var totPctMRVol, totPctMRPed;
+    if (totParcialORechazo === 0) {
+      totPctMRVol = 0;
+      totPctMRPed = 0;
+    } else {
+      totPctMRVol = totVolumeSum ? (totRefused/totVolumeSum)*100 : 0;
+      totPctMRPed = totProg ? (totParcialORechazo/totProg)*100 : 0;
+    }
     tfoot = '<tfoot><tr class="segr-subtotal-row">'+
       '<td class="txt" style="text-align:left">SUBTOTAL ('+rows.length+')</td>'+
       '<td></td><td></td><td></td>'+
       '<td>'+totProg+'</td>'+
       '<td style="color:#22d98e">'+totAtend+'</td>'+
       '<td style="color:#f75b5b">'+totPend+'</td>'+
+      '<td style="color:#ffc107">'+totParcialORechazo+'</td>'+
       '<td>'+(totAlertas || '—')+'</td>'+
       '<td>'+(totRechazosNoAlertados || '—')+'</td>'+
       barCell(totPctCli)+
