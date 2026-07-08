@@ -102,7 +102,7 @@ hr{height:1px;background:var(--bor);border:none;margin:0 22px 18px}
 .mt tr:last-child td,.mt tr:last-child th{border-bottom:none}
 .ts{overflow-x:auto;border:1px solid var(--bor);border-radius:10px;max-height:360px;overflow-y:auto}
 table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
-table.dt th{background:var(--s2);padding:9px 10px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;position:sticky;top:0;z-index:1}
+table.dt th{background:var(--s2);padding:9px 10px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;position:sticky;top:0;z-index:15;box-shadow:0 4px 8px rgba(0,0,0,.35)}
 table.dt th.ht{color:var(--ylw)}table.dt th.hp{color:var(--blue)}table.dt th.hd{color:var(--grn)}
 table.dt th:first-child,table.dt td:first-child{width:40%}
 table.dt th:nth-child(2),table.dt td:nth-child(2){width:15%}
@@ -222,10 +222,10 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 .segr-summary-row-sel td{background:rgba(255,176,32,.10)!important;border-top:1px solid var(--ylw,#ffc107);border-bottom:1px solid var(--ylw,#ffc107)}
 .segr-th-sort{cursor:pointer;user-select:none;white-space:nowrap}
 .segr-th-sort:hover{background:rgba(255,255,255,.08)!important}
-.segr-subtotal-row td{background:#0d3b66!important;color:#ffffff!important;font-weight:800;font-size:12.5px;border-top:3px solid #5eb1ff;border-bottom:3px solid #5eb1ff;position:sticky;bottom:0;text-transform:uppercase;letter-spacing:.03em;padding-top:9px!important;padding-bottom:9px!important}
-.segr-subtotal-row td *{color:#ffffff!important}
-.segr-subtotal-row .segr-bar-cell{background:rgba(255,255,255,.18)!important}
-.segr-subtotal-row .segr-bar-fill{background:rgba(255,255,255,.4)!important}
+.segr-subtotal-row td{background:#1b2333!important;color:#f2f4f8!important;font-weight:800;font-size:12.5px;border-top:2px solid #d4a94a;border-bottom:1px solid #2a3045;position:sticky;bottom:0;z-index:20;text-transform:uppercase;letter-spacing:.03em;padding-top:9px!important;padding-bottom:9px!important;box-shadow:0 -4px 10px rgba(0,0,0,.4)}
+.segr-subtotal-row td *{color:#f2f4f8!important}
+.segr-subtotal-row .segr-bar-cell{background:rgba(255,255,255,.10)!important}
+.segr-subtotal-row .segr-bar-fill{background:rgba(212,169,74,.55)!important}
 .a-table-wrap{border:1px solid var(--bor);border-radius:10px;overflow:hidden}
 .a-table{width:100%;border-collapse:collapse;font-size:12px}
 .a-table thead th{background:var(--s2);padding:9px 12px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;font-size:11px}
@@ -1162,7 +1162,7 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
     <div class="segr-top-row" style="display:flex;gap:16px;padding:0 16px 16px;align-items:flex-start">
       <div id="segr-map-wrap" class="segr-map-col" style="flex:0 0 55%;border:1.5px solid #3d4560;border-radius:10px;padding:10px">
         <div id="segr-map-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:11.5px;color:var(--mut,#9db0c2)">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#22d98e;margin-right:3px"></span>Entregado</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#0f7a45;margin-right:3px"></span>Entregado</span>
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ffc107;margin-right:3px"></span>Entrega Parcial</span>
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#f75b5b;margin-right:3px"></span>Rechazo</span>
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff8fd8;margin-right:3px"></span>Pendiente</span>
@@ -7103,7 +7103,7 @@ function segRutasExport(){
 
 // ── Mapa de avance (Leaflet) ──────────────────────────────────────────
 var SEGR_ESTADO_COLOR_MAP = {
-  'ENTREGADO': '#22d98e',
+  'ENTREGADO': '#0f7a45',
   'ENTREGA PARCIAL': '#ffc107',
   'RECHAZO': '#f75b5b',
   'PENDIENTE': '#ff8fd8',
