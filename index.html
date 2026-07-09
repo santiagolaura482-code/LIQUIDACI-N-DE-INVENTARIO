@@ -216,7 +216,7 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 #segr-table{font-size:10.5px}
 #segr-table th,#segr-table td{width:11.11%!important;text-align:center!important;padding:5px 4px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #segr-ruta-summary{font-size:10px;table-layout:fixed}
-#segr-ruta-summary th,#segr-ruta-summary td{width:7.14%!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;vertical-align:middle;padding:5px 3px;height:30px;box-sizing:border-box}
+#segr-ruta-summary th,#segr-ruta-summary td{width:6.67%!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;vertical-align:middle;padding:5px 3px;height:30px;box-sizing:border-box}
 #segr-ruta-summary th:nth-child(1),#segr-ruta-summary td:nth-child(1){text-align:left}
 .segr-bar-cell{position:relative;width:100%;height:20px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
 .segr-bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
@@ -544,7 +544,7 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
   .segr-bar-cell{height:15px!important}
   .segr-bar-label{font-size:8.5px!important}
   .ts{overflow-x:auto!important;min-width:0}
-  .st[style*="repeat(2,1fr)"]{grid-template-columns:1fr!important}
+  .st[style*="repeat(3,1fr);align-items:stretch;margin-bottom:9px"]{grid-template-columns:1fr!important}
   .st[style*="repeat(6,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
   #segr-combo, .segr-combo{width:100%!important}
   .a-toolbar input#segr-search{width:100%;flex-basis:100%}
@@ -1104,7 +1104,7 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
     <div class="app-topbar-info"><span id="bar6-username">—</span><span class="topbar-sep">·</span><span id="bar6-role" style="color:var(--mut)">—</span></div>
     <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
   </div>
-  <div class="st show" style="grid-template-columns:repeat(2,1fr);align-items:stretch;margin-bottom:9px">
+  <div class="st show" style="grid-template-columns:repeat(3,1fr);align-items:stretch;margin-bottom:9px">
     <div class="sb segr-kpi-card">
       <svg id="segr-gauge" viewBox="0 0 200 140" style="width:100%;max-width:220px;display:block;margin:0 auto">
         <path d="M 15 110 A 85 85 0 0 1 185 110" fill="none" stroke="var(--bor,#2a3648)" stroke-width="14" stroke-linecap="round"></path>
@@ -1126,6 +1126,17 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
         <text id="segr-gauge-vol-text" x="100" y="133" text-anchor="middle" font-size="22" font-weight="700" fill="var(--txt,#e8eef4)">0%</text>
       </svg>
       <div class="sl">% Volumen Entregado</div>
+    </div>
+    <div class="sb segr-kpi-card">
+      <svg id="segr-gauge-modulacion" viewBox="0 0 200 140" style="width:100%;max-width:220px;display:block;margin:0 auto">
+        <path d="M 15 110 A 85 85 0 0 1 185 110" fill="none" stroke="var(--bor,#2a3648)" stroke-width="14" stroke-linecap="round"></path>
+        <path id="segr-gauge-modulacion-arc" d="M 15 110 A 85 85 0 0 1 185 110" fill="none" stroke="#ffc107" stroke-width="14" stroke-linecap="round"
+              stroke-dasharray="267.04" stroke-dashoffset="267.04"></path>
+        <line id="segr-gauge-modulacion-needle" x1="100" y1="110" x2="30" y2="110" stroke="var(--txt,#e8eef4)" stroke-width="3" stroke-linecap="round"></line>
+        <circle cx="100" cy="110" r="6" fill="var(--txt,#e8eef4)"></circle>
+        <text id="segr-gauge-modulacion-text" x="100" y="133" text-anchor="middle" font-size="22" font-weight="700" fill="var(--txt,#e8eef4)">0%</text>
+      </svg>
+      <div class="sl">% de Modulación</div>
     </div>
   </div>
   <div class="st show" style="grid-template-columns:repeat(6,1fr);align-items:stretch">
@@ -1178,7 +1189,7 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
     </div>
     <div id="segr-status" style="padding:0 16px 12px;font-size:12.5px;color:var(--mut,#9db0c2)"></div>
     <div class="segr-top-row" style="display:flex;gap:16px;padding:0 16px 16px;align-items:flex-start">
-      <div id="segr-map-wrap" class="segr-map-col" style="flex:0 0 55%;border:1.5px solid #3d4560;border-radius:10px;padding:10px">
+      <div id="segr-map-wrap" class="segr-map-col" style="flex:0 0 38%;border:1.5px solid #3d4560;border-radius:10px;padding:10px">
         <div id="segr-map-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:11.5px;color:var(--mut,#9db0c2)">
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#0f7a45;margin-right:3px"></span>Entregado</span>
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#b8860b;margin-right:3px"></span>Entrega Parcial</span>
@@ -6691,28 +6702,45 @@ function segRutasSetupCombo(inputId, menuId, getOptions, getValue, setValue){
 // ── Parseo de la Hoja de Ruta: viene como tabla HTML con extensión .xls ──
 function segRutasParseHojaRutaHTML(text){
   var doc = new DOMParser().parseFromString(text, 'text/html');
-  var table = doc.querySelector('table');
-  if(!table) throw new Error('No se encontró una tabla en el archivo de Hoja de Ruta.');
-  var trs = table.querySelectorAll('tr');
-  if(!trs.length) throw new Error('La tabla de Hoja de Ruta está vacía.');
-  var header = Array.from(trs[0].querySelectorAll('th,td')).map(function(c){ return c.textContent.trim(); });
+  var tables = doc.querySelectorAll('table');
+  if(!tables.length) throw new Error('No se encontró ninguna tabla en el archivo de Hoja de Ruta.');
+
+  var header = null;
   var rows = [];
-  for(var i=1;i<trs.length;i++){
-    var cells = Array.from(trs[i].querySelectorAll('td'));
-    if(!cells.length) continue;
-    var obj = {};
-    header.forEach(function(h, idx){ obj[h] = cells[idx] ? cells[idx].textContent.trim() : ''; });
-    rows.push(obj);
-  }
+
+  tables.forEach(function(table){
+    var trs = table.querySelectorAll('tr');
+    if(!trs.length) return;
+
+    var startIdx;
+    if(!header){
+      header = Array.from(trs[0].querySelectorAll('th,td')).map(function(c){ return c.textContent.trim(); });
+      startIdx = 1;
+    } else {
+      // Si esta tabla repite su propio encabezado (comun en exportes paginados), se salta
+      var posibleHeader = Array.from(trs[0].querySelectorAll('th,td')).map(function(c){ return c.textContent.trim(); });
+      startIdx = (posibleHeader.length && posibleHeader[0] === header[0]) ? 1 : 0;
+    }
+
+    for(var i=startIdx;i<trs.length;i++){
+      var cells = Array.from(trs[i].querySelectorAll('td'));
+      if(!cells.length) continue;
+      var obj = {};
+      header.forEach(function(h, idx){ obj[h] = cells[idx] ? cells[idx].textContent.trim() : ''; });
+      rows.push(obj);
+    }
+  });
+
+  if(!header) throw new Error('No se pudo leer el encabezado de la Hoja de Ruta.');
   return { header: header, rows: rows };
 }
 
 // ── Parseo del CSV de estados BEES (separado por punto y coma) ──
 function segRutasStripTourPrefix(id){
   var s = String(id || '').trim();
-  var idx = s.indexOf('34');
-  if(idx === -1) return s; // si no aparece "34", se deja tal cual (no se puede cruzar)
-  return s.slice(idx);
+  var m = s.match(/34\d{8}$/); // numero de transporte: siempre 10 digitos, empieza con "34", y es la parte FINAL del texto
+  if(m) return m[0];
+  return s; // si no se encuentra un numero de 10 digitos que empiece con 34 al final, se deja tal cual
 }
 
 function segRutasParseBeesCSV(text){
@@ -6851,6 +6879,13 @@ function segRutasRenderKPIs(merged){
   var clientesParcialORechazo = merged.filter(function(r){ return r._ESTADO === 'ENTREGA PARCIAL' || r._ESTADO === 'RECHAZO'; }).length;
   var pctMRPedido = clientes ? (clientesParcialORechazo / clientes) * 100 : 0;
 
+  var alertasEnRechazos = merged.filter(function(r){
+    var esParcialORechazo = r._ESTADO === 'ENTREGA PARCIAL' || r._ESTADO === 'RECHAZO';
+    var conAlerta = String(r['alerta'] || '').trim().toLowerCase() === 'si';
+    return esParcialORechazo && conAlerta;
+  }).length;
+  var pctModulacion = clientesParcialORechazo ? (alertasEnRechazos / clientesParcialORechazo) * 100 : 0;
+
   var rechazosNoAlertados = merged.filter(segRutasEsRechazoNoAlertado).length;
 
   var transportesUnicos = new Set(
@@ -6873,6 +6908,7 @@ function segRutasRenderKPIs(merged){
 
   segRutasSetGauge('segr-gauge', pct);
   segRutasSetGauge('segr-gauge-vol', pctVolumen);
+  segRutasSetGauge('segr-gauge-modulacion', pctModulacion);
 }
 
 // Resumen de avance por Ruta + Placa (panel junto al mapa).
@@ -6888,13 +6924,16 @@ function segRutasRenderRutaSummary(merged){
     var viaje = r['Viaje'] || '—';
     var transporte = r['Transporte'] || '—';
     var key = ruta + '|' + placa + '|' + viaje + '|' + transporte;
-    if(!groups[key]) groups[key] = { key:key, ruta:ruta, placa:placa, viaje:viaje, transporte:transporte, programados:0, atendidos:0, alertas:0, delivered:0, volumeSum:0, refused:0, parcialORechazo:0, rechazosNoAlertados:0 };
+    if(!groups[key]) groups[key] = { key:key, ruta:ruta, placa:placa, viaje:viaje, transporte:transporte, programados:0, atendidos:0, alertas:0, delivered:0, volumeSum:0, refused:0, parcialORechazo:0, rechazosNoAlertados:0, alertasEnRechazos:0 };
     var g = groups[key];
     g.programados++;
     if(segRutasEsAtendido(r._ESTADO)) g.atendidos++;
-    if(r._ESTADO === 'ENTREGA PARCIAL' || r._ESTADO === 'RECHAZO') g.parcialORechazo++;
+    var esParcialORechazo = r._ESTADO === 'ENTREGA PARCIAL' || r._ESTADO === 'RECHAZO';
+    var conAlerta = String(r['alerta'] || '').trim().toLowerCase() === 'si';
+    if(esParcialORechazo) g.parcialORechazo++;
+    if(esParcialORechazo && conAlerta) g.alertasEnRechazos++;
     if(segRutasEsRechazoNoAlertado(r)) g.rechazosNoAlertados++;
-    if(String(r['alerta'] || '').trim().toLowerCase() === 'si') g.alertas++;
+    if(conAlerta) g.alertas++;
     g.delivered += (r._DELIVERED_VOL || 0);
     g.volumeSum += (r._VOLUME_SUM || 0);
     g.refused += (r._REFUSED_VOL || 0);
@@ -6909,9 +6948,11 @@ function segRutasRenderRutaSummary(merged){
     if (g.rechazados === 0) {
       g.pctMRVol = 0;
       g.pctMRPed = 0;
+      g.pctModulacion = 0;
     } else {
       g.pctMRVol = g.volumeSum ? (g.refused / g.volumeSum) * 100 : 0;
       g.pctMRPed = g.programados ? (g.parcialORechazo / g.programados) * 100 : 0;
+      g.pctModulacion = (g.alertasEnRechazos / g.parcialORechazo) * 100;
     }
   });
 
@@ -6919,7 +6960,7 @@ function segRutasRenderRutaSummary(merged){
     { key:'ruta', label:'Ruta' }, { key:'placa', label:'Placa' }, { key:'viaje', label:'Viaje' }, { key:'transporte', label:'Transporte' },
     { key:'programados', label:'Prog.' }, { key:'atendidos', label:'Atend.' }, { key:'pendientes', label:'Pend.' }, { key:'rechazados', label:'Rechazados' },
     { key:'alertas', label:'Alertas' }, { key:'rechazosNoAlertados', label:'Rech. no Alert.' },
-    { key:'pctCli', label:'% Cli.' }, { key:'pctVol', label:'% Vol.' },
+    { key:'pctCli', label:'% Cli.' }, { key:'pctVol', label:'% Vol.' }, { key:'pctModulacion', label:'% Modulación' },
     { key:'pctMRVol', label:'MR Vol.' }, { key:'pctMRPed', label:'MR Ped.' },
   ];
 
@@ -6961,10 +7002,11 @@ function segRutasRenderRutaSummary(merged){
       '<td>'+(g.rechazosNoAlertados ? '<span style="color:#f75b5b;font-weight:700">'+g.rechazosNoAlertados+'</span>' : '—')+'</td>'+
       barCell(g.pctCli)+
       barCell(g.pctVol)+
+      barCell(g.pctModulacion)+
       mrCell(g.pctMRVol)+
       mrCell(g.pctMRPed)+
     '</tr>';
-  }).join('') : '<tr><td colspan="14" style="padding:16px;text-align:center;color:var(--mut,#9db0c2)">Sin datos.</td></tr>') + '</tbody>';
+  }).join('') : '<tr><td colspan="15" style="padding:16px;text-align:center;color:var(--mut,#9db0c2)">Sin datos.</td></tr>') + '</tbody>';
 
   var tfoot = '';
   if(rows.length){
@@ -6976,16 +7018,19 @@ function segRutasRenderRutaSummary(merged){
     var totVolumeSum = rows.reduce(function(s,g){ return s+g.volumeSum; }, 0);
     var totRefused = rows.reduce(function(s,g){ return s+g.refused; }, 0);
     var totParcialORechazo = rows.reduce(function(s,g){ return s+g.parcialORechazo; }, 0);
+    var totAlertasEnRechazos = rows.reduce(function(s,g){ return s+g.alertasEnRechazos; }, 0);
     var totRechazosNoAlertados = rows.reduce(function(s,g){ return s+g.rechazosNoAlertados; }, 0);
     var totPctCli = totProg ? (totAtend/totProg)*100 : 0;
     var totPctVol = totVolumeSum ? (totDelivered/totVolumeSum)*100 : 0;
-    var totPctMRVol, totPctMRPed;
+    var totPctMRVol, totPctMRPed, totPctModulacion;
     if (totParcialORechazo === 0) {
       totPctMRVol = 0;
       totPctMRPed = 0;
+      totPctModulacion = 0;
     } else {
       totPctMRVol = totVolumeSum ? (totRefused/totVolumeSum)*100 : 0;
       totPctMRPed = totProg ? (totParcialORechazo/totProg)*100 : 0;
+      totPctModulacion = (totAlertasEnRechazos/totParcialORechazo)*100;
     }
     tfoot = '<tfoot><tr class="segr-subtotal-row">'+
       '<td class="txt" style="text-align:left">SUBTOTAL ('+rows.length+')</td>'+
@@ -6998,6 +7043,7 @@ function segRutasRenderRutaSummary(merged){
       '<td>'+(totRechazosNoAlertados || '—')+'</td>'+
       barCell(totPctCli)+
       barCell(totPctVol)+
+      barCell(totPctModulacion)+
       mrCell(totPctMRVol)+
       mrCell(totPctMRPed)+
     '</tr></tfoot>';
