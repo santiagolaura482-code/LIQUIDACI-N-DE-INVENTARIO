@@ -6615,8 +6615,62 @@ function segRutasLoadFromStorage(){
   }
 }
 
+// ── Nube (JSONBin) — para que lo que uno cargue lo vean todos, en cualquier equipo ──
+// Reemplaza el bin/clave de abajo por los tuyos (mismo esquema que Maestro de
+// Clientes y Control de Diferencias) para activar la sincronización compartida.
+function segRutasCloudId(){
+  return { bin: window.SEGR_BIN_ID || 'PONER_BIN_ID_AQUI', key: window.SEGR_API_KEY || 'PONER_API_KEY_AQUI' };
+}
+function segRutasCloudConfigured(){
+  return segRutasCloudId().bin !== 'PONER_BIN_ID_AQUI';
+}
+async function segRutasCloudSave(){
+  if(!segRutasCloudConfigured()) return false;
+  var id = segRutasCloudId();
+  try{
+    var payload = {
+      SEGR_HOJA: SEGR_HOJA,
+      SEGR_HOJA_HEADER: SEGR_HOJA_HEADER,
+      SEGR_BEES: SEGR_BEES,
+      SEGR_BEES_TOURS: [...SEGR_BEES_TOURS],
+      savedAt: new Date().toISOString(),
+    };
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json', 'X-Master-Key':id.key, 'X-Bin-Versioning':'false'},
+      body: JSON.stringify(payload),
+    });
+    return res.ok;
+  }catch(e){ console.error('segRutasCloudSave:', e.message); return false; }
+}
+async function segRutasCloudLoad(){
+  if(!segRutasCloudConfigured()) return false;
+  var id = segRutasCloudId();
+  try{
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin+'/latest', { headers:{'X-Master-Key':id.key} });
+    if(!res.ok) return false;
+    var json = await res.json();
+    var record = json.record;
+    if(record && Array.isArray(record.SEGR_HOJA)){
+      SEGR_HOJA = record.SEGR_HOJA;
+      SEGR_HOJA_HEADER = record.SEGR_HOJA_HEADER || [];
+      SEGR_BEES = record.SEGR_BEES || {};
+      SEGR_BEES_TOURS = new Set(record.SEGR_BEES_TOURS || []);
+      return true;
+    }
+    return false;
+  }catch(e){ console.error('segRutasCloudLoad:', e.message); return false; }
+}
+// Autoguardado en la nube con una pequeña espera (evita disparar una llamada por cada cambio)
+var _segRutasCloudTimer = null;
+function segRutasCloudAutoSave(){
+  if(!segRutasCloudConfigured()) return;
+  clearTimeout(_segRutasCloudTimer);
+  _segRutasCloudTimer = setTimeout(segRutasCloudSave, 1200);
+}
+
 async function segRutasInit(){
-  segRutasLoadFromStorage();
+  segRutasLoadFromStorage(); // respaldo local mientras se consulta la nube
   await segRutasCoordsLoad(); // coordenadas ya incrustadas de forma permanente
   var searchInput = document.getElementById('segr-search');
   if(searchInput && !searchInput._wired){
@@ -6637,6 +6691,15 @@ async function segRutasInit(){
     function(v){ SEGR_FILTER_STATUS = v; segRutasRenderTable(); }
   );
   segRutasRenderTable();
+
+  // Si la nube está configurada, traer lo último que haya cargado cualquier
+  // persona (en cualquier equipo) y volver a pintar con esos datos.
+  if(segRutasCloudConfigured()){
+    document.getElementById('segr-status').textContent = '🔄 Sincronizando con la nube…';
+    var ok = await segRutasCloudLoad();
+    if(ok) segRutasSaveToStorage(); // respaldo local de lo que trajo la nube
+    segRutasRenderTable();
+  }
 }
 
 // Genera las opciones (valor + conteo) para un combo, a partir de los datos actuales
@@ -6764,16 +6827,22 @@ function segRutasParseBeesCSV(text){
     var delivered = idxDelivered !== -1 ? parseFloat((cells[idxDelivered] || '0').replace(',', '.')) : 0;
     var refused = idxRefused !== -1 ? parseFloat((cells[idxRefused] || '0').replace(',', '.')) : 0;
     var volSum = idxVolSum !== -1 ? parseFloat((cells[idxVolSum] || '0').replace(',', '.')) : 0;
+    var tourStripped = '';
     if(idxTour !== -1){
-      var tourStripped = segRutasStripTourPrefix(cells[idxTour]);
+      tourStripped = segRutasStripTourPrefix(cells[idxTour]);
       if(tourStripped) SEGR_BEES_TOURS.add(tourStripped);
     }
-    if(poc) map[poc] = {
+    if(!poc) continue;
+    var entry = {
       status: status,
       deliveredVol: isNaN(delivered) ? 0 : delivered,
       refusedVol: isNaN(refused) ? 0 : refused,
       volumeSum: isNaN(volSum) ? 0 : volSum,
     };
+    // Clave precisa: Código + Transporte (diferencia al mismo cliente en rutas distintas)
+    if(tourStripped) map[poc + '|' + tourStripped] = entry;
+    // Clave de respaldo solo por Código, por si el cruce por transporte no aplica
+    map[poc] = entry;
   }
   return map;
 }
@@ -6788,7 +6857,13 @@ function segRutasUploadHoja(inp){
       SEGR_HOJA = parsed.rows;
       segRutasSaveToStorage();
       segRutasRenderTable();
-      document.getElementById('segr-status').textContent = '✅ Hoja de Ruta cargada: '+parsed.rows.length+' fila(s).';
+      var msg = '✅ Hoja de Ruta cargada: '+parsed.rows.length+' fila(s).';
+      document.getElementById('segr-status').textContent = msg + (segRutasCloudConfigured() ? ' Subiendo a la nube…' : '');
+      if(segRutasCloudConfigured()){
+        segRutasCloudSave().then(function(ok){
+          document.getElementById('segr-status').textContent = msg + (ok ? ' ☁️ Compartido con todos.' : ' ⚠️ No se pudo subir a la nube.');
+        });
+      }
     }catch(err){
       alert('❌ Error al leer la Hoja de Ruta: '+err.message);
     }
@@ -6809,7 +6884,13 @@ function segRutasUploadBees(inp){
       Object.assign(SEGR_BEES, map);
       segRutasSaveToStorage();
       segRutasRenderTable();
-      document.getElementById('segr-status').textContent = '✅ Estados BEES cargados: '+n+' código(s) actualizado(s).';
+      var msg = '✅ Estados BEES cargados: '+n+' código(s) actualizado(s).';
+      document.getElementById('segr-status').textContent = msg + (segRutasCloudConfigured() ? ' Subiendo a la nube…' : '');
+      if(segRutasCloudConfigured()){
+        segRutasCloudSave().then(function(ok){
+          document.getElementById('segr-status').textContent = msg + (ok ? ' ☁️ Compartido con todos.' : ' ⚠️ No se pudo subir a la nube.');
+        });
+      }
     }catch(err){
       alert('❌ Error al leer el CSV de estados: '+err.message);
     }
@@ -6832,7 +6913,9 @@ function segRutasEstadoClass(estado){
 function segRutasMerged(){
   return SEGR_HOJA.map(function(row){
     var codigo = String(row['Codigo'] || '').trim();
-    var beesEntry = SEGR_BEES[codigo];
+    var transporteStripped = segRutasStripTourPrefix(row['Transporte']);
+    var compositeKey = transporteStripped ? (codigo + '|' + transporteStripped) : codigo;
+    var beesEntry = SEGR_BEES[compositeKey] || SEGR_BEES[codigo];
     var statusCrudo = beesEntry ? beesEntry.status : '';
     var estado = statusCrudo ? (SEGR_STATUS_MAP[statusCrudo] || statusCrudo) : '';
     var empresaCrudo = String(row['Empresa'] || '').trim();
@@ -7379,7 +7462,10 @@ function segRutasRenderMap(){
 }
 
 function segRutasClearAll(){
-  if(!confirm('¿Eliminar la Hoja de Ruta y los estados BEES cargados? (Las coordenadas del Maestro de Clientes NO se borran, ya que son un dato de referencia reutilizable). Esta acción no se puede deshacer.')) return;
+  var aviso = '¿Eliminar la Hoja de Ruta y los estados BEES cargados? (Las coordenadas del Maestro de Clientes NO se borran, ya que son un dato de referencia reutilizable).' +
+    (segRutasCloudConfigured() ? '\n\n⚠️ Esto borrará los datos para TODOS (están compartidos en la nube).' : '') +
+    ' Esta acción no se puede deshacer.';
+  if(!confirm(aviso)) return;
   SEGR_HOJA = [];
   SEGR_HOJA_HEADER = [];
   SEGR_BEES = {};
@@ -7394,6 +7480,7 @@ function segRutasClearAll(){
   segRutasSaveToStorage();
   segRutasRenderTable();
   document.getElementById('segr-status').textContent = 'Datos borrados.';
+  if(segRutasCloudConfigured()) segRutasCloudSave();
 }
 
 
