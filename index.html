@@ -14,8 +14,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 :root{--bg:#0d0f14;--sur:#161921;--s2:#1e2330;--bor:#2a3045;--blue:#4f8ef7;--grn:#22d98e;--red:#f75b5b;--ylw:#f7c44f;--pur:#a78bfa;--txt:#e8ecf4;--mut:#7a869e;--r:12px;--f:'Inter',sans-serif;--m:'JetBrains Mono',monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:var(--f);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px}
-body>*{min-width:0;max-width:100%}
+body{background:var(--bg);color:var(--txt);font-family:var(--f);min-height:100vh;display:flex;flex-direction:row;align-items:stretch;padding:0;margin:0}
+#main-content{flex:1;min-width:0;max-width:100%;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px}
+#main-content>*{min-width:0;max-width:100%}
+
+/* ── Barra lateral fija ─────────────────────────────────────── */
+#app-sidebar{width:250px;flex:0 0 250px;background:#11141c;border-right:1px solid var(--bor,#2a3045);min-height:100vh;position:sticky;top:0;align-self:flex-start;display:flex;flex-direction:column;padding:20px 0 16px;overflow-y:auto}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:0 20px 18px;margin-bottom:14px;border-bottom:1px solid var(--bor,#2a3045)}
+.sb-brand-icon{font-size:26px}
+.sb-brand-text{font-size:12.5px;font-weight:800;letter-spacing:.03em;line-height:1.3;color:var(--txt)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:0 20px 18px;margin-bottom:8px}
+.sb-user-avatar{width:38px;height:38px;border-radius:50%;background:var(--ylw,#f7c44f);color:#1a1300;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-user-info{min-width:0}
+.sb-user-name{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:11.5px;color:var(--mut,#7a869e);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-section-label{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--mut,#7a869e);text-transform:uppercase;padding:10px 20px 6px}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:0 10px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--txt);transition:background .12s}
+.sb-item:hover{background:rgba(255,255,255,.06)}
+.sb-item-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sb-item-label{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-item-arrow{font-size:13px;color:var(--mut,#7a869e);opacity:0;transition:opacity .12s}
+.sb-item:hover .sb-item-arrow{opacity:1}
+.sb-item.sb-active{background:var(--ylw,#f7c44f);color:#1a1300}
+.sb-item.sb-active .sb-item-arrow{color:#1a1300;opacity:1}
+.sb-item-logout{color:var(--red,#f75b5b)}
+.sb-item-logout:hover{background:rgba(247,91,91,.1)}
+@media (max-width:900px){
+  body{flex-direction:column}
+  #app-sidebar{width:100%;flex:0 0 auto;min-height:auto;position:relative;border-right:none;border-bottom:1px solid var(--bor,#2a3045);padding:14px 0}
+  .sb-nav{flex-direction:row;flex-wrap:wrap;padding:0 12px}
+  .sb-item{flex:0 0 auto}
+  .sb-item-label{white-space:nowrap}
+  .sb-brand,.sb-user{padding-left:16px;padding-right:16px}
+}
 /* LOGIN */
 #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
 .login-box{background:var(--sur);border:1px solid var(--bor);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
@@ -348,12 +380,12 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 .mk-empty td{text-align:center;color:var(--mut);padding:40px;font-style:italic}
 .mk-table tfoot td{padding:8px 12px;font-weight:700;border-top:2px solid var(--grn);color:var(--grn);font-size:11px}
 /* Breximar upload zone */
-#brx-upload-zone .logout-btn{font-size:12px;padding:6px 14px}
-#brx-status-lbl{font-size:13px;font-weight:600;transition:color .3s}
-#brx-status-lbl{font-size:13px;font-weight:600;transition:color .3s}
+.brx-upload-zone .logout-btn{font-size:12px;padding:6px 14px}
+.brx-status-lbl{font-size:13px;font-weight:600;transition:color .3s}
+.brx-status-lbl{font-size:13px;font-weight:600;transition:color .3s}
 
 /* ── Botón Cargar Excel pulsante ─── */
-#brx-upload-btn{
+.brx-upload-btn{
   position:relative;
   font-size:13px;font-weight:700;
   padding:10px 20px;
@@ -366,14 +398,14 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
   transition:transform .15s,opacity .15s;
   animation:brx-pulse 2s infinite;
 }
-#brx-upload-btn:hover{opacity:.9;transform:scale(1.04);animation:none}
-#brx-upload-btn:active{transform:scale(.97);animation:none}
+.brx-upload-btn:hover{opacity:.9;transform:scale(1.04);animation:none}
+.brx-upload-btn:active{transform:scale(.97);animation:none}
 @keyframes brx-pulse{
   0%,100%{box-shadow:0 0 0 0 rgba(79,142,247,.5)}
   50%{box-shadow:0 0 0 10px rgba(79,142,247,0)}
 }
 /* Cuando el archivo está cargado, el botón deja de pulsar */
-#brx-upload-btn.loaded{
+.brx-upload-btn.loaded{
   background:linear-gradient(135deg,var(--grn),#16a068);
   border-color:var(--grn);
   animation:none;
@@ -382,7 +414,7 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 
 /* ── RESPONSIVE MÓVIL COMPLETO ─────────────────────────────── */
 @media (max-width:768px){
-  body{padding:14px 10px 40px}
+  #main-content{padding:14px 10px 40px}
 
   /* Login */
   .login-box{padding:28px 18px;border-radius:14px}
@@ -400,11 +432,11 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
   .welcome-sub{font-size:12px;margin-bottom:16px}
 
   /* Zona upload Breximar */
-  #brx-upload-zone{padding:14px}
-  #brx-upload-zone>div:first-child{flex-direction:column;align-items:flex-start;gap:10px}
-  #brx-upload-zone>div:first-child>div:last-child{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  #brx-upload-btn{width:100%;padding:12px;font-size:13px;grid-column:1/-1}
-  #brx-upload-zone .logout-btn{padding:8px 10px;font-size:11px;text-align:center}
+  .brx-upload-zone{padding:14px}
+  .brx-upload-zone>div:first-child{flex-direction:column;align-items:flex-start;gap:10px}
+  .brx-upload-zone>div:first-child>div:last-child{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .brx-upload-btn{width:100%;padding:12px;font-size:13px;grid-column:1/-1}
+  .brx-upload-zone .logout-btn{padding:8px 10px;font-size:11px;text-align:center}
 
   /* Módulos grid */
   .modules-grid{grid-template-columns:1fr 1fr;gap:10px}
@@ -481,7 +513,7 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
   .module-card{padding:14px 12px}
   .welcome-title{font-size:16px}
   .mk-stats{grid-template-columns:repeat(2,1fr)}
-  #brx-upload-zone>div:first-child>div:last-child{grid-template-columns:1fr}
+  .brx-upload-zone>div:first-child>div:last-child{grid-template-columns:1fr}
 }
 
 /* iOS: evitar zoom en inputs */
@@ -492,7 +524,7 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
 
 /* ── RESPONSIVE MÓVIL ──────────────────────────────────────── */
 @media (max-width: 700px){
-  body{padding:16px 10px 40px}
+  #main-content{padding:16px 10px 40px}
   /* Login */
   .login-box{padding:28px 20px}
   .login-title{font-size:14px}
@@ -573,6 +605,35 @@ input, select, textarea{font-size:16px !important}
 <body>
 
 <!-- LOGIN -->
+<div id="app-sidebar" style="display:none">
+  <div class="sb-brand">
+    <span class="sb-brand-icon">🚚</span>
+    <span class="sb-brand-text">CONTROLES<br>JRGRODVAL</span>
+  </div>
+  <div class="sb-user">
+    <div class="sb-user-avatar" id="sb-user-avatar">—</div>
+    <div class="sb-user-info">
+      <div class="sb-user-name" id="sb-user-name">—</div>
+      <div class="sb-user-role" id="sb-user-role">—</div>
+    </div>
+  </div>
+  <div class="sb-section-label">Opciones</div>
+  <div class="sb-nav" id="sb-nav">
+    <div class="sb-item" data-mod="importarexcel" onclick="window.openModule('importarexcel')"><span class="sb-item-icon">📥</span><span class="sb-item-label">Importar Excel</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="liquidacion" onclick="window.openModule('liquidacion')"><span class="sb-item-icon">📋</span><span class="sb-item-label">Liquidación de Inventario</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="desplan" onclick="window.openModule('desplan')"><span class="sb-item-icon">🗺️</span><span class="sb-item-label">Desplanificación</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="asistencia" onclick="window.openModule('asistencia')"><span class="sb-item-icon">👥</span><span class="sb-item-label">Control de Asistencias</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="marcajes" onclick="window.openModule('marcajes')"><span class="sb-item-icon">📍</span><span class="sb-item-label">Control de Marcajes</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="diferencias" onclick="window.openModule('diferencias')"><span class="sb-item-icon">⚖️</span><span class="sb-item-label">Control de Diferencias</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="segrutas" onclick="window.openModule('segrutas')"><span class="sb-item-icon">🛣️</span><span class="sb-item-label">Seguimiento de Rutas</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="cierrecaja" onclick="window.openModule('cierrecaja')"><span class="sb-item-icon">🧾</span><span class="sb-item-label">Cierre de Caja</span><span class="sb-item-arrow">‹</span></div>
+  </div>
+  <div class="sb-section-label">Sesión</div>
+  <div class="sb-nav">
+    <div class="sb-item sb-item-logout" onclick="window.showLogin()"><span class="sb-item-icon">🚪</span><span class="sb-item-label">Salir</span><span class="sb-item-arrow">‹</span></div>
+  </div>
+</div>
+<div id="main-content">
 <div id="login-screen">
   <form class="login-box" action="#" onsubmit="window.doLogin();return false;" autocomplete="on">
     <div class="login-logo"><div class="login-logo-icon">🍺</div><span class="login-title">CONTROLES JRGRODVAL</span></div>
@@ -851,27 +912,14 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
   </div>
   <div class="welcome-sub">Selecciona el módulo al que deseas acceder</div>
 
-  <!-- ZONA CARGA BREXIMAR -->
-  <div id="brx-upload-zone" style="margin-bottom:20px;background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:18px 20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📊 Hoja de Ruta Breximar</div>
-        <div style="font-size:12px;color:var(--mut)" id="brx-status-lbl">Sin archivo cargado — usado por Desplanificación y Marcajes</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <div style="position:relative">
-          <button id="brx-upload-btn">📂 Cargar Excel</button>
-          <input type="file" id="brx-file-input" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="brxUploadFile(this)">
-        </div>
-        <button class="logout-btn" id="brx-cloud-save-btn" onclick="guardarTodo()" style="border-color:rgba(34,217,142,.4);color:var(--grn);display:none">☁️ Guardar nube</button>
-        <button class="logout-btn" onclick="brxLoadCloud()" style="border-color:rgba(79,142,247,.4);color:var(--blue)">☁️ Cargar nube</button>
-        <button class="logout-btn" onclick="brxClear()" style="border-color:rgba(247,91,91,.4);color:var(--red);display:none" id="brx-clear-btn">✕ Quitar</button>
-      </div>
-    </div>
-    <div id="brx-cloud-info" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(34,217,142,.12);border:1px solid rgba(34,217,142,.5);border-radius:9px;font-size:13px;font-weight:600;color:var(--grn)"></div>
-  </div>
 
   <div class="modules-grid">
+    <div class="module-card" onclick="window.openModule('importarexcel')">
+      <div class="module-icon">📥</div>
+      <div class="module-name">Importar Excel</div>
+      <div class="module-desc">Carga la Hoja de Ruta Breximar una sola vez: alimenta automáticamente a Control de Marcajes y Desplanificación</div>
+      <div class="module-arrow">→</div>
+    </div>
     <div class="module-card" onclick="window.openModule('liquidacion')">
       <div class="module-icon">📋</div><div class="module-name">Liquidación de Inventario</div>
       <div class="module-desc">Convierte PDFs de liquidación BEES en Excel estructurado con análisis de vacíos, diferencias y totales</div>
@@ -979,6 +1027,10 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
     <div class="app-topbar-info"><span id="bar2-username">—</span><span class="topbar-sep">·</span><span id="bar2-role" style="color:var(--mut)">—</span></div>
     <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
   </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:10px 16px">
+    <div style="font-size:12.5px;color:var(--mut)">📊 Hoja de Ruta Breximar: <span class="brx-status-lbl" style="color:inherit;font-weight:600">Sin archivo cargado</span></div>
+    <button class="logout-btn" onclick="window.openModule('importarexcel')" style="border-color:rgba(79,142,247,.4);color:var(--blue)">📥 Ir a Importar Excel</button>
+  </div>
   <iframe id="desplan-frame" style="width:100%;border:none;border-radius:12px;min-height:90vh;display:block"></iframe>
 </div>
 
@@ -1027,6 +1079,10 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
     <button class="back-btn" onclick="window.showWelcome(currentUser)">← Menú principal</button>
     <div class="app-topbar-info"><span id="bar4-username">—</span><span class="topbar-sep">·</span><span id="bar4-role" style="color:var(--mut)">—</span></div>
     <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:10px 16px">
+    <div style="font-size:12.5px;color:var(--mut)">📊 Hoja de Ruta Breximar: <span class="brx-status-lbl" style="color:inherit;font-weight:600">Sin archivo cargado</span></div>
+    <button class="logout-btn" onclick="window.openModule('importarexcel')" style="border-color:rgba(79,142,247,.4);color:var(--blue)">📥 Ir a Importar Excel</button>
   </div>
   <!-- Info del archivo cargado desde el menú principal -->
   <div class="mk-card" id="mk-file-card" style="display:none">
@@ -1245,6 +1301,11 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
     <div class="a-card-title"><span>🧾</span><span id="cc-form-title">Nuevo Cierre de Caja</span></div>
     <div class="a-form">
       <div class="a-field cc-combo-field">
+        <label>Empresa</label>
+        <input type="text" id="cc-empresa" autocomplete="off" placeholder="Escribe o elige una empresa…">
+        <div class="cc-combo-menu" id="cc-empresa-menu"></div>
+      </div>
+      <div class="a-field cc-combo-field">
         <label>Ruta</label>
         <input type="text" id="cc-ruta" autocomplete="off" placeholder="Escribe o elige una ruta…">
         <div class="cc-combo-menu" id="cc-ruta-menu"></div>
@@ -1253,11 +1314,6 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
         <label>Viaje</label>
         <input type="text" id="cc-viaje" autocomplete="off" placeholder="Escribe o elige un viaje…">
         <div class="cc-combo-menu" id="cc-viaje-menu"></div>
-      </div>
-      <div class="a-field cc-combo-field">
-        <label>Empresa</label>
-        <input type="text" id="cc-empresa" autocomplete="off" placeholder="Se detecta según la ruta, o elige/escribe una…">
-        <div class="cc-combo-menu" id="cc-empresa-menu"></div>
       </div>
       <div class="a-field"><label>Tipo</label>
         <select id="cc-tipo">
@@ -1270,7 +1326,7 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
       <div class="a-field"><label>Fecha</label><input type="date" id="cc-fecha"></div>
       <div class="a-field"><label>Botellas</label><input type="number" step="1" id="cc-botellas" placeholder="0"></div>
       <div class="a-field"><label>Cajas</label><input type="number" step="1" id="cc-cajas" placeholder="0"></div>
-      <div class="a-field"><label>Líquido</label><input type="number" step="0.01" id="cc-liquido" placeholder="0.00"></div>
+      <div class="a-field"><label>Líquido</label><input type="text" id="cc-liquido" placeholder="Ej: 76.20 o cualquier texto"></div>
       <div class="a-field full"><label>Comentario</label><textarea id="cc-comentario" rows="2" placeholder="Observaciones del cierre…" style="width:100%;background:var(--panel-2,#1c2530);border:1px solid var(--line,#2a3648);border-radius:8px;padding:10px 12px;color:inherit;font-size:14px;font-family:inherit;resize:vertical"></textarea></div>
       <div class="a-field"><label>Diferencia</label><input type="number" step="0.01" id="cc-diferencia" placeholder="0.00"></div>
       <div class="a-field"><label>Se le dio</label><input type="number" step="0.01" id="cc-seledio" placeholder="0.00"></div>
@@ -1310,7 +1366,42 @@ gIoKqCgqoKICKooKqKiAiqICKiqgogIqigqoqICKogIqKqCiqICKCqgoKqCiAiqKCqiogIqiAioqoKKo
   </div>
 </div>
 
+<!-- APP8 IMPORTAR EXCEL -->
+<div id="app8">
+  <div class="app-topbar">
+    <button class="back-btn" onclick="window.showWelcome(currentUser)">← Menú principal</button>
+    <div class="app-topbar-info"><span id="bar8-username">—</span><span class="topbar-sep">·</span><span id="bar8-role" style="color:var(--mut)">—</span></div>
+    <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+  </div>
+  <div class="a-card">
+    <div class="a-card-title"><span>📥</span><span>Importar Excel — Hoja de Ruta Breximar</span></div>
+    <div style="font-size:13.5px;color:var(--mut,#7a869e);margin-bottom:16px;line-height:1.5">
+      Carga aquí el Excel de la Hoja de Ruta Breximar. Este archivo alimenta automáticamente,
+      sin que tengas que volver a cargarlo, a los módulos <b>Control de Marcajes</b> y <b>Desplanificación</b>.
+    </div>
+    <div class="brx-upload-zone" style="background:var(--panel-2,#1c2530);border:1px solid var(--line,#2a3648);border-radius:12px;padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📊 Hoja de Ruta Breximar</div>
+          <div style="font-size:12px;color:var(--mut)" class="brx-status-lbl">Sin archivo cargado — usado por Desplanificación y Marcajes</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="position:relative">
+            <button class="brx-upload-btn">📂 Cargar Excel</button>
+            <input type="file" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="brxUploadFile(this)">
+          </div>
+          <button class="logout-btn brx-cloud-save-btn" onclick="guardarTodo()" style="border-color:rgba(34,217,142,.4);color:var(--grn);display:none">☁️ Guardar nube</button>
+          <button class="logout-btn" onclick="brxLoadCloud()" style="border-color:rgba(79,142,247,.4);color:var(--blue)">☁️ Cargar nube</button>
+          <button class="logout-btn brx-clear-btn" onclick="brxClear()" style="border-color:rgba(247,91,91,.4);color:var(--red);display:none">✕ Quitar</button>
+        </div>
+      </div>
+      <div class="brx-cloud-info" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(34,217,142,.12);border:1px solid rgba(34,217,142,.5);border-radius:9px;font-size:13px;font-weight:600;color:var(--grn)"></div>
+    </div>
+  </div>
+</div>
+
 <footer>Procesamiento 100% local · CONTROLES JRGRODVAL</footer>
+</div>
 
 <script>
 // ── MAESTRO DE CLIENTES ──────────────────────────────────────
@@ -5827,7 +5918,7 @@ window.brxClearExcel=function(){
 function pushHistory(screen){ history.pushState({screen:screen},'',''); }
 
 window.addEventListener('popstate',function(e){
-  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'){
+  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'){
     if(currentUser) _showWelcomeRaw(currentUser);
     else _showLoginRaw();
   } else if(currentScreen==='welcome'){
@@ -5838,20 +5929,39 @@ window.addEventListener('popstate',function(e){
 });
 
 function _hideAll(){
-  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7'].forEach(function(id){
+  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8'].forEach(function(id){
     document.getElementById(id).style.display='none';
   });
 }
+var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel'};
+function sbShowUser(user){
+  var nombre = (user && user.nombre) || '—';
+  var inicial = nombre.trim().slice(0,2).toUpperCase() || '—';
+  var av = document.getElementById('sb-user-avatar'); if(av) av.textContent = inicial;
+  var nm = document.getElementById('sb-user-name'); if(nm) nm.textContent = nombre;
+  var rl = document.getElementById('sb-user-role'); if(rl) rl.textContent = (user && user.rol) || '—';
+}
+function sbSetActive(modKey){
+  var items = document.querySelectorAll('#app-sidebar .sb-item');
+  items.forEach(function(el){
+    el.classList.toggle('sb-active', el.getAttribute('data-mod') === modKey);
+  });
+}
+function sbShow(){ var sb=document.getElementById('app-sidebar'); if(sb) sb.style.display='flex'; }
+function sbHide(){ var sb=document.getElementById('app-sidebar'); if(sb) sb.style.display='none'; }
+
 function _showLoginRaw(){
   currentScreen='login'; _hideAll();
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('login-err').classList.remove('show');
+  sbHide();
 }
 function _showWelcomeRaw(user){
   currentUser=user; currentScreen='welcome'; _hideAll();
   document.getElementById('welcome-screen').style.display='block';
   document.getElementById('wel-name').textContent=user.nombre;
   document.getElementById('wel-role').textContent=user.rol;
+  sbShow(); sbShowUser(user); sbSetActive('welcome');
 }
 function _showAppRaw(id,barU,barR){
   currentScreen=id; _hideAll();
@@ -5859,6 +5969,7 @@ function _showAppRaw(id,barU,barR){
   var eu=document.getElementById(barU), er=document.getElementById(barR);
   if(eu) eu.textContent=currentUser.nombre;
   if(er) er.textContent=currentUser.rol;
+  sbShow(); sbShowUser(currentUser); sbSetActive(SB_ID_TO_MOD[id] || '');
 }
 
 window.showLogin=function(){
@@ -5902,6 +6013,10 @@ window.showApp7=function(){
   sesionGuardar(currentUser,'app7'); pushHistory('app7');
   if(window.cierreCajaInit) window.cierreCajaInit();
 };
+window.showApp8=function(){
+  _showAppRaw('app8','bar8-username','bar8-role');
+  sesionGuardar(currentUser,'app8'); pushHistory('app8');
+};
 window.showApp4=function(){
   _showAppRaw('app4','bar4-username','bar4-role');
   sesionGuardar(currentUser,'app4'); pushHistory('app4');
@@ -5914,6 +6029,7 @@ window.openModule=function(mod){
   if(mod==='diferencias')  window.showApp5();
   if(mod==='segrutas')    window.showApp6();
   if(mod==='cierrecaja')  window.showApp7();
+  if(mod==='importarexcel') window.showApp8();
 };
 window.doLogin=function(){
   var u=document.getElementById('login-user').value.trim().toLowerCase();
@@ -6010,14 +6126,12 @@ function brxLoadCloud(){
 }
 
 function brxSetStatus(msg, loaded){
-  var lbl     = document.getElementById('brx-status-lbl');
-  var saveBtn = document.getElementById('brx-cloud-save-btn');
-  var clearBtn= document.getElementById('brx-clear-btn');
-  var upBtn   = document.getElementById('brx-upload-btn');
-  if(lbl){ lbl.textContent=msg; lbl.style.color=loaded?'var(--grn)':'var(--mut)'; }
-  if(saveBtn)  saveBtn.style.display  = loaded?'':'none';
-  if(clearBtn) clearBtn.style.display = loaded?'':'none';
-  if(upBtn){
+  document.querySelectorAll('.brx-status-lbl').forEach(function(lbl){
+    lbl.textContent = msg; lbl.style.color = loaded ? 'var(--grn)' : 'var(--mut)';
+  });
+  document.querySelectorAll('.brx-cloud-save-btn').forEach(function(btn){ btn.style.display = loaded ? '' : 'none'; });
+  document.querySelectorAll('.brx-clear-btn').forEach(function(btn){ btn.style.display = loaded ? '' : 'none'; });
+  document.querySelectorAll('.brx-upload-btn').forEach(function(upBtn){
     if(loaded){
       upBtn.classList.add('loaded');
       upBtn.textContent='✅ Archivo cargado';
@@ -6025,13 +6139,14 @@ function brxSetStatus(msg, loaded){
       upBtn.classList.remove('loaded');
       upBtn.textContent='📂 Cargar Excel';
     }
-  }
+  });
 }
 
 function brxShowCloudInfo(msg){
-  var el = document.getElementById('brx-cloud-info'); if(!el) return;
-  el.textContent = msg; el.style.display='block';
-  setTimeout(function(){ el.style.display='none'; },8000);
+  document.querySelectorAll('.brx-cloud-info').forEach(function(el){
+    el.textContent = msg; el.style.display='block';
+    setTimeout(function(){ el.style.display='none'; },8000);
+  });
 }
 
 // Bridge: pasar datos Breximar al iframe de Desplanificación
@@ -6380,8 +6495,7 @@ function initDesplanFrame(){
   if(frame.getAttribute('data-loaded'))return;
   frame.setAttribute('data-loaded','1');
   var html=decodeURIComponent(escape(atob(_D64)));
-  var blob=new Blob([html],{type:'text/html'});
-  frame.src=URL.createObjectURL(blob);
+  frame.srcdoc=html;
 }
 
 </script>
@@ -6583,9 +6697,9 @@ function cierreCajaLoadFromStorage(){
 
 function cierreCajaInit(){
   cierreCajaLoadFromStorage();
-  cierreCajaSetupCombo('cc-ruta', 'cc-ruta-menu', cierreCajaRutaOptions, cierreCajaOnRutaSelected);
+  cierreCajaSetupCombo('cc-empresa', 'cc-empresa-menu', cierreCajaEmpresaOptions, cierreCajaOnEmpresaSelected);
+  cierreCajaSetupCombo('cc-ruta', 'cc-ruta-menu', cierreCajaRutaOptions, function(v){ document.getElementById('cc-ruta').value = v; document.getElementById('cc-viaje').value = ''; });
   cierreCajaSetupCombo('cc-viaje', 'cc-viaje-menu', cierreCajaViajeOptions, function(v){ document.getElementById('cc-viaje').value = v; });
-  cierreCajaSetupCombo('cc-empresa', 'cc-empresa-menu', cierreCajaEmpresaOptions, function(v){ document.getElementById('cc-empresa').value = v; });
 
   var efInput = document.getElementById('cc-efectivo');
   var yaInput = document.getElementById('cc-yape');
@@ -6617,7 +6731,9 @@ function cierreCajaRecalcTotal(){
 // ── Combos de Ruta y Viaje, alimentados desde la Hoja de Ruta (módulo Seguimiento de Rutas) ──
 function cierreCajaRutaOptions(){
   var hoja = (typeof SEGR_HOJA !== 'undefined') ? SEGR_HOJA : [];
-  return [...new Set(hoja.map(function(r){ return r['Ruta']; }).filter(Boolean))].sort();
+  var empresaActual = document.getElementById('cc-empresa').value.trim();
+  var filas = empresaActual ? hoja.filter(function(r){ return cierreCajaEmpresaNombre(r) === empresaActual; }) : hoja;
+  return [...new Set(filas.map(function(r){ return r['Ruta']; }).filter(Boolean))].sort();
 }
 function cierreCajaViajeOptions(){
   var hoja = (typeof SEGR_HOJA !== 'undefined') ? SEGR_HOJA : [];
@@ -6635,11 +6751,11 @@ function cierreCajaEmpresaOptions(){
   var hoja = (typeof SEGR_HOJA !== 'undefined') ? SEGR_HOJA : [];
   return [...new Set(hoja.map(cierreCajaEmpresaNombre).filter(Boolean))].sort();
 }
-function cierreCajaOnRutaSelected(v){
-  document.getElementById('cc-ruta').value = v;
-  var hoja = (typeof SEGR_HOJA !== 'undefined') ? SEGR_HOJA : [];
-  var fila = hoja.find(function(r){ return r['Ruta'] === v; });
-  document.getElementById('cc-empresa').value = cierreCajaEmpresaNombre(fila);
+function cierreCajaOnEmpresaSelected(v){
+  document.getElementById('cc-empresa').value = v;
+  // Al cambiar de empresa, se limpian Ruta y Viaje (ya no coinciden necesariamente)
+  document.getElementById('cc-ruta').value = '';
+  document.getElementById('cc-viaje').value = '';
 }
 
 // Combobox genérico y liviano: input de texto + menú desplegable filtrable
@@ -6714,7 +6830,7 @@ function cierreCajaSubmit(){
     fecha: document.getElementById('cc-fecha').value || new Date().toISOString().slice(0,10),
     botellas: cierreCajaNum('cc-botellas'),
     cajas: cierreCajaNum('cc-cajas'),
-    liquido: cierreCajaNum('cc-liquido'),
+    liquido: document.getElementById('cc-liquido').value.trim(),
     comentario: document.getElementById('cc-comentario').value.trim(),
     diferencia: cierreCajaNum('cc-diferencia'),
     seLeDio: cierreCajaNum('cc-seledio'),
@@ -6784,7 +6900,7 @@ function cierreCajaRenderTable(){
       '<td>'+(r.empresa||'—')+'</td>'+
       '<td>'+r.botellas+'</td>'+
       '<td>'+r.cajas+'</td>'+
-      '<td>'+cierreCajaFmt(r.liquido)+'</td>'+
+      '<td>'+(r.liquido||'—')+'</td>'+
       '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+String(r.comentario||'').replace(/"/g,'&quot;')+'">'+(r.comentario||'—')+'</td>'+
       '<td>'+cierreCajaFmt(r.diferencia)+'</td>'+
       '<td>'+cierreCajaFmt(r.seLeDio)+'</td>'+
@@ -6834,7 +6950,7 @@ function cierreCajaCopyTable(){
   CIERRE_RECORDS.forEach(function(r,i){
     var bg = i%2===0?'#ffffff':'#f5f5f5';
     html += '<tr style="background:'+bg+';">';
-    [i+1,r.fecha,r.ruta,r.viaje,r.tipo,r.empresa,r.botellas,r.cajas,cierreCajaFmt(r.liquido),r.comentario,
+    [i+1,r.fecha,r.ruta,r.viaje,r.tipo,r.empresa,r.botellas,r.cajas,r.liquido,r.comentario,
      cierreCajaFmt(r.diferencia),cierreCajaFmt(r.seLeDio),cierreCajaFmt(r.efectivo),cierreCajaFmt(r.yape),
      cierreCajaFmt(r.porPagar),cierreCajaFmt(r.diferenciaDescontar),cierreCajaFmt(r.total)].forEach(function(v){
       html += '<td style="border:1px solid #000;padding:5px 10px;color:#000;">'+v+'</td>';
@@ -7201,7 +7317,21 @@ function segRutasParseHojaRutaHTML(text){
   });
 
   if(!header) throw new Error('No se pudo leer el encabezado de la Hoja de Ruta.');
-  return { header: header, rows: rows };
+
+  // Los clientes son únicos por Ruta: si el mismo Código aparece más de una vez
+  // dentro de la misma Ruta (por ejemplo, por venir repetido en varias tablas del
+  // archivo), se conserva solo la primera aparición y se informa cuántos se quitaron.
+  var vistos = {};
+  var rowsUnicas = [];
+  var duplicadosQuitados = 0;
+  rows.forEach(function(r){
+    var key = String(r['Ruta'] || '').trim() + '|' + String(r['Codigo'] || '').trim();
+    if(vistos[key]){ duplicadosQuitados++; return; }
+    vistos[key] = true;
+    rowsUnicas.push(r);
+  });
+
+  return { header: header, rows: rowsUnicas, duplicadosQuitados: duplicadosQuitados };
 }
 
 // ── Parseo del CSV de estados BEES (separado por punto y coma) ──
@@ -7247,8 +7377,6 @@ function segRutasParseBeesCSV(text){
     };
     // Clave precisa: Código + Transporte (diferencia al mismo cliente en rutas distintas)
     if(tourStripped) map[poc + '|' + tourStripped] = entry;
-    // Clave de respaldo solo por Código, por si el cruce por transporte no aplica
-    map[poc] = entry;
   }
   return map;
 }
@@ -7263,7 +7391,8 @@ function segRutasUploadHoja(inp){
       SEGR_HOJA = parsed.rows;
       segRutasSaveToStorage();
       segRutasRenderTable();
-      var msg = '✅ Hoja de Ruta cargada: '+parsed.rows.length+' fila(s).';
+      var msg = '✅ Hoja de Ruta cargada: '+parsed.rows.length+' fila(s).' +
+        (parsed.duplicadosQuitados ? ' ⚠️ Se detectaron y quitaron '+parsed.duplicadosQuitados+' cliente(s) duplicado(s) dentro de la misma ruta.' : '');
       document.getElementById('segr-status').textContent = msg + (segRutasCloudConfigured() ? ' Subiendo a la nube…' : '');
       if(segRutasCloudConfigured()){
         segRutasCloudSave().then(function(ok){
@@ -7320,8 +7449,10 @@ function segRutasMerged(){
   return SEGR_HOJA.map(function(row){
     var codigo = String(row['Codigo'] || '').trim();
     var transporteStripped = segRutasStripTourPrefix(row['Transporte']);
-    var compositeKey = transporteStripped ? (codigo + '|' + transporteStripped) : codigo;
-    var beesEntry = SEGR_BEES[compositeKey] || SEGR_BEES[codigo];
+    // Solo se usa la coincidencia EXACTA de Código+Transporte. Si no existe,
+    // se deja sin estado (en vez de adivinar con el estado de otra ruta del
+    // mismo cliente, que sería incorrecto).
+    var beesEntry = transporteStripped ? SEGR_BEES[codigo + '|' + transporteStripped] : undefined;
     var statusCrudo = beesEntry ? beesEntry.status : '';
     var estado = statusCrudo ? (SEGR_STATUS_MAP[statusCrudo] || statusCrudo) : '';
     var empresaCrudo = String(row['Empresa'] || '').trim();
