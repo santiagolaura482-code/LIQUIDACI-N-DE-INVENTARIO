@@ -587,7 +587,6 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
   .ts{overflow-x:auto!important;min-width:0}
   .st[style*="repeat(3,1fr);align-items:stretch;margin-bottom:9px"]{grid-template-columns:1fr!important}
   .st[style*="repeat(6,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
-  .st[style*="repeat(4,1fr);margin-bottom:20px"]{grid-template-columns:repeat(2,1fr)!important}
   #segr-combo, .segr-combo{width:100%!important}
   .a-toolbar input#segr-search{width:100%;flex-basis:100%}
   #app9 .a-toolbar{flex-wrap:wrap}
@@ -1391,8 +1390,10 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       </div>
     </div>
 
-    <div class="st show" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+    <div class="st show" style="grid-template-columns:repeat(6,1fr);margin-bottom:20px">
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-flete" style="color:var(--ylw)">—</div><div class="sl">Suma FleteTotal</div></div>
+      <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-pago-personal" style="color:#f7975b">—</div><div class="sl">Pago Total de Personal</div></div>
+      <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-utilidad" style="color:var(--grn)">—</div><div class="sl">Utilidad</div></div>
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-viajes" style="color:var(--grn)">—</div><div class="sl">Total Viajes</div></div>
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-placas" style="color:var(--blue)">—</div><div class="sl">Placas Activas</div></div>
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-flete-q" style="color:var(--ylw)">—</div><div class="sl">Flete</div></div>
@@ -7380,6 +7381,10 @@ var PXQ_CHART = null;
 
 // ── PERSISTIR DATOS DE PXQ EN INDEXEDDB (localStorage es demasiado chico para miles de filas) ──
 var PXQ_DB_NAME='pxq_db', PXQ_DB_VER=1, PXQ_STORE='data';
+// Se incrementa cada vez que cambia qué columna se lee para algún campo (p.ej. "flete"
+// pasó de FleteTotal a Fijo X UC); así cualquier dato guardado con una versión anterior
+// se detecta y se descarta automáticamente, sin importar qué combinación de campos tenga.
+var PXQ_DATA_VERSION = 2;
 
 function pxqOpenDB(){
   return new Promise(function(res,rej){
@@ -7393,7 +7398,7 @@ function pxqSaveToStorage(){
   return pxqOpenDB().then(function(db){
     return new Promise(function(res){
       var tx = db.transaction(PXQ_STORE,'readwrite');
-      tx.objectStore(PXQ_STORE).put({ RAW_DATA: PXQ_RAW_DATA, nombreArchivo: PXQ_NOMBRE_ARCHIVO, ts: Date.now() }, 'last');
+      tx.objectStore(PXQ_STORE).put({ RAW_DATA: PXQ_RAW_DATA, nombreArchivo: PXQ_NOMBRE_ARCHIVO, version: PXQ_DATA_VERSION, ts: Date.now() }, 'last');
       tx.oncomplete = function(){ res(true); };
       tx.onerror = function(){ console.warn('pxqSaveToStorage: no se pudo guardar.'); res(false); };
     });
@@ -7406,6 +7411,23 @@ function pxqLoadFromStorage(){
       r.onsuccess = function(){
         var d = r.result;
         if(!d || !d.RAW_DATA || !d.RAW_DATA.length){ res(false); return; }
+
+        // Los datos guardados por una versión anterior de este módulo (marcados con
+        // un número de versión distinto al actual) podrían venir de una columna de
+        // origen distinta para algún campo (p.ej. "flete"), o no tener campos nuevos
+        // como "dedupFlete"/"dedupFijo". Mezclarlos con datos nuevos daría totales
+        // incorrectos, así que se descartan automáticamente en vez de usarlos.
+        var muestra = d.RAW_DATA[0];
+        var formatoDesactualizado = !muestra || d.version !== PXQ_DATA_VERSION || muestra.dedupFlete === undefined || muestra.dedupFijo === undefined;
+        if(formatoDesactualizado){
+          console.log('pxqLoadFromStorage: datos guardados de una versión anterior, actualizando automáticamente (no requiere ninguna acción).');
+          PXQ_RAW_DATA = [];
+          pxqSaveToStorage();
+          window.PXQ_DATOS_VIEJOS_LIMPIADOS = true;
+          res(false);
+          return;
+        }
+
         PXQ_RAW_DATA = d.RAW_DATA;
         PXQ_NOMBRE_ARCHIVO = d.nombreArchivo || '';
         pxqRecalcularDesdeRaw();
@@ -7430,7 +7452,7 @@ async function pxqCloudSave(){
     var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin, {
       method: 'PUT',
       headers: {'Content-Type':'application/json', 'X-Master-Key':id.key, 'X-Bin-Versioning':'false'},
-      body: JSON.stringify({ RAW_DATA: PXQ_RAW_DATA, nombreArchivo: PXQ_NOMBRE_ARCHIVO, savedAt: new Date().toISOString() }),
+      body: JSON.stringify({ RAW_DATA: PXQ_RAW_DATA, nombreArchivo: PXQ_NOMBRE_ARCHIVO, version: PXQ_DATA_VERSION, savedAt: new Date().toISOString() }),
     });
     return res.ok;
   }catch(e){ console.error('pxqCloudSave:', e.message); return false; }
@@ -7443,7 +7465,12 @@ async function pxqCloudLoad(){
     if(!res.ok) return false;
     var json = await res.json();
     var record = json.record;
-    if(record && Array.isArray(record.RAW_DATA)){
+    if(record && Array.isArray(record.RAW_DATA) && record.RAW_DATA.length){
+      var muestraCloud = record.RAW_DATA[0];
+      if(record.version !== PXQ_DATA_VERSION || muestraCloud.dedupFlete === undefined || muestraCloud.dedupFijo === undefined){
+        console.log('pxqCloudLoad: los datos de la nube son de una versión anterior; se ignoran.');
+        return false;
+      }
       PXQ_RAW_DATA = record.RAW_DATA;
       PXQ_NOMBRE_ARCHIVO = record.nombreArchivo || PXQ_NOMBRE_ARCHIVO;
       return true;
@@ -7455,6 +7482,11 @@ async function pxqCloudLoad(){
 function pxqInit(){
   pxqLoadFromStorage().then(function(ok){
     if(ok) pxqRenderDashboard();
+    else if(window.PXQ_DATOS_VIEJOS_LIMPIADOS){
+      window.PXQ_DATOS_VIEJOS_LIMPIADOS = false;
+      var lbl = document.getElementById('pxq-status-lbl');
+      if(lbl) lbl.textContent = 'ℹ️ Se detectaron datos guardados de una versión anterior y se limpiaron automáticamente. Vuelve a cargar tu Excel.';
+    }
     if(pxqCloudConfigured()){
       pxqCloudLoad().then(function(cloudOk){
         if(cloudOk){ pxqSaveToStorage(); pxqRecalcularDesdeRaw(); pxqRenderDashboard(); }
@@ -7489,6 +7521,19 @@ async function pxqEliminarArchivo(){
     document.getElementById('pxq-dashboard').style.display = 'none';
     document.getElementById('pxq-status-lbl').textContent = 'Sin archivo cargado';
     document.getElementById('pxq-upload-btn').textContent = '📂 Cargar Excel';
+
+    // Limpiar también la tabla y TODOS los filtros (texto y opciones), para que no
+    // quede ningún dato ni opción vieja escondida detrás del panel oculto.
+    document.getElementById('pxq-tbody').innerHTML = '';
+    var tfoot = document.getElementById('pxq-tfoot'); if(tfoot){ tfoot.innerHTML=''; tfoot.style.display='none'; }
+    var pager = document.getElementById('pxq-pager'); if(pager) pager.innerHTML = '';
+    document.getElementById('pxq-search').value = '';
+    document.getElementById('pxq-filter-empresa').value = '';
+    document.getElementById('pxq-filter-dia-desde').value = '';
+    document.getElementById('pxq-filter-dia-hasta').value = '';
+    document.getElementById('pxq-filter-region').innerHTML = '<option value="">Todas las regiones</option>';
+    document.getElementById('pxq-filter-cd').innerHTML = '<option value="">Todos los CD</option>';
+    document.getElementById('pxq-filter-mes').innerHTML = '<option value="">Todos los meses</option>';
 
     alert(pxqCloudConfigured()
       ? (subioNube ? '✅ Datos eliminados, incluyendo la nube.' : '✅ Datos eliminados localmente. ⚠️ No se pudo eliminar de la nube.')
@@ -7629,13 +7674,11 @@ function pxqFmtNum(n){ return (Number(n)||0).toLocaleString('es-PE'); }
 function pxqUploadFile(inp){
   var file = inp.files[0]; if(!file) return;
 
-  var mensajeConfirm = PXQ_RAW_DATA.length
-    ? '¿Cargar "'+file.name+'"?\n\nYa tienes '+PXQ_RAW_DATA.length+' registro(s) cargados. Este archivo se ACUMULARÁ con lo que ya existe (los registros duplicados se detectan y se ignoran automáticamente).'
-    : '¿Cargar "'+file.name+'"? Se leerá la hoja "BD TDY" y se calculará el total de FleteTotal por Placa y Capacidad.';
-  if(!confirm(mensajeConfirm)){ inp.value = ''; return; }
-
   var btn = document.getElementById('pxq-upload-btn');
   var lbl = document.getElementById('pxq-status-lbl');
+  if(PXQ_RAW_DATA.length){
+    console.log('Cargando "'+file.name+'" — ya había '+PXQ_RAW_DATA.length+' registro(s); este archivo se acumulará (los duplicados se detectan y se ignoran automáticamente).');
+  }
   btn.textContent = '⏳ Procesando…'; btn.disabled = true;
   lbl.textContent = 'Leyendo ' + file.name + '…';
 
@@ -7655,7 +7698,7 @@ function pxqUploadFile(inp){
       var headers = raw[0].map(function(h){ return String(h||'').trim(); });
       var idx = {};
       headers.forEach(function(h,i){ idx[h] = i; });
-      ['Placa','FleteTotal','Flete','Capacidad','Region','CD','Dueño de la Placa','Tipo de Placa','Nombre_Empresario','Tipo_Producto',
+      ['Placa','FleteTotal','Flete','Flete_Unitario','Fijo X UC','Capacidad','Region','CD','Dueño de la Placa','Tipo de Placa','Nombre_Empresario','Tipo_Producto',
        'DocumentoTransporte','SubTotal_HLsEquivalente','SubTotal_CajasEquivalente','FechaPlanTransporte'].forEach(function(col){
         if(!(col in idx)) throw new Error('No se encontró la columna "'+col+'" en la hoja BD TDY.');
       });
@@ -7667,7 +7710,9 @@ function pxqUploadFile(inp){
         var placa = row[idx['Placa']];
         if(!placa) continue; // fila vacía o sin placa
         var fecha = row[idx['FechaPlanTransporte']];
-        var fleteQRaw = row[idx['Flete']];
+
+        // Valor que se muestra en la tarjeta "Flete": columna L (Flete_Unitario)
+        var fleteQRaw = row[idx['Flete_Unitario']];
         var fleteQ = null;
         if(fleteQRaw !== null && fleteQRaw !== undefined && !(fleteQRaw instanceof Date)){
           var fleteQNum = Number(fleteQRaw);
@@ -7676,12 +7721,23 @@ function pxqUploadFile(inp){
           // en vez de contaminar el promedio.
           if(!isNaN(fleteQNum) && Math.abs(fleteQNum) < 10000) fleteQ = fleteQNum;
         }
+
+        // Valores usados SOLO para distinguir filas realmente distintas al deduplicar
+        // (columnas Q y "Fijo X UC"); un mismo Documento+Tipo_Producto puede tener más
+        // de una línea real con un ajuste distinto en estas columnas.
+        var dedupFlete = Number(row[idx['Flete']]);
+        if(isNaN(dedupFlete)) dedupFlete = null;
+        var dedupFijo = Number(row[idx['Fijo X UC']]);
+        if(isNaN(dedupFijo)) dedupFijo = null;
+
         nuevasFilas.push({
           doc: row[idx['DocumentoTransporte']],
           tipoProd: row[idx['Tipo_Producto']],
           placa: String(placa).trim(),
-          flete: Number(row[idx['FleteTotal']]) || 0,
+          flete: Number(row[idx['Fijo X UC']]) || 0,
           fleteQ: fleteQ,
+          dedupFlete: dedupFlete,
+          dedupFijo: dedupFijo,
           cap: Number(row[idx['Capacidad']]) || 0,
           region: row[idx['Region']] || null,
           cd: row[idx['CD']] || null,
@@ -7695,9 +7751,12 @@ function pxqUploadFile(inp){
       }
 
       // ── ACUMULAR: agregar a lo existente y eliminar duplicados ──
-      // Clave única = DocumentoTransporte + Tipo_Producto (un documento puede tener varias líneas,
-      // una por cada tipo de producto; esa combinación sí identifica cada línea de forma única)
-      var makeKey = function(r){ return r.doc + '||' + r.tipoProd; };
+      // Clave única = DocumentoTransporte + Tipo_Producto + Flete (col. Q) + Fijo X UC (col. R).
+      // Un mismo documento puede tener varias líneas (una por tipo de producto), y en
+      // algunos archivos hasta 2 líneas para el mismo documento+tipo con un ajuste real
+      // (no un duplicado de carga) en estas dos columnas — por eso ambas entran en la
+      // clave, independientemente de qué columna se esté mostrando en la tarjeta "Flete".
+      var makeKey = function(r){ return r.doc + '||' + r.tipoProd + '||' + r.dedupFlete + '||' + r.dedupFijo; };
       var existingKeys = {};
       PXQ_RAW_DATA.forEach(function(r){ existingKeys[makeKey(r)] = true; });
       var added = 0, dupes = 0;
@@ -7728,6 +7787,12 @@ function pxqUploadFile(inp){
     }
     }); }); // cierre del doble requestAnimationFrame
   };
+  reader.onerror = function(){
+    console.error('pxqUploadFile: fallo la lectura del archivo.', reader.error);
+    btn.textContent = '📂 Cargar Excel'; btn.disabled = false;
+    lbl.textContent = 'Sin archivo cargado';
+    alert('❌ No se pudo leer el archivo. Intenta de nuevo, o verifica que el archivo no esté dañado.');
+  };
   reader.readAsArrayBuffer(file);
   inp.value = '';
 }
@@ -7743,6 +7808,18 @@ function pxqRenderDashboard(soloVista){
   document.getElementById('pxq-kpi-flete').textContent = pxqFmtMoney(PXQ_KPIS.totalFlete);
   document.getElementById('pxq-kpi-viajes').textContent = pxqFmtNum(PXQ_KPIS.totalViajes);
   document.getElementById('pxq-kpi-placas').textContent = pxqFmtNum(PXQ_KPIS.totalPlacas);
+
+  // Pago Total de Personal y Utilidad: se suman por placa (tarifa diaria según
+  // capacidad × días trabajados), igual que en la tabla de Detalle por Placa.
+  var totalPagoPersonal = 0;
+  PXQ_POR_PLACA.forEach(function(p){
+    var pagoDia = pxqPagoTotalPorCapacidad(p.capacidad);
+    if(pagoDia !== null) totalPagoPersonal += pagoDia * (p.numDias || 0);
+  });
+  var totalUtilidad = PXQ_KPIS.totalFlete - totalPagoPersonal;
+  document.getElementById('pxq-kpi-pago-personal').textContent = pxqFmtMoney(totalPagoPersonal);
+  document.getElementById('pxq-kpi-utilidad').textContent = pxqFmtMoney(totalUtilidad);
+
   var fleteQEl = document.getElementById('pxq-kpi-flete-q');
   if(PXQ_KPIS.totalViajes > 0 && PXQ_KPIS.totalConFleteQ === 0){
     fleteQEl.textContent = '⚠️ Recarga el archivo';
