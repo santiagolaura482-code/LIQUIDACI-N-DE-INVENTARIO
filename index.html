@@ -416,7 +416,8 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 /* ── RESPONSIVE MÓVIL COMPLETO ─────────────────────────────── */
 @media (max-width:768px){
   #main-content{padding:14px 10px 40px}
-  .pxq-grid-2{grid-template-columns:1fr!important}
+  .pxq-grid-2{grid-template-columns:minmax(0,1fr)!important}
+  .pxq-grid-2>*{min-width:0}
 
   /* Login */
   .login-box{padding:28px 18px;border-radius:14px}
@@ -586,8 +587,16 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
   .ts{overflow-x:auto!important;min-width:0}
   .st[style*="repeat(3,1fr);align-items:stretch;margin-bottom:9px"]{grid-template-columns:1fr!important}
   .st[style*="repeat(6,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
+  .st[style*="repeat(4,1fr);margin-bottom:20px"]{grid-template-columns:repeat(2,1fr)!important}
   #segr-combo, .segr-combo{width:100%!important}
   .a-toolbar input#segr-search{width:100%;flex-basis:100%}
+  #app9 .a-toolbar{flex-wrap:wrap}
+  #app9 .a-toolbar>*{flex:1 1 auto;min-width:120px}
+  #app9 .a-toolbar input#pxq-search{flex-basis:100%}
+  #app9 #pxq-fecha-rango{flex-basis:100%;min-width:0}
+  #app9 #pxq-fecha-rango input[type=date]{flex:1 1 100px;min-width:0}
+  #app9 .a-table-wrap{overflow-x:auto}
+  #app9 .a-table{min-width:820px}
 }
 @media (max-width: 400px){
   .st{grid-template-columns:repeat(2,1fr)}
@@ -1348,9 +1357,12 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📊 Análisis PxQ</div>
         <div style="font-size:12.5px;color:var(--mut)" id="pxq-status-lbl">Sin archivo cargado</div>
       </div>
-      <div style="position:relative">
-        <button class="a-btn a-btn-grn" id="pxq-upload-btn">📂 Cargar Excel</button>
-        <input type="file" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="pxqUploadFile(this)">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="position:relative">
+          <button class="a-btn a-btn-grn" id="pxq-upload-btn" style="cursor:pointer">📂 Cargar Excel</button>
+          <input type="file" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="pxqUploadFile(this)">
+        </div>
+        <button class="a-btn a-btn-red" id="pxq-delete-btn" onclick="pxqEliminarArchivo()" style="cursor:pointer">🗑️ Eliminar archivo</button>
       </div>
     </div>
   </div>
@@ -1360,10 +1372,18 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       <div class="a-card-title"><span>🔎</span><span>Filtros</span></div>
       <div class="a-toolbar" >
         <input type="text" id="pxq-search" placeholder="Buscar placa o dueño…" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 14px;font-size:13px;min-width:200px">
-        <select id="pxq-filter-capacidad" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todas las capacidades</option></select>
         <select id="pxq-filter-region" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todas las regiones</option></select>
+        <select id="pxq-filter-cd" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todos los CD</option></select>
+        <div id="pxq-fecha-rango" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <label style="font-size:12px;color:var(--mut)">Desde</label>
+          <input type="date" id="pxq-filter-dia-desde" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:7px 10px;font-size:13px">
+          <label style="font-size:12px;color:var(--mut)">Hasta</label>
+          <input type="date" id="pxq-filter-dia-hasta" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:7px 10px;font-size:13px">
+        </div>
+        <select id="pxq-filter-mes" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todos los meses</option></select>
         <div style="position:relative">
-          <input type="text" id="pxq-filter-empresa" autocomplete="off" placeholder="EMPRESA (todas)" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 14px;font-size:13px;min-width:200px">
+          <input type="text" id="pxq-filter-empresa" autocomplete="off" placeholder="EMPRESA (todas)" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 28px 8px 14px;font-size:13px;min-width:200px;width:100%;box-sizing:border-box">
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--mut);font-size:11px">▾</span>
           <div id="pxq-filter-empresa-menu" class="cc-combo-menu"></div>
         </div>
         <button class="a-btn a-btn-red" id="pxq-reset-btn">✕ Quitar filtros</button>
@@ -1371,12 +1391,11 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       </div>
     </div>
 
-    <div class="st show" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px">
+    <div class="st show" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-flete" style="color:var(--ylw)">—</div><div class="sl">Suma FleteTotal</div></div>
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-viajes" style="color:var(--grn)">—</div><div class="sl">Total Viajes</div></div>
       <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-placas" style="color:var(--blue)">—</div><div class="sl">Placas Activas</div></div>
-      <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-promedio" style="color:var(--ylw)">—</div><div class="sl">Flete Promedio / Viaje</div></div>
-      <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-cap-top" style="color:var(--grn)">—</div><div class="sl" id="pxq-kpi-cap-top-sub">Capacidad predominante</div></div>
+      <div class="sb segr-kpi-card-sm"><div class="sn" id="pxq-kpi-flete-q" style="color:var(--ylw)">—</div><div class="sl">Flete</div></div>
     </div>
 
     <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:20px" class="pxq-grid-2">
@@ -1385,8 +1404,8 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         <div style="height:300px;position:relative"><canvas id="pxq-chart-capacidad"></canvas></div>
       </div>
       <div class="a-card">
-        <div style="font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:14px">Flete por HL transportado (S/.)</div>
-        <div id="pxq-eff-list"></div>
+        <div style="font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:14px">Personal y Pago por Capacidad</div>
+        <div id="pxq-personal-list" style="overflow-x:auto"></div>
       </div>
     </div>
 
@@ -1400,13 +1419,16 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
             <th data-key="dueno" style="cursor:pointer">Dueño de la Placa</th>
             <th data-key="tipoPlaca" style="cursor:pointer">Tipo</th>
             <th data-key="region" style="cursor:pointer">Región</th>
+            <th data-key="cd" style="cursor:pointer">CD</th>
             <th data-key="capacidad" style="cursor:pointer">Capacidad</th>
+            <th data-key="numDias" style="cursor:pointer">Días</th>
             <th data-key="numViajes" style="cursor:pointer">Viajes</th>
             <th data-key="sumFlete" style="cursor:pointer">Suma Flete</th>
-            <th data-key="fletePorViaje" style="cursor:pointer">Flete/Viaje</th>
-            <th data-key="fletePorHL" style="cursor:pointer">Flete/HL</th>
+            <th data-key="pagoTotal" style="cursor:pointer">Pago Total (Días)</th>
+            <th data-key="utilidad" style="cursor:pointer">Utilidad</th>
           </tr></thead>
           <tbody id="pxq-tbody"></tbody>
+          <tfoot id="pxq-tfoot" style="display:none"><tr></tr></tfoot>
         </table>
       </div>
       <div style="display:flex;justify-content:center;gap:6px;padding:14px" id="pxq-pager"></div>
@@ -6861,6 +6883,13 @@ function cierreCajaInit(){
   if(!_CC_INICIADO){
     _CC_INICIADO = true;
     cierreCajaRenderForm();
+  } else if(CIERRE_EDITING === null){
+    // No se está editando un registro existente: la Fecha del formulario de "Nuevo
+    // Cierre de Caja" siempre debe reflejar el día de hoy, sin tocar lo demás que
+    // el usuario ya haya escrito.
+    var hoyStr = new Date().toISOString().slice(0,10);
+    var fechaInput = document.getElementById('cc-fecha');
+    if(fechaInput && fechaInput.value !== hoyStr) fechaInput.value = hoyStr;
   }
   cierreCajaRenderTable();
 
@@ -7340,6 +7369,7 @@ function cierreCajaVerDiaDetalle(id){
 // MÓDULO 9: PXQ MOVIMIENTO DE CAJAS
 // ══════════════════════════════════════════════════════════════
 var PXQ_KPIS = null;
+var PXQ_RAW_DATA = []; // filas crudas acumuladas (una por DocumentoTransporte), base para recalcular todo
 var PXQ_POR_PLACA = [];
 var PXQ_POR_CAPACIDAD = [];
 var PXQ_NOMBRE_ARCHIVO = '';
@@ -7347,28 +7377,250 @@ var PXQ_SORT_KEY = 'sumFlete', PXQ_SORT_DIR = -1, PXQ_PAGE = 1;
 var PXQ_PAGE_SIZE = 25;
 var PXQ_CHART = null;
 
+
+// ── PERSISTIR DATOS DE PXQ EN INDEXEDDB (localStorage es demasiado chico para miles de filas) ──
+var PXQ_DB_NAME='pxq_db', PXQ_DB_VER=1, PXQ_STORE='data';
+
+function pxqOpenDB(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open(PXQ_DB_NAME,PXQ_DB_VER);
+    r.onupgradeneeded=function(e){ try{e.target.result.createObjectStore(PXQ_STORE);}catch(x){} };
+    r.onsuccess=function(e){ res(e.target.result); };
+    r.onerror=function(){ rej(); };
+  });
+}
 function pxqSaveToStorage(){
-  try{
-    localStorage.setItem('pxq_data', JSON.stringify({
-      kpis: PXQ_KPIS, porPlaca: PXQ_POR_PLACA, porCapacidad: PXQ_POR_CAPACIDAD, nombreArchivo: PXQ_NOMBRE_ARCHIVO,
-    }));
-  }catch(e){ console.warn('pxqSaveToStorage:', e.message); }
+  return pxqOpenDB().then(function(db){
+    return new Promise(function(res){
+      var tx = db.transaction(PXQ_STORE,'readwrite');
+      tx.objectStore(PXQ_STORE).put({ RAW_DATA: PXQ_RAW_DATA, nombreArchivo: PXQ_NOMBRE_ARCHIVO, ts: Date.now() }, 'last');
+      tx.oncomplete = function(){ res(true); };
+      tx.onerror = function(){ console.warn('pxqSaveToStorage: no se pudo guardar.'); res(false); };
+    });
+  }).catch(function(){ console.warn('pxqSaveToStorage: IndexedDB no disponible.'); return false; });
 }
 function pxqLoadFromStorage(){
+  return pxqOpenDB().then(function(db){
+    return new Promise(function(res){
+      var r = db.transaction(PXQ_STORE,'readonly').objectStore(PXQ_STORE).get('last');
+      r.onsuccess = function(){
+        var d = r.result;
+        if(!d || !d.RAW_DATA || !d.RAW_DATA.length){ res(false); return; }
+        PXQ_RAW_DATA = d.RAW_DATA;
+        PXQ_NOMBRE_ARCHIVO = d.nombreArchivo || '';
+        pxqRecalcularDesdeRaw();
+        res(true);
+      };
+      r.onerror = function(){ console.error('pxqLoadFromStorage: no se pudo leer.'); res(false); };
+    });
+  }).catch(function(){ console.warn('pxqLoadFromStorage: IndexedDB no disponible.'); return false; });
+}
+
+// ── Nube (JSONBin) — mismo patrón que Control de Diferencias ──
+function pxqCloudId(){
+  return { bin: window.PXQ_BIN_ID || 'PONER_BIN_ID_AQUI', key: window.PXQ_API_KEY || 'PONER_API_KEY_AQUI' };
+}
+function pxqCloudConfigured(){
+  return pxqCloudId().bin !== 'PONER_BIN_ID_AQUI';
+}
+async function pxqCloudSave(){
+  if(!pxqCloudConfigured()) return false;
+  var id = pxqCloudId();
   try{
-    var raw = localStorage.getItem('pxq_data');
-    if(!raw) return false;
-    var d = JSON.parse(raw);
-    PXQ_KPIS = d.kpis; PXQ_POR_PLACA = d.porPlaca || []; PXQ_POR_CAPACIDAD = d.porCapacidad || []; PXQ_NOMBRE_ARCHIVO = d.nombreArchivo || '';
-    return !!PXQ_KPIS;
-  }catch(e){
-    console.error('pxqLoadFromStorage: datos corruptos:', e.message);
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json', 'X-Master-Key':id.key, 'X-Bin-Versioning':'false'},
+      body: JSON.stringify({ RAW_DATA: PXQ_RAW_DATA, nombreArchivo: PXQ_NOMBRE_ARCHIVO, savedAt: new Date().toISOString() }),
+    });
+    return res.ok;
+  }catch(e){ console.error('pxqCloudSave:', e.message); return false; }
+}
+async function pxqCloudLoad(){
+  if(!pxqCloudConfigured()) return false;
+  var id = pxqCloudId();
+  try{
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin+'/latest', { headers:{'X-Master-Key':id.key} });
+    if(!res.ok) return false;
+    var json = await res.json();
+    var record = json.record;
+    if(record && Array.isArray(record.RAW_DATA)){
+      PXQ_RAW_DATA = record.RAW_DATA;
+      PXQ_NOMBRE_ARCHIVO = record.nombreArchivo || PXQ_NOMBRE_ARCHIVO;
+      return true;
+    }
     return false;
-  }
+  }catch(e){ console.error('pxqCloudLoad:', e.message); return false; }
 }
 
 function pxqInit(){
-  if(pxqLoadFromStorage()) pxqRenderDashboard();
+  pxqLoadFromStorage().then(function(ok){
+    if(ok) pxqRenderDashboard();
+    if(pxqCloudConfigured()){
+      pxqCloudLoad().then(function(cloudOk){
+        if(cloudOk){ pxqSaveToStorage(); pxqRecalcularDesdeRaw(); pxqRenderDashboard(); }
+      });
+    }
+  });
+}
+
+async function pxqEliminarArchivo(){
+  var totalActual = PXQ_RAW_DATA.length;
+  if(!confirm('⚠️ ADVERTENCIA ⚠️\n\n¿Eliminar los '+totalActual+' registro(s) acumulados de PXQ - Productividad?\n\nEsta acción NO se puede deshacer, y también se borrará de la nube si está configurada.\n\nSi solo quieres agregar un archivo nuevo, usa "📂 Cargar Excel" en vez de esto — no hace falta eliminar nada para acumular más datos.')) return;
+
+  var btn = document.getElementById('pxq-delete-btn');
+  var textoOriginal = btn.textContent;
+  btn.textContent = '⏳ Eliminando…'; btn.disabled = true;
+
+  try{
+    PXQ_RAW_DATA = [];
+    PXQ_KPIS = null;
+    PXQ_POR_PLACA = [];
+    PXQ_POR_CAPACIDAD = [];
+    PXQ_NOMBRE_ARCHIVO = '';
+
+    await pxqSaveToStorage(); // guarda el estado vacío localmente
+    var subioNube = false;
+    if(pxqCloudConfigured()){
+      subioNube = await pxqCloudSave(); // sube el estado vacío a la nube tambien
+    }
+
+    // Siempre se reinicia la pantalla al estado "sin archivo", sin importar
+    // el estado previo, para evitar que quede una vista vieja atascada.
+    document.getElementById('pxq-dashboard').style.display = 'none';
+    document.getElementById('pxq-status-lbl').textContent = 'Sin archivo cargado';
+    document.getElementById('pxq-upload-btn').textContent = '📂 Cargar Excel';
+
+    alert(pxqCloudConfigured()
+      ? (subioNube ? '✅ Datos eliminados, incluyendo la nube.' : '✅ Datos eliminados localmente. ⚠️ No se pudo eliminar de la nube.')
+      : '✅ Datos eliminados.');
+  }catch(err){
+    console.error('pxqEliminarArchivo:', err);
+    alert('⚠️ Ocurrió un error al eliminar: ' + err.message + '\n\nSi el problema persiste, recarga la página (F5) e inténtalo de nuevo.');
+  }finally{
+    btn.textContent = textoOriginal; btn.disabled = false;
+  }
+}
+
+// Recalcula PXQ_KPIS / PXQ_POR_PLACA / PXQ_POR_CAPACIDAD desde PXQ_RAW_DATA completo
+// (se usa tanto al cargar como al subir un archivo nuevo, para reflejar TODO lo acumulado)
+function pxqRecalcularDesdeRaw(datos){
+  datos = datos || PXQ_RAW_DATA;
+  var porPlacaMap = {};
+  var porCapMap = {};
+  var totalFlete = 0, totalFleteQ = 0, totalViajes = 0, totalHLs = 0, totalConFleteQ = 0;
+  var fechaMin = null, fechaMax = null;
+
+  datos.forEach(function(row){
+    var placa = row.placa;
+    var flete = Number(row.flete) || 0;
+    var tieneFleteQ = row.fleteQ !== undefined && row.fleteQ !== null;
+    var fleteQ = Number(row.fleteQ) || 0;
+    var cap = Number(row.cap) || 0;
+    var region = row.region || null;
+    var cd = row.cd || null;
+    var dueno = row.dueno || null;
+    var tipoPlaca = row.tipoPlaca || null;
+    var empresa = row.empresa || null;
+    var hls = Number(row.hls) || 0;
+    var cajas = Number(row.cajas) || 0;
+    var fechaStr = row.fecha ? row.fecha.slice(0,10) : null;
+    var fecha = row.fecha ? new Date(row.fecha) : null;
+
+    totalFlete += flete; totalViajes += 1; totalHLs += hls;
+    if(tieneFleteQ){ totalFleteQ += fleteQ; totalConFleteQ += 1; }
+    if(fecha && !isNaN(fecha)){
+      if(!fechaMin || fecha < fechaMin) fechaMin = fecha;
+      if(!fechaMax || fecha > fechaMax) fechaMax = fecha;
+    }
+
+    if(!porPlacaMap[placa]){
+      porPlacaMap[placa] = { placa:placa, capacidad:cap, dueno:dueno, tipoPlaca:tipoPlaca, region:region, cd:cd, empresa:empresa,
+                               numViajes:0, sumFlete:0, sumHLs:0, sumCajas:0, _capCount:{}, _dias:{} };
+    }
+    var p = porPlacaMap[placa];
+    p.numViajes += 1; p.sumFlete += flete; p.sumHLs += hls; p.sumCajas += cajas;
+    p._capCount[cap] = (p._capCount[cap]||0) + 1;
+    if(fechaStr) p._dias[placa + '|' + fechaStr] = true;
+
+    if(!porCapMap[cap]) porCapMap[cap] = { capacidad:cap, placas:{}, numViajes:0, sumFlete:0, sumHLs:0 };
+    porCapMap[cap].placas[placa] = true;
+    porCapMap[cap].numViajes += 1;
+    porCapMap[cap].sumFlete += flete;
+    porCapMap[cap].sumHLs += hls;
+  });
+
+  var porPlaca = Object.keys(porPlacaMap).map(function(k){
+    var p = porPlacaMap[k];
+    var mejorCap = p.capacidad, mejorCount = -1;
+    Object.keys(p._capCount).forEach(function(c){ if(p._capCount[c] > mejorCount){ mejorCount = p._capCount[c]; mejorCap = Number(c); } });
+    return { placa:p.placa, capacidad:mejorCap, dueno:p.dueno, tipoPlaca:p.tipoPlaca, region:p.region, cd:p.cd, empresa:p.empresa,
+             numViajes:p.numViajes, numDias:Object.keys(p._dias).length,
+             sumFlete:Math.round(p.sumFlete*100)/100, sumHLs:Math.round(p.sumHLs*100)/100, sumCajas:Math.round(p.sumCajas*100)/100 };
+  });
+
+  var porCapacidad = Object.keys(porCapMap).map(function(k){
+    var c = porCapMap[k];
+    return { capacidad:Number(k), numPlacas:Object.keys(c.placas).length, numViajes:c.numViajes,
+             sumFlete:Math.round(c.sumFlete*100)/100, sumHLs:Math.round(c.sumHLs*100)/100 };
+  }).sort(function(a,b){ return a.capacidad - b.capacidad; });
+
+  PXQ_KPIS = {
+    totalFlete: Math.round(totalFlete*100)/100,
+    promedioFleteQ: totalConFleteQ ? Math.round((totalFleteQ/totalConFleteQ)*10000)/10000 : 0,
+    totalConFleteQ: totalConFleteQ,
+    totalViajes: totalViajes,
+    totalPlacas: porPlaca.length,
+    totalHLs: Math.round(totalHLs*100)/100,
+    fechaMin: fechaMin ? fechaMin.toISOString().slice(0,10) : '—',
+    fechaMax: fechaMax ? fechaMax.toISOString().slice(0,10) : '—',
+  };
+  PXQ_POR_PLACA = porPlaca;
+  PXQ_POR_CAPACIDAD = porCapacidad;
+}
+
+// Lista de fechas distintas presentes en TODO lo acumulado (para poblar el filtro de Día,
+// sin importar los demás filtros activos)
+function pxqDiasDisponibles(){
+  var set = {};
+  PXQ_RAW_DATA.forEach(function(r){ if(r.fecha) set[r.fecha.slice(0,10)] = true; });
+  return Object.keys(set).sort();
+}
+
+// Aplica los filtros que afectan a TODOS los cuadros (Empresa y Día): recalcula
+// KPIs, gráfico, lista de eficiencia y tabla a partir de los datos crudos filtrados.
+function pxqAplicarFiltrosGlobales(){
+  var searchInput = document.getElementById('pxq-search');
+  var empInput = document.getElementById('pxq-filter-empresa');
+  var desdeInput = document.getElementById('pxq-filter-dia-desde');
+  var hastaInput = document.getElementById('pxq-filter-dia-hasta');
+  var regInput = document.getElementById('pxq-filter-region');
+  var cdInput = document.getElementById('pxq-filter-cd');
+  var mesInput = document.getElementById('pxq-filter-mes');
+  var search = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  var emp = empInput ? empInput.value.trim().toLowerCase() : '';
+  var desde = desdeInput ? desdeInput.value : '';
+  var hasta = hastaInput ? hastaInput.value : '';
+  var reg = regInput ? regInput.value : '';
+  var cd = cdInput ? cdInput.value : '';
+  var mes = mesInput ? mesInput.value : '';
+
+  var datosFiltrados = PXQ_RAW_DATA.filter(function(r){
+    if(emp && !String(r.empresa||'').toLowerCase().includes(emp)) return false;
+    if(reg && r.region !== reg) return false;
+    if(cd && r.cd !== cd) return false;
+    if(mes && (!r.fecha || r.fecha.slice(0,7) !== mes)) return false;
+    if(search && !(String(r.placa||'').toLowerCase().includes(search) || String(r.dueno||'').toLowerCase().includes(search))) return false;
+    if(desde || hasta){
+      var f = r.fecha ? r.fecha.slice(0,10) : null;
+      if(!f) return false;
+      if(desde && f < desde) return false;
+      if(hasta && f > hasta) return false;
+    }
+    return true;
+  });
+
+  pxqRecalcularDesdeRaw(datosFiltrados);
+  pxqRenderDashboard(true);
 }
 
 function pxqFmtMoney(n){ return 'S/ ' + (Number(n)||0).toLocaleString('es-PE', {minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -7376,6 +7628,12 @@ function pxqFmtNum(n){ return (Number(n)||0).toLocaleString('es-PE'); }
 
 function pxqUploadFile(inp){
   var file = inp.files[0]; if(!file) return;
+
+  var mensajeConfirm = PXQ_RAW_DATA.length
+    ? '¿Cargar "'+file.name+'"?\n\nYa tienes '+PXQ_RAW_DATA.length+' registro(s) cargados. Este archivo se ACUMULARÁ con lo que ya existe (los registros duplicados se detectan y se ignoran automáticamente).'
+    : '¿Cargar "'+file.name+'"? Se leerá la hoja "BD TDY" y se calculará el total de FleteTotal por Placa y Capacidad.';
+  if(!confirm(mensajeConfirm)){ inp.value = ''; return; }
+
   var btn = document.getElementById('pxq-upload-btn');
   var lbl = document.getElementById('pxq-status-lbl');
   btn.textContent = '⏳ Procesando…'; btn.disabled = true;
@@ -7383,122 +7641,117 @@ function pxqUploadFile(inp){
 
   var reader = new FileReader();
   reader.onload = function(e){
+    var arrayBuffer = e.target.result;
+    // Dejar que el navegador pinte el aviso "Procesando…" antes del trabajo pesado
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
     try{
-      var wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      var wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true, sheets:'BD TDY'});
       if(wb.SheetNames.indexOf('BD TDY') === -1){
         throw new Error('El archivo no tiene una hoja llamada "BD TDY".');
       }
       var ws = wb.Sheets['BD TDY'];
       // Leer solo columnas A (0) a W (22)
-      var raw = XLSX.utils.sheet_to_json(ws, {header:1, range:{s:{r:0,c:0}, e:{r:1000000,c:22}}, defval:null});
+      var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
       var headers = raw[0].map(function(h){ return String(h||'').trim(); });
       var idx = {};
       headers.forEach(function(h,i){ idx[h] = i; });
-      ['Placa','FleteTotal','Capacidad','Region','Dueño de la Placa','Tipo de Placa','Nombre_Empresario',
+      ['Placa','FleteTotal','Flete','Capacidad','Region','CD','Dueño de la Placa','Tipo de Placa','Nombre_Empresario','Tipo_Producto',
        'DocumentoTransporte','SubTotal_HLsEquivalente','SubTotal_CajasEquivalente','FechaPlanTransporte'].forEach(function(col){
         if(!(col in idx)) throw new Error('No se encontró la columna "'+col+'" en la hoja BD TDY.');
       });
 
-      var porPlacaMap = {};
-      var porCapMap = {};
-      var totalFlete = 0, totalViajes = 0, totalHLs = 0;
-      var fechaMin = null, fechaMax = null;
-
+      // Convertir cada fila util a un registro crudo simple
+      var nuevasFilas = [];
       for(var r=1; r<raw.length; r++){
         var row = raw[r];
         var placa = row[idx['Placa']];
         if(!placa) continue; // fila vacía o sin placa
-        placa = String(placa).trim();
-        var flete = Number(row[idx['FleteTotal']]) || 0;
-        var cap = Number(row[idx['Capacidad']]) || 0;
-        var region = row[idx['Region']] || null;
-        var dueno = row[idx['Dueño de la Placa']] || null;
-        var tipoPlaca = row[idx['Tipo de Placa']] || null;
-        var empresa = row[idx['Nombre_Empresario']] || null;
-        var hls = Number(row[idx['SubTotal_HLsEquivalente']]) || 0;
-        var cajas = Number(row[idx['SubTotal_CajasEquivalente']]) || 0;
         var fecha = row[idx['FechaPlanTransporte']];
-
-        totalFlete += flete; totalViajes += 1; totalHLs += hls;
-        if(fecha instanceof Date){
-          if(!fechaMin || fecha < fechaMin) fechaMin = fecha;
-          if(!fechaMax || fecha > fechaMax) fechaMax = fecha;
+        var fleteQRaw = row[idx['Flete']];
+        var fleteQ = null;
+        if(fleteQRaw !== null && fleteQRaw !== undefined && !(fleteQRaw instanceof Date)){
+          var fleteQNum = Number(fleteQRaw);
+          // Un flete unitario razonable es un valor pequeño; si sale un numero
+          // absurdo (por ejemplo, una celda mal formateada como fecha) se descarta
+          // en vez de contaminar el promedio.
+          if(!isNaN(fleteQNum) && Math.abs(fleteQNum) < 10000) fleteQ = fleteQNum;
         }
-
-        if(!porPlacaMap[placa]){
-          porPlacaMap[placa] = { placa:placa, capacidad:cap, dueno:dueno, tipoPlaca:tipoPlaca, region:region, empresa:empresa,
-                                   numViajes:0, sumFlete:0, sumHLs:0, sumCajas:0, _capCount:{} };
-        }
-        var p = porPlacaMap[placa];
-        p.numViajes += 1; p.sumFlete += flete; p.sumHLs += hls; p.sumCajas += cajas;
-        p._capCount[cap] = (p._capCount[cap]||0) + 1; // capacidad más frecuente para esa placa
-
-        if(!porCapMap[cap]) porCapMap[cap] = { capacidad:cap, placas:{}, numViajes:0, sumFlete:0, sumHLs:0 };
-        porCapMap[cap].placas[placa] = true;
-        porCapMap[cap].numViajes += 1;
-        porCapMap[cap].sumFlete += flete;
-        porCapMap[cap].sumHLs += hls;
+        nuevasFilas.push({
+          doc: row[idx['DocumentoTransporte']],
+          tipoProd: row[idx['Tipo_Producto']],
+          placa: String(placa).trim(),
+          flete: Number(row[idx['FleteTotal']]) || 0,
+          fleteQ: fleteQ,
+          cap: Number(row[idx['Capacidad']]) || 0,
+          region: row[idx['Region']] || null,
+          cd: row[idx['CD']] || null,
+          dueno: row[idx['Dueño de la Placa']] || null,
+          tipoPlaca: row[idx['Tipo de Placa']] || null,
+          empresa: row[idx['Nombre_Empresario']] || null,
+          hls: Number(row[idx['SubTotal_HLsEquivalente']]) || 0,
+          cajas: Number(row[idx['SubTotal_CajasEquivalente']]) || 0,
+          fecha: (fecha instanceof Date) ? fecha.toISOString() : null,
+        });
       }
 
-      var porPlaca = Object.keys(porPlacaMap).map(function(k){
-        var p = porPlacaMap[k];
-        // capacidad mas frecuente
-        var mejorCap = p.capacidad, mejorCount = -1;
-        Object.keys(p._capCount).forEach(function(c){ if(p._capCount[c] > mejorCount){ mejorCount = p._capCount[c]; mejorCap = Number(c); } });
-        return { placa:p.placa, capacidad:mejorCap, dueno:p.dueno, tipoPlaca:p.tipoPlaca, region:p.region, empresa:p.empresa,
-                 numViajes:p.numViajes, sumFlete:Math.round(p.sumFlete*100)/100, sumHLs:Math.round(p.sumHLs*100)/100, sumCajas:Math.round(p.sumCajas*100)/100 };
+      // ── ACUMULAR: agregar a lo existente y eliminar duplicados ──
+      // Clave única = DocumentoTransporte + Tipo_Producto (un documento puede tener varias líneas,
+      // una por cada tipo de producto; esa combinación sí identifica cada línea de forma única)
+      var makeKey = function(r){ return r.doc + '||' + r.tipoProd; };
+      var existingKeys = {};
+      PXQ_RAW_DATA.forEach(function(r){ existingKeys[makeKey(r)] = true; });
+      var added = 0, dupes = 0;
+      nuevasFilas.forEach(function(r){
+        var k = makeKey(r);
+        if(!existingKeys[k]){
+          PXQ_RAW_DATA.push(r);
+          existingKeys[k] = true;
+          added++;
+        } else {
+          dupes++;
+        }
       });
 
-      var porCapacidad = Object.keys(porCapMap).map(function(k){
-        var c = porCapMap[k];
-        return { capacidad:Number(k), numPlacas:Object.keys(c.placas).length, numViajes:c.numViajes,
-                 sumFlete:Math.round(c.sumFlete*100)/100, sumHLs:Math.round(c.sumHLs*100)/100 };
-      }).sort(function(a,b){ return a.capacidad - b.capacidad; });
-
-      PXQ_KPIS = {
-        totalFlete: Math.round(totalFlete*100)/100,
-        totalViajes: totalViajes,
-        totalPlacas: porPlaca.length,
-        totalHLs: Math.round(totalHLs*100)/100,
-        fechaMin: fechaMin ? fechaMin.toISOString().slice(0,10) : '—',
-        fechaMax: fechaMax ? fechaMax.toISOString().slice(0,10) : '—',
-      };
-      PXQ_POR_PLACA = porPlaca;
-      PXQ_POR_CAPACIDAD = porCapacidad;
       PXQ_NOMBRE_ARCHIVO = file.name;
-
+      pxqRecalcularDesdeRaw(); // recalcula KPIs/porPlaca/porCapacidad con TODO lo acumulado
       pxqSaveToStorage();
+      if(pxqCloudConfigured()) pxqCloudSave();
       pxqRenderDashboard();
 
       btn.textContent = '✅ Archivo cargado'; btn.disabled = false;
-      lbl.textContent = file.name + ' — ' + totalViajes + ' viajes, ' + porPlaca.length + ' placas';
+      lbl.textContent = file.name + ' · +' + added + ' nuevos | ' + dupes + ' duplicados eliminados | Total: ' + PXQ_RAW_DATA.length + ' registros';
     }catch(err){
       console.error('pxqUploadFile:', err);
       btn.textContent = '📂 Cargar Excel'; btn.disabled = false;
       lbl.textContent = 'Sin archivo cargado';
       alert('❌ Error al leer el archivo: ' + err.message);
     }
+    }); }); // cierre del doble requestAnimationFrame
   };
   reader.readAsArrayBuffer(file);
   inp.value = '';
 }
 
-function pxqRenderDashboard(){
+function pxqRenderDashboard(soloVista){
   if(!PXQ_KPIS) return;
   document.getElementById('pxq-dashboard').style.display = 'block';
-  document.getElementById('pxq-status-lbl').textContent = (PXQ_NOMBRE_ARCHIVO||'Archivo cargado') + ' — ' + PXQ_KPIS.totalViajes + ' viajes, ' + PXQ_KPIS.totalPlacas + ' placas';
-  document.getElementById('pxq-upload-btn').textContent = '✅ Archivo cargado';
+  if(!soloVista){
+    document.getElementById('pxq-status-lbl').textContent = (PXQ_NOMBRE_ARCHIVO||'Archivo cargado') + ' — ' + PXQ_KPIS.totalViajes + ' viajes, ' + PXQ_KPIS.totalPlacas + ' placas';
+    document.getElementById('pxq-upload-btn').textContent = '✅ Archivo cargado';
+  }
 
   document.getElementById('pxq-kpi-flete').textContent = pxqFmtMoney(PXQ_KPIS.totalFlete);
   document.getElementById('pxq-kpi-viajes').textContent = pxqFmtNum(PXQ_KPIS.totalViajes);
   document.getElementById('pxq-kpi-placas').textContent = pxqFmtNum(PXQ_KPIS.totalPlacas);
-  document.getElementById('pxq-kpi-promedio').textContent = pxqFmtMoney(PXQ_KPIS.totalFlete / (PXQ_KPIS.totalViajes||1));
-
-  var capOrdenadaPorPlacas = PXQ_POR_CAPACIDAD.slice().sort(function(a,b){ return b.numPlacas - a.numPlacas; });
-  var capTop = capOrdenadaPorPlacas[0];
-  if(capTop){
-    document.getElementById('pxq-kpi-cap-top').textContent = pxqFmtNum(capTop.capacidad) + ' HL';
-    document.getElementById('pxq-kpi-cap-top-sub').textContent = capTop.numPlacas + ' placas · ' + capTop.numViajes + ' viajes';
+  var fleteQEl = document.getElementById('pxq-kpi-flete-q');
+  if(PXQ_KPIS.totalViajes > 0 && PXQ_KPIS.totalConFleteQ === 0){
+    fleteQEl.textContent = '⚠️ Recarga el archivo';
+    fleteQEl.title = 'Los datos guardados son de antes de leer esta columna. Usa "🗑️ Eliminar archivo" y vuelve a cargar tu Excel.';
+    fleteQEl.style.fontSize = '13px';
+  } else {
+    fleteQEl.textContent = pxqFmtMoney(PXQ_KPIS.promedioFleteQ);
+    fleteQEl.title = '';
+    fleteQEl.style.fontSize = '';
   }
 
   pxqRenderChart();
@@ -7510,7 +7763,9 @@ function pxqRenderDashboard(){
 
 function pxqRenderChart(){
   var canvas = document.getElementById('pxq-chart-capacidad');
-  if(PXQ_CHART){ PXQ_CHART.destroy(); PXQ_CHART = null; }
+  if(!canvas) return; // el canvas no existe (p.ej. un intento previo lo reemplazo); nada que hacer
+  if(PXQ_CHART){ try{ PXQ_CHART.destroy(); }catch(e){} PXQ_CHART = null; }
+  var wrap = canvas.parentElement;
   try{
     if(typeof Chart === 'undefined') throw new Error('Chart.js no disponible (sin conexión a internet).');
     var capSorted = PXQ_POR_CAPACIDAD.slice().sort(function(a,b){ return a.capacidad - b.capacidad; });
@@ -7536,50 +7791,147 @@ function pxqRenderChart(){
     });
   }catch(e){
     console.error('pxqRenderChart:', e.message);
-    canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--mut);font-size:12.5px;text-align:center;padding:20px">⚠️ No se pudo cargar el gráfico (Chart.js).<br>Verifica tu conexión a internet.</div>';
+    if(wrap && !wrap.querySelector('.pxq-chart-fallback')){
+      canvas.style.display = 'none';
+      var aviso = document.createElement('div');
+      aviso.className = 'pxq-chart-fallback';
+      aviso.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--mut);font-size:12.5px;text-align:center;padding:20px';
+      aviso.textContent = '⚠️ No se pudo cargar el gráfico (Chart.js). Verifica tu conexión a internet.';
+      wrap.appendChild(aviso);
+    }
   }
 }
 
+// Referencia de personal necesario por capacidad de vehículo, y su costo según el pago por cargo
+var PXQ_PERSONAL_REF = [
+  { capacidad: 200,  chofer: 1, reparto: 1, auxiliar: 1 },
+  { capacidad: 360,  chofer: 1, reparto: 2, auxiliar: 1 },
+  { capacidad: 672,  chofer: 1, reparto: 1, auxiliar: 2 },
+  { capacidad: 1008, chofer: 1, reparto: 1, auxiliar: 3 },
+];
+var PXQ_PAGO_CARGO = { chofer: 110, reparto: 100, auxiliar: 70 };
+
+// Busca el Pago Total definido para una capacidad (200, 360, 672, 1008 HL).
+// Si la capacidad no está en la tabla de referencia, devuelve null.
+function pxqPagoTotalPorCapacidad(capacidad){
+  var ref = PXQ_PERSONAL_REF.find(function(r){ return r.capacidad === Number(capacidad); });
+  if(!ref) return null;
+  return ref.chofer*PXQ_PAGO_CARGO.chofer + ref.reparto*PXQ_PAGO_CARGO.reparto + ref.auxiliar*PXQ_PAGO_CARGO.auxiliar;
+}
+
 function pxqRenderEfficiencyList(){
-  var capSorted = PXQ_POR_CAPACIDAD.slice().sort(function(a,b){ return a.capacidad - b.capacidad; });
-  var capEff = capSorted.map(function(c){ return { cap:c.capacidad, val: c.sumHLs > 0 ? c.sumFlete / c.sumHLs : 0 }; })
-                        .sort(function(a,b){ return b.val - a.val; });
-  var maxEff = Math.max.apply(null, capEff.map(function(c){ return c.val; })) || 1;
-  document.getElementById('pxq-eff-list').innerHTML = capEff.map(function(c,i){
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bor)">'+
-      '<span style="font-size:11px;color:var(--mut);width:16px">'+(i+1)+'</span>'+
-      '<span style="font-weight:700;font-size:13px;width:64px">'+c.cap+' HL</span>'+
-      '<span style="flex:1;background:var(--s2);border-radius:4px;height:8px;overflow:hidden"><span style="display:block;height:100%;width:'+(c.val/maxEff*100).toFixed(1)+'%;background:linear-gradient(90deg,#c98a2e,#f7c44f)"></span></span>'+
-      '<span style="font-size:11.5px;color:var(--mut);width:80px;text-align:right">'+pxqFmtMoney(c.val)+'</span>'+
-    '</div>';
-  }).join('');
+  var filas = PXQ_PERSONAL_REF.map(function(r){
+    var totalPersonas = r.chofer + r.reparto + r.auxiliar; // suma de izquierda a derecha desde la 2da columna
+    var pagoTotal = r.chofer*PXQ_PAGO_CARGO.chofer + r.reparto*PXQ_PAGO_CARGO.reparto + r.auxiliar*PXQ_PAGO_CARGO.auxiliar;
+    return Object.assign({}, r, { totalPersonas: totalPersonas, pagoTotal: pagoTotal });
+  });
+  document.getElementById('pxq-personal-list').innerHTML =
+    '<table class="a-table" style="font-size:12.5px;min-width:480px">'+
+    '<thead><tr>'+
+      '<th>Capacidad</th><th>Chofer</th><th>Reparto</th><th>Auxiliar</th><th>Total Personas</th><th>Pago Total / Día</th>'+
+    '</tr></thead><tbody>'+
+    filas.map(function(f){
+      return '<tr>'+
+        '<td>'+f.capacidad+'</td>'+
+        '<td>'+f.chofer+'</td>'+
+        '<td>'+f.reparto+'</td>'+
+        '<td>'+f.auxiliar+'</td>'+
+        '<td style="font-weight:700">'+f.totalPersonas+'</td>'+
+        '<td style="font-weight:700">'+pxqFmtMoney(f.pagoTotal)+'</td>'+
+      '</tr>';
+    }).join('')+
+    '</tbody></table>'+
+    '<div style="font-size:11px;color:var(--mut);margin-top:8px">Pago por cargo (tarifa diaria): Chofer S/ '+PXQ_PAGO_CARGO.chofer.toFixed(2)+' · Reparto S/ '+PXQ_PAGO_CARGO.reparto.toFixed(2)+' · Auxiliar S/ '+PXQ_PAGO_CARGO.auxiliar.toFixed(2)+'. En "Detalle por Placa", el Pago Total se calcula multiplicando esta tarifa diaria por los días trabajados de cada placa.</div>';
 }
 
 function pxqPoblarFiltros(){
-  var capacidades = [...new Set(PXQ_POR_PLACA.map(function(r){ return r.capacidad; }))].sort(function(a,b){ return a-b; });
-  var selCap = document.getElementById('pxq-filter-capacidad');
-  selCap.innerHTML = '<option value="">Todas las capacidades</option>' + capacidades.map(function(c){ return '<option value="'+c+'">'+c+' HL</option>'; }).join('');
-
-  var regiones = [...new Set(PXQ_POR_PLACA.map(function(r){ return r.region; }).filter(Boolean))].sort();
+  var regiones = [...new Set(PXQ_RAW_DATA.map(function(r){ return r.region; }).filter(Boolean))].sort();
   var selRegion = document.getElementById('pxq-filter-region');
+  var valRegion = selRegion.value;
   selRegion.innerHTML = '<option value="">Todas las regiones</option>' + regiones.map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('');
+  if(regiones.indexOf(valRegion) !== -1) selRegion.value = valRegion;
+
+  pxqActualizarOpcionesCD();
+
+  var dias = pxqDiasDisponibles();
+  var selDesde = document.getElementById('pxq-filter-dia-desde');
+  var selHasta = document.getElementById('pxq-filter-dia-hasta');
+  if(selDesde && selHasta && dias.length){
+    if(!selDesde.min){ selDesde.min = dias[0]; selDesde.max = dias[dias.length-1]; }
+    if(!selHasta.min){ selHasta.min = dias[0]; selHasta.max = dias[dias.length-1]; }
+  }
+
+  var MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var meses = [...new Set(PXQ_RAW_DATA.map(function(r){ return r.fecha ? r.fecha.slice(0,7) : null; }).filter(Boolean))].sort();
+  var selMes = document.getElementById('pxq-filter-mes');
+  if(selMes){
+    var valMes = selMes.value;
+    selMes.innerHTML = '<option value="">Todos los meses</option>' + meses.map(function(m){
+      var partes = m.split('-'); var nombre = MESES_ES[Number(partes[1])-1] + ' ' + partes[0];
+      return '<option value="'+m+'">'+nombre+'</option>';
+    }).join('');
+    if(meses.indexOf(valMes) !== -1) selMes.value = valMes;
+  }
+}
+
+// Repuebla las opciones de CD según la región elegida (si hay alguna). Si el CD
+// seleccionado ya no pertenece a la región elegida, se limpia su selección.
+function pxqActualizarOpcionesCD(){
+  var selRegion = document.getElementById('pxq-filter-region');
+  var selCd = document.getElementById('pxq-filter-cd');
+  var regionActual = selRegion.value;
+  var valCd = selCd.value;
+
+  var filas = regionActual ? PXQ_RAW_DATA.filter(function(r){ return r.region === regionActual; }) : PXQ_RAW_DATA;
+  var cds = [...new Set(filas.map(function(r){ return r.cd; }).filter(Boolean))].sort();
+
+  selCd.innerHTML = '<option value="">Todos los CD</option>' + cds.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
+  if(cds.indexOf(valCd) !== -1) selCd.value = valCd;
+}
+
+// Lista de empresas disponibles para el combo de Empresa, acotada a la Región y el CD
+// que estén elegidos en ese momento (si no hay ninguno elegido, se ven todas)
+function pxqEmpresaOpciones(){
+  var region = document.getElementById('pxq-filter-region').value;
+  var cd = document.getElementById('pxq-filter-cd').value;
+  var filas = PXQ_RAW_DATA.filter(function(r){
+    if(region && r.region !== region) return false;
+    if(cd && r.cd !== cd) return false;
+    return true;
+  });
+  return [...new Set(filas.map(function(r){ return r.empresa; }).filter(Boolean))].sort();
+}
+
+// Si la Empresa elegida ya no existe dentro de la Región/CD actuales, se limpia.
+// Devuelve true si tuvo que limpiarla (para saber si hace falta recalcular todo).
+function pxqRevalidarEmpresa(){
+  var empInput = document.getElementById('pxq-filter-empresa');
+  var actual = empInput.value.trim();
+  if(!actual) return false;
+  var opciones = pxqEmpresaOpciones();
+  if(opciones.indexOf(actual) === -1){ empInput.value = ''; return true; }
+  return false;
 }
 
 function pxqGetFiltrados(){
   var search = document.getElementById('pxq-search').value.trim().toLowerCase();
-  var cap = document.getElementById('pxq-filter-capacidad').value;
   var reg = document.getElementById('pxq-filter-region').value;
+  var cd = document.getElementById('pxq-filter-cd').value;
   var emp = document.getElementById('pxq-filter-empresa').value.trim().toLowerCase();
   return PXQ_POR_PLACA.filter(function(r){
-    if(cap && String(r.capacidad) !== cap) return false;
     if(reg && r.region !== reg) return false;
+    if(cd && r.cd !== cd) return false;
     if(emp && String(r.empresa||'').toLowerCase().indexOf(emp) === -1) return false;
     if(search && !(String(r.placa).toLowerCase().indexOf(search) !== -1 || String(r.dueno||'').toLowerCase().indexOf(search) !== -1)) return false;
     return true;
   }).map(function(r){
+    var pagoPorDia = pxqPagoTotalPorCapacidad(r.capacidad);
+    var pagoTotal = pagoPorDia !== null ? pagoPorDia * (r.numDias || 0) : null;
     return Object.assign({}, r, {
       fletePorViaje: r.numViajes ? r.sumFlete / r.numViajes : 0,
       fletePorHL: r.sumHLs > 0 ? r.sumFlete / r.sumHLs : 0,
+      pagoTotal: pagoTotal,
+      utilidad: pagoTotal !== null ? r.sumFlete - pagoTotal : null,
     });
   });
 }
@@ -7606,13 +7958,36 @@ function pxqRenderTabla(){
       '<td>'+(r.dueno||'—')+'</td>'+
       '<td>'+(r.tipoPlaca||'—')+'</td>'+
       '<td>'+(r.region||'—')+'</td>'+
-      '<td>'+r.capacidad+' HL</td>'+
+      '<td>'+(r.cd||'—')+'</td>'+
+      '<td>'+r.capacidad+'</td>'+
+      '<td>'+pxqFmtNum(r.numDias)+'</td>'+
       '<td>'+pxqFmtNum(r.numViajes)+'</td>'+
       '<td>'+pxqFmtMoney(r.sumFlete)+'</td>'+
-      '<td>'+pxqFmtMoney(r.fletePorViaje)+'</td>'+
-      '<td>'+pxqFmtMoney(r.fletePorHL)+'</td>'+
+      '<td>'+(r.pagoTotal !== null ? pxqFmtMoney(r.pagoTotal) : '—')+'</td>'+
+      '<td>'+(r.utilidad !== null ? pxqFmtMoney(r.utilidad) : '—')+'</td>'+
     '</tr>';
-  }).join('') || '<tr class="a-empty"><td colspan="10">Sin resultados para este filtro.</td></tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="12">Sin resultados para este filtro.</td></tr>';
+
+  // Subtotales de TODO lo filtrado (no solo la página visible)
+  var tfoot = document.getElementById('pxq-tfoot');
+  if(filtrados.length){
+    var subDias = filtrados.reduce(function(s,r){ return s + (r.numDias||0); }, 0);
+    var subViajes = filtrados.reduce(function(s,r){ return s + (r.numViajes||0); }, 0);
+    var subFlete = filtrados.reduce(function(s,r){ return s + (r.sumFlete||0); }, 0);
+    var subPago = filtrados.reduce(function(s,r){ return s + (r.pagoTotal||0); }, 0);
+    var subUtilidad = filtrados.reduce(function(s,r){ return s + (r.utilidad||0); }, 0);
+    tfoot.innerHTML = '<tr>'+
+      '<td colspan="7" style="text-align:right;font-weight:700">SUBTOTAL ('+filtrados.length+' placas):</td>'+
+      '<td style="font-weight:700">'+pxqFmtNum(subDias)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtNum(subViajes)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtMoney(subFlete)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtMoney(subPago)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtMoney(subUtilidad)+'</td>'+
+    '</tr>';
+    tfoot.style.display = '';
+  } else {
+    tfoot.style.display = 'none';
+  }
 
   var pager = document.getElementById('pxq-pager');
   var html = '<button class="a-btn" '+(PXQ_PAGE===1?'disabled':'')+' onclick="pxqChangePage('+(PXQ_PAGE-1)+')">‹</button>';
@@ -7642,19 +8017,45 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   });
   var pxqSearch = document.getElementById('pxq-search');
-  if(pxqSearch) pxqSearch.addEventListener('input', function(){ PXQ_PAGE=1; pxqRenderTabla(); });
-  var pxqCapSel = document.getElementById('pxq-filter-capacidad');
-  if(pxqCapSel) pxqCapSel.addEventListener('change', function(){ PXQ_PAGE=1; pxqRenderTabla(); });
+  if(pxqSearch){
+    var pxqSearchDebounce = null;
+    pxqSearch.addEventListener('input', function(){
+      PXQ_PAGE=1;
+      clearTimeout(pxqSearchDebounce);
+      pxqSearchDebounce = setTimeout(function(){ pxqAplicarFiltrosGlobales(); }, 300);
+    });
+  }
   var pxqRegSel = document.getElementById('pxq-filter-region');
-  if(pxqRegSel) pxqRegSel.addEventListener('change', function(){ PXQ_PAGE=1; pxqRenderTabla(); });
+  if(pxqRegSel) pxqRegSel.addEventListener('change', function(){
+    document.getElementById('pxq-filter-cd').value = ''; // la region cambio: limpiar el CD elegido antes
+    pxqActualizarOpcionesCD();
+    pxqRevalidarEmpresa();
+    PXQ_PAGE=1;
+    pxqAplicarFiltrosGlobales();
+  });
+  var pxqCdSel = document.getElementById('pxq-filter-cd');
+  if(pxqCdSel) pxqCdSel.addEventListener('change', function(){
+    var cdElegido = this.value;
+    if(cdElegido){
+      var fila = PXQ_RAW_DATA.find(function(r){ return r.cd === cdElegido; });
+      if(fila && fila.region){ document.getElementById('pxq-filter-region').value = fila.region; pxqActualizarOpcionesCD(); document.getElementById('pxq-filter-cd').value = cdElegido; }
+    }
+    pxqRevalidarEmpresa();
+    PXQ_PAGE=1;
+    pxqAplicarFiltrosGlobales();
+  });
+  var pxqDiaDesde = document.getElementById('pxq-filter-dia-desde');
+  var pxqDiaHasta = document.getElementById('pxq-filter-dia-hasta');
+  if(pxqDiaDesde) pxqDiaDesde.addEventListener('change', function(){ PXQ_PAGE=1; pxqAplicarFiltrosGlobales(); });
+  if(pxqDiaHasta) pxqDiaHasta.addEventListener('change', function(){ PXQ_PAGE=1; pxqAplicarFiltrosGlobales(); });
+  var pxqMesSel = document.getElementById('pxq-filter-mes');
+  if(pxqMesSel) pxqMesSel.addEventListener('change', function(){ PXQ_PAGE=1; pxqAplicarFiltrosGlobales(); });
 
-  // Combo autorrellenable de Empresa (filtra por texto parcial, con sugerencias)
+  // Combo autorrellenable de Empresa (filtra por texto parcial, con sugerencias) — afecta TODOS los cuadros
+  // Sus opciones dependen de la Región y el CD elegidos (solo empresas que existen ahí)
   var pxqEmpInput = document.getElementById('pxq-filter-empresa');
   var pxqEmpMenu = document.getElementById('pxq-filter-empresa-menu');
   if(pxqEmpInput && pxqEmpMenu){
-    function pxqEmpresaOpciones(){
-      return [...new Set(PXQ_POR_PLACA.map(function(r){ return r.empresa; }).filter(Boolean))].sort();
-    }
     function pxqRenderEmpMenu(filtro){
       var ft = (filtro||'').toLowerCase();
       var opciones = pxqEmpresaOpciones().filter(function(o){ return o.toLowerCase().indexOf(ft) !== -1; });
@@ -7666,23 +8067,33 @@ document.addEventListener('DOMContentLoaded', function(){
           e.preventDefault();
           pxqEmpInput.value = el.getAttribute('data-value');
           pxqEmpMenu.classList.remove('show');
-          PXQ_PAGE = 1; pxqRenderTabla();
+          PXQ_PAGE = 1; pxqAplicarFiltrosGlobales();
         });
       });
     }
     pxqEmpInput.addEventListener('focus', function(){ pxqRenderEmpMenu(this.value); pxqEmpMenu.classList.add('show'); });
-    pxqEmpInput.addEventListener('input', function(){ pxqRenderEmpMenu(this.value); pxqEmpMenu.classList.add('show'); PXQ_PAGE=1; pxqRenderTabla(); });
+    pxqEmpInput.addEventListener('click', function(){ pxqRenderEmpMenu(this.value); pxqEmpMenu.classList.add('show'); });
+    var pxqEmpDebounce = null;
+    pxqEmpInput.addEventListener('input', function(){
+      pxqRenderEmpMenu(this.value); pxqEmpMenu.classList.add('show');
+      clearTimeout(pxqEmpDebounce);
+      pxqEmpDebounce = setTimeout(function(){ PXQ_PAGE=1; pxqAplicarFiltrosGlobales(); }, 300);
+    });
     pxqEmpInput.addEventListener('blur', function(){ setTimeout(function(){ pxqEmpMenu.classList.remove('show'); }, 150); });
   }
 
   var pxqResetBtn = document.getElementById('pxq-reset-btn');
   if(pxqResetBtn) pxqResetBtn.addEventListener('click', function(){
     document.getElementById('pxq-search').value = '';
-    document.getElementById('pxq-filter-capacidad').value = '';
     document.getElementById('pxq-filter-region').value = '';
+    document.getElementById('pxq-filter-cd').value = '';
+    pxqActualizarOpcionesCD();
     document.getElementById('pxq-filter-empresa').value = '';
+    document.getElementById('pxq-filter-dia-desde').value = '';
+    document.getElementById('pxq-filter-dia-hasta').value = '';
+    document.getElementById('pxq-filter-mes').value = '';
     PXQ_PAGE = 1;
-    pxqRenderTabla();
+    pxqAplicarFiltrosGlobales();
   });
 });
 
