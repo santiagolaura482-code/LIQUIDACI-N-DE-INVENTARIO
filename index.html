@@ -1387,6 +1387,7 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         <select id="pxq-filter-mes" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todos los meses</option></select>
         <select id="pxq-filter-empresa" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todas las empresas</option></select>
         <button class="a-btn a-btn-red" id="pxq-reset-btn">✕ Quitar filtros</button>
+        <button class="a-btn a-btn-grn" id="pxq-download-btn" onclick="pxqDescargarExcel()">📥 Descargar Excel</button>
         <span style="margin-left:auto;font-size:12px;color:var(--mut)" id="pxq-result-count"></span>
       </div>
     </div>
@@ -1404,6 +1405,7 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       <div class="a-card">
         <div style="font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:14px">Utilidad por Capacidad</div>
         <div style="height:300px;position:relative"><canvas id="pxq-chart-capacidad"></canvas></div>
+        <div id="pxq-chart-valores" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px"></div>
       </div>
       <div class="a-card">
         <div style="font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:14px">Personal y Pago por Capacidad</div>
@@ -1434,6 +1436,27 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         </table>
       </div>
       <div style="display:flex;justify-content:center;gap:6px;padding:14px" id="pxq-pager"></div>
+    </div>
+
+    <div class="a-card">
+      <div class="a-card-title" style="margin-bottom:12px"><span>📅</span><span>Detalle por Día (Resumen General)</span></div>
+      <div class="a-table-wrap" style="max-height:520px;overflow-y:auto">
+        <table class="a-table">
+          <thead><tr>
+            <th data-key="fecha" style="cursor:pointer">Fecha</th>
+            <th data-key="empresa" style="cursor:pointer">Empresa</th>
+            <th data-key="numPlacas" style="cursor:pointer">Placas</th>
+            <th data-key="numViajes" style="cursor:pointer">Viajes</th>
+            <th data-key="sumFlete" style="cursor:pointer">Suma Flete</th>
+            <th data-key="sumCajas" style="cursor:pointer">Cajas Equiv.</th>
+            <th data-key="pagoPersonal" style="cursor:pointer">Pago Personal</th>
+            <th data-key="utilidad" style="cursor:pointer">Utilidad</th>
+          </tr></thead>
+          <tbody id="pxq-dia-tbody"></tbody>
+          <tfoot id="pxq-dia-tfoot" style="display:none"><tr></tr></tfoot>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:center;gap:6px;padding:14px" id="pxq-dia-pager"></div>
     </div>
   </div>
 </div>
@@ -7355,8 +7378,10 @@ var PXQ_KPIS = null;
 var PXQ_RAW_DATA = []; // filas crudas acumuladas (una por DocumentoTransporte), base para recalcular todo
 var PXQ_POR_PLACA = [];
 var PXQ_POR_CAPACIDAD = [];
+var PXQ_POR_DIA = [];
 var PXQ_NOMBRE_ARCHIVO = '';
 var PXQ_SORT_KEY = 'sumFlete', PXQ_SORT_DIR = -1, PXQ_PAGE = 1;
+var PXQ_DIA_SORT_KEY = 'fecha', PXQ_DIA_SORT_DIR = -1, PXQ_DIA_PAGE = 1;
 var PXQ_PAGE_SIZE = 25;
 var PXQ_CHART = null;
 
@@ -7534,11 +7559,14 @@ function pxqRecalcularDesdeRaw(datos){
   datos = datos || PXQ_RAW_DATA;
   var porPlacaMap = {};
   var porCapMap = {};
-  var totalFlete = 0, totalFleteQ = 0, totalViajes = 0, totalHLs = 0, totalConFleteQ = 0;
+  var porDiaMap = {};
+  var totalFlete = 0, totalFleteQ = 0, totalHLs = 0, totalConFleteQ = 0;
+  var totalDocsSet = {};
   var fechaMin = null, fechaMax = null;
 
   datos.forEach(function(row){
     var placa = row.placa;
+    var doc = row.doc;
     var flete = Number(row.flete) || 0;
     var tieneFleteQ = row.fleteQ !== undefined && row.fleteQ !== null;
     var fleteQ = Number(row.fleteQ) || 0;
@@ -7553,7 +7581,8 @@ function pxqRecalcularDesdeRaw(datos){
     var fechaStr = row.fecha ? row.fecha.slice(0,10) : null;
     var fecha = row.fecha ? new Date(row.fecha) : null;
 
-    totalFlete += flete; totalViajes += 1; totalHLs += hls;
+    totalFlete += flete; totalHLs += hls;
+    if(doc !== undefined && doc !== null) totalDocsSet[doc] = true;
     if(tieneFleteQ){ totalFleteQ += fleteQ; totalConFleteQ += 1; }
     if(fecha && !isNaN(fecha)){
       if(!fechaMin || fecha < fechaMin) fechaMin = fecha;
@@ -7562,32 +7591,44 @@ function pxqRecalcularDesdeRaw(datos){
 
     if(!porPlacaMap[placa]){
       porPlacaMap[placa] = { placa:placa, capacidad:cap, dueno:dueno, tipoPlaca:tipoPlaca, region:region, cd:cd, empresa:empresa,
-                               numViajes:0, sumFlete:0, sumHLs:0, sumCajas:0, _capCount:{}, _dias:{} };
+                               sumFlete:0, sumHLs:0, sumCajas:0, _capCount:{}, _dias:{}, _docs:{} };
     }
     var p = porPlacaMap[placa];
-    p.numViajes += 1; p.sumFlete += flete; p.sumHLs += hls; p.sumCajas += cajas;
+    p.sumFlete += flete; p.sumHLs += hls; p.sumCajas += cajas;
+    if(doc !== undefined && doc !== null) p._docs[doc] = true;
     p._capCount[cap] = (p._capCount[cap]||0) + 1;
     if(fechaStr) p._dias[placa + '|' + fechaStr] = true;
 
-    if(!porCapMap[cap]) porCapMap[cap] = { capacidad:cap, placas:{}, numViajes:0, sumFlete:0, sumHLs:0 };
+    if(!porCapMap[cap]) porCapMap[cap] = { capacidad:cap, placas:{}, sumFlete:0, sumHLs:0, _docs:{} };
     porCapMap[cap].placas[placa] = true;
-    porCapMap[cap].numViajes += 1;
     porCapMap[cap].sumFlete += flete;
     porCapMap[cap].sumHLs += hls;
+    if(doc !== undefined && doc !== null) porCapMap[cap]._docs[doc] = true;
+
+    if(fechaStr){
+      var keyDia = fechaStr + '||' + (empresa || '—');
+      if(!porDiaMap[keyDia]) porDiaMap[keyDia] = { fecha:fechaStr, empresa:empresa || '—', placas:{}, sumFlete:0, sumCajas:0, _docs:{} };
+      porDiaMap[keyDia].placas[placa] = cap; // capacidad de esa placa ese día (para el pago)
+      porDiaMap[keyDia].sumFlete += flete;
+      porDiaMap[keyDia].sumCajas += cajas;
+      if(doc !== undefined && doc !== null) porDiaMap[keyDia]._docs[doc] = true;
+    }
   });
+
+  var totalViajes = Object.keys(totalDocsSet).length;
 
   var porPlaca = Object.keys(porPlacaMap).map(function(k){
     var p = porPlacaMap[k];
     var mejorCap = p.capacidad, mejorCount = -1;
     Object.keys(p._capCount).forEach(function(c){ if(p._capCount[c] > mejorCount){ mejorCount = p._capCount[c]; mejorCap = Number(c); } });
     return { placa:p.placa, capacidad:mejorCap, dueno:p.dueno, tipoPlaca:p.tipoPlaca, region:p.region, cd:p.cd, empresa:p.empresa,
-             numViajes:p.numViajes, numDias:Object.keys(p._dias).length,
+             numViajes:Object.keys(p._docs).length, numDias:Object.keys(p._dias).length,
              sumFlete:Math.round(p.sumFlete*100)/100, sumHLs:Math.round(p.sumHLs*100)/100, sumCajas:Math.round(p.sumCajas*100)/100 };
   });
 
   var porCapacidad = Object.keys(porCapMap).map(function(k){
     var c = porCapMap[k];
-    return { capacidad:Number(k), numPlacas:Object.keys(c.placas).length, numViajes:c.numViajes,
+    return { capacidad:Number(k), numPlacas:Object.keys(c.placas).length, numViajes:Object.keys(c._docs).length,
              sumFlete:Math.round(c.sumFlete*100)/100, sumHLs:Math.round(c.sumHLs*100)/100 };
   }).sort(function(a,b){ return a.capacidad - b.capacidad; });
 
@@ -7617,6 +7658,29 @@ function pxqRecalcularDesdeRaw(datos){
   };
   PXQ_POR_PLACA = porPlaca;
   PXQ_POR_CAPACIDAD = porCapacidad;
+
+  // Detalle por Día: Pago Personal de un día = suma de la tarifa diaria de cada
+  // placa distinta que trabajó ese día (según SU capacidad "oficial", la misma que
+  // se usa en Detalle por Placa, para que ambos totales cuadren exacto); Utilidad =
+  // Suma Flete de ese día menos ese Pago Personal.
+  var capacidadOficialPorPlaca = {};
+  porPlaca.forEach(function(p){ capacidadOficialPorPlaca[p.placa] = p.capacidad; });
+
+  PXQ_POR_DIA = Object.keys(porDiaMap).map(function(k){
+    var d = porDiaMap[k];
+    var placasDelDia = Object.keys(d.placas);
+    var pagoDia = 0;
+    placasDelDia.forEach(function(pl){
+      var capOficial = capacidadOficialPorPlaca[pl];
+      var tarifa = pxqPagoTotalPorCapacidad(capOficial);
+      if(tarifa !== null) pagoDia += tarifa;
+    });
+    var sumFleteRedondeado = Math.round(d.sumFlete*100)/100;
+    var pagoRedondeado = Math.round(pagoDia*100)/100;
+    return { fecha:d.fecha, empresa:d.empresa, numPlacas:placasDelDia.length, numViajes:Object.keys(d._docs).length,
+             sumFlete:sumFleteRedondeado, sumCajas:Math.round(d.sumCajas*100)/100, pagoPersonal:pagoRedondeado,
+             utilidad:Math.round((sumFleteRedondeado-pagoRedondeado)*100)/100 };
+  }).sort(function(a,b){ return a.fecha === b.fecha ? a.empresa.localeCompare(b.empresa) : (a.fecha < b.fecha ? -1 : 1); });
 }
 
 // Lista de fechas distintas presentes en TODO lo acumulado (para poblar el filtro de Día,
@@ -7832,20 +7896,36 @@ function pxqRenderDashboard(soloVista){
   pxqPoblarFiltros();
   PXQ_PAGE = 1;
   pxqRenderTabla();
+  PXQ_DIA_PAGE = 1;
+  pxqRenderTablaDia();
 }
 
 function pxqRenderChart(){
+  var capSorted = PXQ_POR_CAPACIDAD.slice().sort(function(a,b){ return a.capacidad - b.capacidad; });
+
+  // Lista de valores exactos de Utilidad por capacidad (independiente de si Chart.js
+  // carga o no, para que el número siempre se vea, no solo al pasar el mouse)
+  var valoresEl = document.getElementById('pxq-chart-valores');
+  if(valoresEl){
+    valoresEl.innerHTML = capSorted.map(function(c){
+      var color = c.utilidad >= 0 ? '#3ddc97' : '#f26d6d';
+      return '<div style="background:var(--s2);border:1px solid var(--bor);border-radius:8px;padding:8px 10px;text-align:center">'+
+        '<div style="font-size:11px;color:var(--mut)">'+c.capacidad+'</div>'+
+        '<div style="font-size:14px;font-weight:700;color:'+color+'">'+pxqFmtMoney(c.utilidad)+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
   var canvas = document.getElementById('pxq-chart-capacidad');
   if(!canvas) return; // el canvas no existe (p.ej. un intento previo lo reemplazo); nada que hacer
   if(PXQ_CHART){ try{ PXQ_CHART.destroy(); }catch(e){} PXQ_CHART = null; }
   var wrap = canvas.parentElement;
   try{
     if(typeof Chart === 'undefined') throw new Error('Chart.js no disponible (sin conexión a internet).');
-    var capSorted = PXQ_POR_CAPACIDAD.slice().sort(function(a,b){ return a.capacidad - b.capacidad; });
     PXQ_CHART = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: capSorted.map(function(c){ return c.capacidad + ' HL'; }),
+        labels: capSorted.map(function(c){ return String(c.capacidad); }),
         datasets: [{ label:'Utilidad (S/.)', data: capSorted.map(function(c){ return c.utilidad; }),
                      backgroundColor: capSorted.map(function(c){ return c.utilidad >= 0 ? '#3ddc97' : '#f26d6d'; }),
                      borderRadius:4, maxBarThickness:46 }]
@@ -7931,8 +8011,8 @@ function pxqPoblarFiltros(){
   var selDesde = document.getElementById('pxq-filter-dia-desde');
   var selHasta = document.getElementById('pxq-filter-dia-hasta');
   if(selDesde && selHasta && dias.length){
-    if(!selDesde.min){ selDesde.min = dias[0]; selDesde.max = dias[dias.length-1]; }
-    if(!selHasta.min){ selHasta.min = dias[0]; selHasta.max = dias[dias.length-1]; }
+    selDesde.min = dias[0]; selDesde.max = dias[dias.length-1];
+    selHasta.min = dias[0]; selHasta.max = dias[dias.length-1];
   }
 
   var MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -8083,19 +8163,169 @@ function pxqRenderTabla(){
   html += '<button class="a-btn" '+(PXQ_PAGE===totalPages?'disabled':'')+' onclick="pxqChangePage('+(PXQ_PAGE+1)+')">›</button>';
   pager.innerHTML = html;
 
-  document.querySelectorAll('#app9 thead th[data-key]').forEach(function(th){
+  document.getElementById('pxq-tbody').closest('table').querySelectorAll('thead th[data-key]').forEach(function(th){
     th.style.color = (th.getAttribute('data-key') === PXQ_SORT_KEY) ? 'var(--ylw)' : '';
   });
 }
 window.pxqChangePage = function(p){ PXQ_PAGE = p; pxqRenderTabla(); };
 
+function pxqDescargarExcel(){
+  if(!PXQ_RAW_DATA.length){ alert('No hay datos cargados para descargar.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('❌ No se pudo generar el Excel (sin conexión a internet).'); return; }
+
+  var wb = XLSX.utils.book_new();
+  var today = new Date().toISOString().slice(0,10);
+
+  // ── Hoja 1: Resumen (KPIs) ──
+  var pagoPersonalTotal = PXQ_POR_PLACA.reduce(function(s,p){ var pd=pxqPagoTotalPorCapacidad(p.capacidad); return s+(pd!==null?pd*(p.numDias||0):0); },0);
+  var resumen = [
+    ['PXQ - Productividad — Resumen General'],
+    ['Generado', today],
+    ['Archivo(s) cargado(s)', PXQ_NOMBRE_ARCHIVO || '—'],
+    [],
+    ['Indicador', 'Valor'],
+    ['Suma FleteTotal (Fijo X UC)', PXQ_KPIS.totalFlete],
+    ['Pago Total de Personal', Math.round(pagoPersonalTotal*100)/100],
+    ['Utilidad', Math.round((PXQ_KPIS.totalFlete - pagoPersonalTotal)*100)/100],
+    ['Total Viajes (Documentos distintos)', PXQ_KPIS.totalViajes],
+    ['Placas Activas', PXQ_KPIS.totalPlacas],
+    ['Flete (promedio Flete_Unitario)', PXQ_KPIS.promedioFleteQ],
+    ['Fecha mínima', PXQ_KPIS.fechaMin],
+    ['Fecha máxima', PXQ_KPIS.fechaMax],
+  ];
+  var wsResumen = XLSX.utils.aoa_to_sheet(resumen);
+  wsResumen['!cols'] = [{wch:32},{wch:22}];
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+
+  // ── Hoja 2: Personal y Pago por Capacidad ──
+  var personalData = [['Capacidad','Chofer','Reparto','Auxiliar','Total Personas','Pago Total / Día']];
+  PXQ_PERSONAL_REF.forEach(function(r){
+    var totalPersonas = r.chofer + r.reparto + r.auxiliar;
+    var pago = r.chofer*PXQ_PAGO_CARGO.chofer + r.reparto*PXQ_PAGO_CARGO.reparto + r.auxiliar*PXQ_PAGO_CARGO.auxiliar;
+    personalData.push([r.capacidad, r.chofer, r.reparto, r.auxiliar, totalPersonas, pago]);
+  });
+  personalData.push([]);
+  personalData.push(['Pago por cargo (tarifa diaria)']);
+  personalData.push(['Chofer', PXQ_PAGO_CARGO.chofer]);
+  personalData.push(['Reparto', PXQ_PAGO_CARGO.reparto]);
+  personalData.push(['Auxiliar', PXQ_PAGO_CARGO.auxiliar]);
+  var wsPersonal = XLSX.utils.aoa_to_sheet(personalData);
+  wsPersonal['!cols'] = [{wch:12},{wch:10},{wch:10},{wch:10},{wch:15},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsPersonal, 'Personal y Pago por Capacidad');
+
+  // ── Hoja 3: Por Capacidad (Suma Flete y Utilidad) ──
+  var capData = [['Capacidad','N.° Placas','N.° Viajes','Suma Flete','Pago Personal','Utilidad']];
+  PXQ_POR_CAPACIDAD.slice().sort(function(a,b){ return a.capacidad-b.capacidad; }).forEach(function(c){
+    capData.push([c.capacidad, c.numPlacas, c.numViajes, c.sumFlete, c.pagoPersonal, c.utilidad]);
+  });
+  var wsCap = XLSX.utils.aoa_to_sheet(capData);
+  wsCap['!cols'] = [{wch:12},{wch:12},{wch:12},{wch:14},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsCap, 'Por Capacidad');
+
+  // ── Hoja 4: Detalle por Placa (todo lo filtrado actualmente, no solo la página visible) ──
+  var filtradosDescarga = pxqGetFiltrados();
+  var placaData = [['Placa','Empresa','Dueño de la Placa','Tipo','Región','CD','Capacidad','Días','Viajes','Suma Flete','Pago Total','Utilidad']];
+  filtradosDescarga.forEach(function(r){
+    placaData.push([r.placa, r.empresa||'—', r.dueno||'—', r.tipoPlaca||'—', r.region||'—', r.cd||'—',
+                     r.capacidad, r.numDias, r.numViajes, r.sumFlete, r.pagoTotal!==null?r.pagoTotal:'', r.utilidad!==null?r.utilidad:'']);
+  });
+  var wsPlaca = XLSX.utils.aoa_to_sheet(placaData);
+  wsPlaca['!cols'] = [{wch:10},{wch:32},{wch:22},{wch:10},{wch:10},{wch:14},{wch:10},{wch:8},{wch:9},{wch:13},{wch:13},{wch:13}];
+  XLSX.utils.book_append_sheet(wb, wsPlaca, 'Detalle por Placa');
+
+  // ── Hoja 5: Detalle por Día (Resumen General) ──
+  var diaData = [['Fecha','Empresa','Placas','Viajes','Suma Flete','Cajas Equiv.','Pago Personal','Utilidad']];
+  PXQ_POR_DIA.forEach(function(d){
+    diaData.push([d.fecha, d.empresa||'—', d.numPlacas, d.numViajes, d.sumFlete, d.sumCajas, d.pagoPersonal, d.utilidad]);
+  });
+  var wsDia = XLSX.utils.aoa_to_sheet(diaData);
+  wsDia['!cols'] = [{wch:12},{wch:32},{wch:9},{wch:9},{wch:13},{wch:13},{wch:14},{wch:13}];
+  XLSX.utils.book_append_sheet(wb, wsDia, 'Detalle por Día');
+
+  XLSX.writeFile(wb, 'PXQ_Productividad_'+today+'.xlsx');
+}
+
+function pxqRenderTablaDia(){
+  var filas = PXQ_POR_DIA.slice();
+  filas.sort(function(a,b){
+    var va = a[PXQ_DIA_SORT_KEY], vb = b[PXQ_DIA_SORT_KEY];
+    if(typeof va === 'string') return va.localeCompare(vb) * PXQ_DIA_SORT_DIR;
+    return ((va||0) - (vb||0)) * PXQ_DIA_SORT_DIR;
+  });
+
+  var totalPages = Math.max(1, Math.ceil(filas.length / PXQ_PAGE_SIZE));
+  if(PXQ_DIA_PAGE > totalPages) PXQ_DIA_PAGE = totalPages;
+  var start = (PXQ_DIA_PAGE-1) * PXQ_PAGE_SIZE;
+  var pageRows = filas.slice(start, start+PXQ_PAGE_SIZE);
+
+  document.getElementById('pxq-dia-tbody').innerHTML = pageRows.map(function(d){
+    return '<tr>'+
+      '<td class="a-ruta">'+d.fecha+'</td>'+
+      '<td>'+(d.empresa||'—')+'</td>'+
+      '<td>'+pxqFmtNum(d.numPlacas)+'</td>'+
+      '<td>'+pxqFmtNum(d.numViajes)+'</td>'+
+      '<td>'+pxqFmtMoney(d.sumFlete)+'</td>'+
+      '<td>'+pxqFmtNum(d.sumCajas)+'</td>'+
+      '<td>'+pxqFmtMoney(d.pagoPersonal)+'</td>'+
+      '<td>'+pxqFmtMoney(d.utilidad)+'</td>'+
+    '</tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="8">Sin resultados para este filtro.</td></tr>';
+
+  var tfoot = document.getElementById('pxq-dia-tfoot');
+  if(filas.length){
+    var subPlacasProm = filas.reduce(function(s,d){ return s + (d.numPlacas||0); }, 0) / filas.length;
+    var subViajes = filas.reduce(function(s,d){ return s + (d.numViajes||0); }, 0);
+    var subFlete = filas.reduce(function(s,d){ return s + (d.sumFlete||0); }, 0);
+    var subCajas = filas.reduce(function(s,d){ return s + (d.sumCajas||0); }, 0);
+    var subPago = filas.reduce(function(s,d){ return s + (d.pagoPersonal||0); }, 0);
+    var subUtilidad = filas.reduce(function(s,d){ return s + (d.utilidad||0); }, 0);
+    tfoot.innerHTML = '<tr>'+
+      '<td colspan="2" style="text-align:right;font-weight:700">TOTAL ('+filas.length+' fila(s)):</td>'+
+      '<td style="font-weight:700">'+pxqFmtNum(Math.round(subPlacasProm*10)/10)+' prom.</td>'+
+      '<td style="font-weight:700">'+pxqFmtNum(subViajes)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtMoney(subFlete)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtNum(subCajas)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtMoney(subPago)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtMoney(subUtilidad)+'</td>'+
+    '</tr>';
+    tfoot.style.display = '';
+  } else {
+    tfoot.style.display = 'none';
+  }
+
+  var pager = document.getElementById('pxq-dia-pager');
+  var html = '<button class="a-btn" '+(PXQ_DIA_PAGE===1?'disabled':'')+' onclick="pxqChangePageDia('+(PXQ_DIA_PAGE-1)+')">‹</button>';
+  for(var p=1; p<=totalPages; p++){
+    if(p===1 || p===totalPages || Math.abs(p-PXQ_DIA_PAGE)<=2){
+      html += '<button class="a-btn'+(p===PXQ_DIA_PAGE?' a-btn-grn':'')+'" onclick="pxqChangePageDia('+p+')">'+p+'</button>';
+    } else if(Math.abs(p-PXQ_DIA_PAGE)===3){
+      html += '<span style="color:var(--mut);padding:6px 2px">…</span>';
+    }
+  }
+  html += '<button class="a-btn" '+(PXQ_DIA_PAGE===totalPages?'disabled':'')+' onclick="pxqChangePageDia('+(PXQ_DIA_PAGE+1)+')">›</button>';
+  pager.innerHTML = html;
+
+  document.getElementById('pxq-dia-tbody').closest('table').querySelectorAll('thead th[data-key]').forEach(function(th){
+    th.style.color = (th.getAttribute('data-key') === PXQ_DIA_SORT_KEY) ? 'var(--ylw)' : '';
+  });
+}
+window.pxqChangePageDia = function(p){ PXQ_DIA_PAGE = p; pxqRenderTablaDia(); };
+
 document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('#app9 thead th[data-key]').forEach(function(th){
+  document.getElementById('pxq-tbody').closest('table').querySelectorAll('thead th[data-key]').forEach(function(th){
     th.addEventListener('click', function(){
       var key = th.getAttribute('data-key');
       if(PXQ_SORT_KEY === key) PXQ_SORT_DIR *= -1; else { PXQ_SORT_KEY = key; PXQ_SORT_DIR = -1; }
       PXQ_PAGE = 1;
       pxqRenderTabla();
+    });
+  });
+  document.getElementById('pxq-dia-tbody').closest('table').querySelectorAll('thead th[data-key]').forEach(function(th){
+    th.addEventListener('click', function(){
+      var key = th.getAttribute('data-key');
+      if(PXQ_DIA_SORT_KEY === key) PXQ_DIA_SORT_DIR *= -1; else { PXQ_DIA_SORT_KEY = key; PXQ_DIA_SORT_DIR = -1; }
+      PXQ_DIA_PAGE = 1;
+      pxqRenderTablaDia();
     });
   });
   var pxqSearch = document.getElementById('pxq-search');
