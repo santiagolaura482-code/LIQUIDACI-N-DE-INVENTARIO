@@ -269,6 +269,8 @@ table tfoot td{font-size:11px;padding:6px 8px;border-top:1px solid var(--bor)}
 .segr-subtotal-row .segr-bar-cell{background:rgba(255,255,255,.10)!important}
 .segr-subtotal-row .segr-bar-fill{background:rgba(212,169,74,.55)!important}
 .a-table-wrap{border:1px solid var(--bor);border-radius:10px;overflow:hidden}
+/* Totales (tfoot) fijos: se quedan visibles al hacer scroll dentro de la tabla */
+.a-table-wrap tfoot td,.a-table-wrap tfoot th{position:sticky;bottom:0;background:var(--s2);border-top:2px solid var(--bor);z-index:2}
 .a-table{width:100%;border-collapse:collapse;font-size:12px}
 .a-table thead th{background:var(--s2);padding:9px 12px;text-align:left;font-weight:600;color:var(--mut);border-bottom:1px solid var(--bor);white-space:nowrap;font-size:11px}
 .a-num{width:36px;text-align:center;color:var(--mut);font-size:10px;font-family:var(--m)}
@@ -1435,7 +1437,17 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
           <tfoot id="pxq-tfoot" style="display:none"><tr></tr></tfoot>
         </table>
       </div>
-      <div style="display:flex;justify-content:center;gap:6px;padding:14px" id="pxq-pager"></div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:14px;padding:14px;flex-wrap:wrap">
+        <div id="pxq-pager" style="display:flex;gap:6px"></div>
+        <label style="font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px">
+          Filas por página:
+          <select id="pxq-page-size" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:13px">
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="150">150</option>
+          </select>
+        </label>
+      </div>
     </div>
 
     <div class="a-card">
@@ -1456,7 +1468,17 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
           <tfoot id="pxq-dia-tfoot" style="display:none"><tr></tr></tfoot>
         </table>
       </div>
-      <div style="display:flex;justify-content:center;gap:6px;padding:14px" id="pxq-dia-pager"></div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:14px;padding:14px;flex-wrap:wrap">
+        <div id="pxq-dia-pager" style="display:flex;gap:6px"></div>
+        <label style="font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px">
+          Filas por página:
+          <select id="pxq-dia-page-size" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:6px 10px;font-size:13px">
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="150">150</option>
+          </select>
+        </label>
+      </div>
     </div>
   </div>
 </div>
@@ -6229,12 +6251,16 @@ window.desplanLoadRaw = function(raw, fname){
 window._origShowApp2 = window.showApp2;
 window.showApp2 = function(){
   window._origShowApp2();
-  if(BRX_RAW_DATA && window.desplanLoadRaw) window.desplanLoadRaw(BRX_RAW_DATA, 'Hoja de Ruta');
+  var frame = document.getElementById('desplan-frame');
+  var yaListo = frame && frame.getAttribute('data-ready');
+  if(yaListo && BRX_RAW_DATA && window.desplanLoadRaw) window.desplanLoadRaw(BRX_RAW_DATA, 'Hoja de Ruta');
 };
 window._origShowApp4 = window.showApp4;
+var _MK_AUTOPARSE_HECHO = false;
 window.showApp4 = function(){
   window._origShowApp4();
-  if(BRX_RAW_DATA && window.mkParseData){
+  if(!_MK_AUTOPARSE_HECHO && BRX_RAW_DATA && window.mkParseData){
+    _MK_AUTOPARSE_HECHO = true;
     var fakeFile = {name:'Hoja de Ruta Breximar', size:0};
     window.mkParseData(BRX_RAW_DATA, fakeFile);
   }
@@ -6562,6 +6588,12 @@ function initDesplanFrame(){
   if(frame.getAttribute('data-loaded'))return;
   frame.setAttribute('data-loaded','1');
   var html=decodeURIComponent(escape(atob(_D64)));
+  frame.addEventListener('load', function(){
+    frame.setAttribute('data-ready','1');
+    // Si ya había datos de Breximar cargados antes de que el iframe terminara de
+    // levantar, se los mandamos ahora que sí puede recibirlos.
+    if(window.BRX_RAW_DATA && window.desplanLoadRaw) window.desplanLoadRaw(window.BRX_RAW_DATA, 'Hoja de Ruta');
+  }, {once:true});
   frame.srcdoc=html;
 }
 
@@ -7383,6 +7415,8 @@ var PXQ_NOMBRE_ARCHIVO = '';
 var PXQ_SORT_KEY = 'sumFlete', PXQ_SORT_DIR = -1, PXQ_PAGE = 1;
 var PXQ_DIA_SORT_KEY = 'fecha', PXQ_DIA_SORT_DIR = -1, PXQ_DIA_PAGE = 1;
 var PXQ_PAGE_SIZE = 25;
+var PXQ_PAGE_SIZE_PLACA = 50; // ajustable por el usuario (50/100/150) en Detalle por Placa
+var PXQ_PAGE_SIZE_DIA = 50; // ajustable por el usuario (50/100/150) en Detalle por Día
 var PXQ_CHART = null;
 
 
@@ -7486,7 +7520,10 @@ async function pxqCloudLoad(){
   }catch(e){ console.error('pxqCloudLoad:', e.message); return false; }
 }
 
+var _PXQ_INICIADO = false;
 function pxqInit(){
+  if(_PXQ_INICIADO) return; // ya se cargó antes en esta sesión: no reiniciar filtros/tabla
+  _PXQ_INICIADO = true;
   pxqLoadFromStorage().then(function(ok){
     if(ok) pxqRenderDashboard();
     else if(window.PXQ_DATOS_VIEJOS_LIMPIADOS){
@@ -7960,6 +7997,7 @@ function pxqRenderChart(){
 
 // Referencia de personal necesario por capacidad de vehículo, y su costo según el pago por cargo
 var PXQ_PERSONAL_REF = [
+  { capacidad: 105,  chofer: 1, reparto: 1, auxiliar: 0 },
   { capacidad: 200,  chofer: 1, reparto: 1, auxiliar: 1 },
   { capacidad: 360,  chofer: 1, reparto: 2, auxiliar: 1 },
   { capacidad: 672,  chofer: 1, reparto: 1, auxiliar: 2 },
@@ -7976,11 +8014,16 @@ function pxqPagoTotalPorCapacidad(capacidad){
 }
 
 function pxqRenderEfficiencyList(){
-  var filas = PXQ_PERSONAL_REF.map(function(r){
+  var filas = PXQ_PERSONAL_REF.slice().sort(function(a,b){ return a.capacidad-b.capacidad; }).map(function(r){
     var totalPersonas = r.chofer + r.reparto + r.auxiliar; // suma de izquierda a derecha desde la 2da columna
     var pagoTotal = r.chofer*PXQ_PAGO_CARGO.chofer + r.reparto*PXQ_PAGO_CARGO.reparto + r.auxiliar*PXQ_PAGO_CARGO.auxiliar;
     return Object.assign({}, r, { totalPersonas: totalPersonas, pagoTotal: pagoTotal });
   });
+  function inputCelda(capacidad, campo, valor){
+    return '<input type="number" min="0" step="1" value="'+valor+'" data-capacidad="'+capacidad+'" data-campo="'+campo+'" '+
+      'style="width:56px;background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:6px;padding:4px 6px;font-size:12.5px;text-align:center" '+
+      'onchange="pxqActualizarPersonalRef(this)">';
+  }
   document.getElementById('pxq-personal-list').innerHTML =
     '<table class="a-table" style="font-size:12.5px;min-width:480px">'+
     '<thead><tr>'+
@@ -7989,16 +8032,45 @@ function pxqRenderEfficiencyList(){
     filas.map(function(f){
       return '<tr>'+
         '<td>'+f.capacidad+'</td>'+
-        '<td>'+f.chofer+'</td>'+
-        '<td>'+f.reparto+'</td>'+
-        '<td>'+f.auxiliar+'</td>'+
+        '<td>'+inputCelda(f.capacidad,'chofer',f.chofer)+'</td>'+
+        '<td>'+inputCelda(f.capacidad,'reparto',f.reparto)+'</td>'+
+        '<td>'+inputCelda(f.capacidad,'auxiliar',f.auxiliar)+'</td>'+
         '<td style="font-weight:700">'+f.totalPersonas+'</td>'+
         '<td style="font-weight:700">'+pxqFmtMoney(f.pagoTotal)+'</td>'+
       '</tr>';
     }).join('')+
     '</tbody></table>'+
-    '<div style="font-size:11px;color:var(--mut);margin-top:8px">Pago por cargo (tarifa diaria): Chofer S/ '+PXQ_PAGO_CARGO.chofer.toFixed(2)+' · Reparto S/ '+PXQ_PAGO_CARGO.reparto.toFixed(2)+' · Auxiliar S/ '+PXQ_PAGO_CARGO.auxiliar.toFixed(2)+'. En "Detalle por Placa", el Pago Total se calcula multiplicando esta tarifa diaria por los días trabajados de cada placa.</div>';
+    '<div style="font-size:11px;color:var(--mut);margin-top:10px 0 6px">Pago por cargo (tarifa diaria, editable):</div>'+
+    '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--mut)">'+
+      '<label style="display:flex;align-items:center;gap:6px">Chofer S/ <input type="number" min="0" step="0.01" value="'+PXQ_PAGO_CARGO.chofer+'" data-cargo="chofer" style="width:70px;background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:6px;padding:4px 6px;font-size:12.5px" onchange="pxqActualizarPagoCargo(this)"></label>'+
+      '<label style="display:flex;align-items:center;gap:6px">Reparto S/ <input type="number" min="0" step="0.01" value="'+PXQ_PAGO_CARGO.reparto+'" data-cargo="reparto" style="width:70px;background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:6px;padding:4px 6px;font-size:12.5px" onchange="pxqActualizarPagoCargo(this)"></label>'+
+      '<label style="display:flex;align-items:center;gap:6px">Auxiliar S/ <input type="number" min="0" step="0.01" value="'+PXQ_PAGO_CARGO.auxiliar+'" data-cargo="auxiliar" style="width:70px;background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:6px;padding:4px 6px;font-size:12.5px" onchange="pxqActualizarPagoCargo(this)"></label>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--mut);margin-top:8px">En "Detalle por Placa", el Pago Total se calcula multiplicando esta tarifa diaria por los días trabajados de cada placa. Cualquier cambio aquí recalcula todo el módulo automáticamente.</div>';
 }
+
+// Se ejecuta al modificar Chofer/Reparto/Auxiliar de una capacidad: actualiza la
+// tabla de referencia y recalcula todo el módulo (KPIs, tablas, gráfico) con el
+// nuevo valor, respetando los filtros que estén activos en ese momento.
+window.pxqActualizarPersonalRef = function(input){
+  var capacidad = Number(input.getAttribute('data-capacidad'));
+  var campo = input.getAttribute('data-campo');
+  var valor = Math.max(0, Math.round(Number(input.value)) || 0);
+  input.value = valor;
+  var ref = PXQ_PERSONAL_REF.find(function(r){ return r.capacidad === capacidad; });
+  if(ref){ ref[campo] = valor; }
+  pxqAplicarFiltrosGlobales();
+};
+
+// Se ejecuta al modificar una tarifa diaria (Chofer/Reparto/Auxiliar): actualiza
+// PXQ_PAGO_CARGO y recalcula todo el módulo igual que arriba.
+window.pxqActualizarPagoCargo = function(input){
+  var cargo = input.getAttribute('data-cargo');
+  var valor = Math.max(0, Number(input.value) || 0);
+  input.value = valor;
+  PXQ_PAGO_CARGO[cargo] = valor;
+  pxqAplicarFiltrosGlobales();
+};
 
 function pxqPoblarFiltros(){
   var regiones = [...new Set(PXQ_RAW_DATA.map(function(r){ return r.region; }).filter(Boolean))].sort();
@@ -8110,10 +8182,10 @@ function pxqRenderTabla(){
 
   document.getElementById('pxq-result-count').textContent = filtrados.length + ' de ' + PXQ_POR_PLACA.length + ' placas';
 
-  var totalPages = Math.max(1, Math.ceil(filtrados.length / PXQ_PAGE_SIZE));
+  var totalPages = Math.max(1, Math.ceil(filtrados.length / PXQ_PAGE_SIZE_PLACA));
   if(PXQ_PAGE > totalPages) PXQ_PAGE = totalPages;
-  var start = (PXQ_PAGE-1) * PXQ_PAGE_SIZE;
-  var pageRows = filtrados.slice(start, start+PXQ_PAGE_SIZE);
+  var start = (PXQ_PAGE-1) * PXQ_PAGE_SIZE_PLACA;
+  var pageRows = filtrados.slice(start, start+PXQ_PAGE_SIZE_PLACA);
 
   document.getElementById('pxq-tbody').innerHTML = pageRows.map(function(r){
     return '<tr>'+
@@ -8255,10 +8327,10 @@ function pxqRenderTablaDia(){
     return ((va||0) - (vb||0)) * PXQ_DIA_SORT_DIR;
   });
 
-  var totalPages = Math.max(1, Math.ceil(filas.length / PXQ_PAGE_SIZE));
+  var totalPages = Math.max(1, Math.ceil(filas.length / PXQ_PAGE_SIZE_DIA));
   if(PXQ_DIA_PAGE > totalPages) PXQ_DIA_PAGE = totalPages;
-  var start = (PXQ_DIA_PAGE-1) * PXQ_PAGE_SIZE;
-  var pageRows = filas.slice(start, start+PXQ_PAGE_SIZE);
+  var start = (PXQ_DIA_PAGE-1) * PXQ_PAGE_SIZE_DIA;
+  var pageRows = filas.slice(start, start+PXQ_PAGE_SIZE_DIA);
 
   document.getElementById('pxq-dia-tbody').innerHTML = pageRows.map(function(d){
     return '<tr>'+
@@ -8364,6 +8436,26 @@ document.addEventListener('DOMContentLoaded', function(){
   if(pxqDiaHasta) pxqDiaHasta.addEventListener('change', function(){ PXQ_PAGE=1; pxqAplicarFiltrosGlobales(); });
   var pxqMesSel = document.getElementById('pxq-filter-mes');
   if(pxqMesSel) pxqMesSel.addEventListener('change', function(){ PXQ_PAGE=1; pxqAplicarFiltrosGlobales(); });
+
+  var pxqPageSizeSel = document.getElementById('pxq-page-size');
+  if(pxqPageSizeSel){
+    pxqPageSizeSel.value = String(PXQ_PAGE_SIZE_PLACA);
+    pxqPageSizeSel.addEventListener('change', function(){
+      PXQ_PAGE_SIZE_PLACA = Number(this.value) || 50;
+      PXQ_PAGE = 1;
+      pxqRenderTabla();
+    });
+  }
+
+  var pxqDiaPageSizeSel = document.getElementById('pxq-dia-page-size');
+  if(pxqDiaPageSizeSel){
+    pxqDiaPageSizeSel.value = String(PXQ_PAGE_SIZE_DIA);
+    pxqDiaPageSizeSel.addEventListener('change', function(){
+      PXQ_PAGE_SIZE_DIA = Number(this.value) || 50;
+      PXQ_DIA_PAGE = 1;
+      pxqRenderTablaDia();
+    });
+  }
 
   // Desplegable de Empresa (lista simple, sin autocompletar) — afecta TODOS los cuadros
   var pxqEmpSel = document.getElementById('pxq-filter-empresa');
