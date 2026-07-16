@@ -7415,21 +7415,22 @@ function cierreCajaPrint(){
     '<title>Cierre de Caja<\/title>'+
     '<style>'+
       '*{box-sizing:border-box}'+
-      'body{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:0;padding:16px}'+
+      'body{font-family:Arial,sans-serif;font-size:9.5px;color:#000;margin:0;padding:14px}'+
       'h2{font-size:14px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px}'+
       '.info-box{border:2px solid #305496;border-radius:4px;padding:10px 18px;margin-bottom:12px;display:inline-block;min-width:300px;background:#f0f4ff}'+
       '.info-box p{margin:4px 0;font-size:11px;font-weight:700;line-height:1.7;color:#000}'+
       '.info-box p span{font-weight:400;color:#305496}'+
       '.info-ruta{font-size:10px;color:#333;margin-bottom:8px}'+
-      'table{width:100%;border-collapse:collapse;font-size:11px;border:2px solid #000;margin-bottom:14px}'+
-      'thead th{background:#305496;color:#fff;padding:8px 6px;text-align:center;font-weight:700;border:1px solid #000;font-size:10.5px;letter-spacing:.3px}'+
+      'table{width:100%;border-collapse:collapse;font-size:9px;border:2px solid #000;margin-bottom:10px}'+
+      'thead th{background:#305496;color:#fff;padding:6px 4px;text-align:center;font-weight:700;border:1px solid #000;font-size:8.5px;letter-spacing:.2px}'+
       'tbody tr:nth-child(even){background:#f0f4ff}'+
-      'tbody td{padding:7px 6px;border:1px solid #000;vertical-align:middle;text-align:center}'+
-      'tr.grandtotal td{padding:8px 6px;font-weight:700;border:2px solid #000;background:#305496;color:#fff;text-align:center;font-size:12px}'+
+      'tbody td{padding:4px 4px;border:1px solid #000;vertical-align:middle;text-align:center;word-break:break-word}'+
+      'tr.subtotal td{padding:5px 4px;font-weight:700;border:1px solid #000;background:#d9e2f3;text-align:center}'+
+      'tr.grandtotal td{padding:7px 6px;font-weight:700;border:2px solid #000;background:#305496;color:#fff;text-align:center;font-size:11px}'+
       '.left{text-align:left}'+
-      '@media print{body{padding:10px}@page{margin:12mm}}'+
+      '@media print{body{padding:8px}@page{margin:8mm;size:landscape}}'+
     '<\/style><\/head><body>'+
-    '<h2>Cierre de Caja — Totales por Ruta<\/h2>'+
+    '<h2>Cierre de Caja — Detalle Completo<\/h2>'+
     '<div class="info-box">'+
       '<p>FECHA: <span>'+fecha+'<\/span><\/p>'+
       '<p>EMPRESA: <span>JRGRODVAL DISTRIBUCIONES S.A.C.<\/span><\/p>'+
@@ -7438,31 +7439,49 @@ function cierreCajaPrint(){
 
   var granEfectivo = 0, granYape = 0, granTotal = 0;
 
-  html +=
-    '<table>'+
-      '<thead><tr>'+
-        '<th class="left">Ruta<\/th><th>N.° Registros<\/th><th>Efectivo<\/th><th>Yape<\/th><th>Total<\/th>'+
-      '<\/tr><\/thead><tbody>';
-
   grupos.forEach(function(g){
+    html +=
+      '<table>'+
+        '<thead><tr>'+
+          '<th>Fecha<\/th><th>Ruta<\/th><th>Viaje<\/th><th>Tipo<\/th>'+
+          '<th>Botellas<\/th><th>Cajas<\/th><th>Líquido<\/th><th style="width:130px">Comentario<\/th>'+
+          '<th>Diferencia<\/th><th>Se le dio<\/th><th>Efectivo<\/th><th>Yape<\/th><th>Por Pagar<\/th><th>Dif. Descontar<\/th><th>Total<\/th>'+
+        '<\/tr><\/thead><tbody>';
     var subEfectivo = 0, subYape = 0, subTotal = 0;
     g.filas.forEach(function(r){
       subEfectivo += Number(r.efectivo)||0;
       subYape += Number(r.yape)||0;
       subTotal += Number(r.total)||0;
+      html +=
+        '<tr>'+
+          '<td>'+(r.fecha||'—')+'<\/td>'+
+          '<td>'+(r.ruta||'—')+'<\/td>'+
+          '<td>'+(r.viaje||'—')+'<\/td>'+
+          '<td>'+(r.tipo||'—')+'<\/td>'+
+          '<td>'+r.botellas+'<\/td>'+
+          '<td>'+r.cajas+'<\/td>'+
+          '<td>'+(r.liquido||'—')+'<\/td>'+
+          '<td class="left">'+(r.comentario||'—')+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.diferencia)+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.seLeDio)+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.efectivo)+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.yape)+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.porPagar)+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.diferenciaDescontar)+'<\/td>'+
+          '<td>'+cierreCajaFmt(r.total)+'<\/td>'+
+        '<\/tr>';
     });
     granEfectivo += subEfectivo; granYape += subYape; granTotal += subTotal;
     html +=
-      '<tr>'+
-        '<td class="left">'+g.ruta+'<\/td>'+
-        '<td>'+g.filas.length+'<\/td>'+
+      '<tr class="subtotal">'+
+        '<td colspan="9">SUBTOTAL RUTA '+g.ruta+' ('+g.filas.length+' registro(s))<\/td>'+
         '<td>'+cierreCajaFmt(subEfectivo)+'<\/td>'+
         '<td>'+cierreCajaFmt(subYape)+'<\/td>'+
+        '<td><\/td><td><\/td>'+
         '<td>'+cierreCajaFmt(subTotal)+'<\/td>'+
-      '<\/tr>';
+      '<\/tr>'+
+      '<\/tbody><\/table>';
   });
-
-  html += '<\/tbody><\/table>';
 
   html +=
     '<table><tbody><tr class="grandtotal">'+
