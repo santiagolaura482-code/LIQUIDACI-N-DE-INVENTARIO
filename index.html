@@ -7399,18 +7399,6 @@ function cierreCajaPrint(){
   if(!CIERRE_RECORDS.length){ alert('Sin registros para imprimir.'); return; }
   var fecha = new Date().toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit', year:'numeric'});
 
-  // Agrupar por Ruta, conservando el orden de aparición
-  var grupos = [];
-  var indice = {};
-  CIERRE_RECORDS.forEach(function(r){
-    var key = r.ruta || '—';
-    if(indice[key] === undefined){
-      indice[key] = grupos.length;
-      grupos.push({ ruta: key, filas: [] });
-    }
-    grupos[indice[key]].filas.push(r);
-  });
-
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
     '<title>Cierre de Caja<\/title>'+
     '<style>'+
@@ -7425,7 +7413,6 @@ function cierreCajaPrint(){
       'thead th{background:#305496;color:#fff;padding:6px 4px;text-align:center;font-weight:700;border:1px solid #000;font-size:8.5px;letter-spacing:.2px}'+
       'tbody tr:nth-child(even){background:#f0f4ff}'+
       'tbody td{padding:4px 4px;border:1px solid #000;vertical-align:middle;text-align:center;word-break:break-word}'+
-      'tr.subtotal td{padding:5px 4px;font-weight:700;border:1px solid #000;background:#d9e2f3;text-align:center}'+
       'tr.grandtotal td{padding:7px 6px;font-weight:700;border:2px solid #000;background:#305496;color:#fff;text-align:center;font-size:11px}'+
       '.left{text-align:left}'+
       '@media print{body{padding:8px}@page{margin:8mm;size:landscape}}'+
@@ -7435,53 +7422,43 @@ function cierreCajaPrint(){
       '<p>FECHA: <span>'+fecha+'<\/span><\/p>'+
       '<p>EMPRESA: <span>JRGRODVAL DISTRIBUCIONES S.A.C.<\/span><\/p>'+
     '<\/div>'+
-    '<p class="info-ruta">Total: '+CIERRE_RECORDS.length+' registro(s) en '+grupos.length+' ruta(s)<\/p>';
+    '<p class="info-ruta">Total: '+CIERRE_RECORDS.length+' registro(s)<\/p>';
 
   var granEfectivo = 0, granYape = 0, granTotal = 0;
 
-  grupos.forEach(function(g){
+  html +=
+    '<table>'+
+      '<thead><tr>'+
+        '<th>Fecha<\/th><th>Ruta<\/th><th>Viaje<\/th><th>Tipo<\/th>'+
+        '<th>Botellas<\/th><th>Cajas<\/th><th>Líquido<\/th><th style="width:130px">Comentario<\/th>'+
+        '<th>Diferencia<\/th><th>Se le dio<\/th><th>Efectivo<\/th><th>Yape<\/th><th>Por Pagar<\/th><th>Dif. Descontar<\/th><th>Total<\/th>'+
+      '<\/tr><\/thead><tbody>';
+
+  CIERRE_RECORDS.forEach(function(r){
+    granEfectivo += Number(r.efectivo)||0;
+    granYape += Number(r.yape)||0;
+    granTotal += Number(r.total)||0;
     html +=
-      '<table>'+
-        '<thead><tr>'+
-          '<th>Fecha<\/th><th>Ruta<\/th><th>Viaje<\/th><th>Tipo<\/th>'+
-          '<th>Botellas<\/th><th>Cajas<\/th><th>Líquido<\/th><th style="width:130px">Comentario<\/th>'+
-          '<th>Diferencia<\/th><th>Se le dio<\/th><th>Efectivo<\/th><th>Yape<\/th><th>Por Pagar<\/th><th>Dif. Descontar<\/th><th>Total<\/th>'+
-        '<\/tr><\/thead><tbody>';
-    var subEfectivo = 0, subYape = 0, subTotal = 0;
-    g.filas.forEach(function(r){
-      subEfectivo += Number(r.efectivo)||0;
-      subYape += Number(r.yape)||0;
-      subTotal += Number(r.total)||0;
-      html +=
-        '<tr>'+
-          '<td>'+(r.fecha||'—')+'<\/td>'+
-          '<td>'+(r.ruta||'—')+'<\/td>'+
-          '<td>'+(r.viaje||'—')+'<\/td>'+
-          '<td>'+(r.tipo||'—')+'<\/td>'+
-          '<td>'+r.botellas+'<\/td>'+
-          '<td>'+r.cajas+'<\/td>'+
-          '<td>'+(r.liquido||'—')+'<\/td>'+
-          '<td class="left">'+(r.comentario||'—')+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.diferencia)+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.seLeDio)+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.efectivo)+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.yape)+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.porPagar)+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.diferenciaDescontar)+'<\/td>'+
-          '<td>'+cierreCajaFmt(r.total)+'<\/td>'+
-        '<\/tr>';
-    });
-    granEfectivo += subEfectivo; granYape += subYape; granTotal += subTotal;
-    html +=
-      '<tr class="subtotal">'+
-        '<td colspan="9">SUBTOTAL RUTA '+g.ruta+' ('+g.filas.length+' registro(s))<\/td>'+
-        '<td>'+cierreCajaFmt(subEfectivo)+'<\/td>'+
-        '<td>'+cierreCajaFmt(subYape)+'<\/td>'+
-        '<td><\/td><td><\/td>'+
-        '<td>'+cierreCajaFmt(subTotal)+'<\/td>'+
-      '<\/tr>'+
-      '<\/tbody><\/table>';
+      '<tr>'+
+        '<td>'+(r.fecha||'—')+'<\/td>'+
+        '<td>'+(r.ruta||'—')+'<\/td>'+
+        '<td>'+(r.viaje||'—')+'<\/td>'+
+        '<td>'+(r.tipo||'—')+'<\/td>'+
+        '<td>'+r.botellas+'<\/td>'+
+        '<td>'+r.cajas+'<\/td>'+
+        '<td>'+(r.liquido||'—')+'<\/td>'+
+        '<td class="left">'+(r.comentario||'—')+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.diferencia)+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.seLeDio)+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.efectivo)+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.yape)+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.porPagar)+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.diferenciaDescontar)+'<\/td>'+
+        '<td>'+cierreCajaFmt(r.total)+'<\/td>'+
+      '<\/tr>';
   });
+
+  html += '<\/tbody><\/table>';
 
   html +=
     '<table><tbody><tr class="grandtotal">'+
