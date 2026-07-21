@@ -9503,7 +9503,17 @@ function segRutasCloudAutoSave(){
   _segRutasCloudTimer = setTimeout(segRutasCloudSave, 1200);
 }
 
+var _SEGR_INICIADO = false;
 async function segRutasInit(){
+  if(_SEGR_INICIADO){
+    // Ya se inicializó antes en esta sesión: no volver a leer del almacenamiento
+    // (eso pisaría cualquier cambio en memoria que aún no se haya guardado). Solo
+    // se refresca la tabla, por si algo cambió en otro módulo relacionado.
+    segRutasRenderTable();
+    return;
+  }
+  _SEGR_INICIADO = true;
+
   // Mostrar un aviso de carga de inmediato y dejar que el navegador lo pinte
   // antes de hacer el trabajo pesado (evita la sensación de pantalla congelada).
   var statusEl = document.getElementById('segr-status');
