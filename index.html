@@ -9036,26 +9036,44 @@ function clRenderDashboard(){
     fechaInput.value = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
   }
 
-  // Poblar el filtro de ruta a partir de la Hoja de Ruta cargada en Seguimiento de Rutas
+  clPoblarFiltrosRutaEmpresa();
+  clRenderCruce();
+  clRenderDetalle();
+}
+
+// Ruta y Empresa se guían de la Hoja de Ruta de Seguimiento de Rutas, y cada una
+// reduce las opciones de la otra (igual que Región/CD en PXQ, o Ruta/Empresa en
+// Control de Diferencias): elegir una Empresa deja solo sus rutas, y viceversa.
+function clRutaOptions(){
+  var empresaSel = document.getElementById('cl-filtro-empresa').value;
+  return [...new Set((window.SEGR_HOJA||[]).filter(function(r){
+    if(!empresaSel) return true;
+    var emp = window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : '';
+    return emp === empresaSel;
+  }).map(function(r){ return r['Ruta']; }).filter(Boolean))].sort();
+}
+function clEmpresaOptions(){
+  var rutaSel = document.getElementById('cl-filtro-ruta').value;
+  return [...new Set((window.SEGR_HOJA||[]).filter(function(r){
+    if(!rutaSel) return true;
+    return r['Ruta'] === rutaSel;
+  }).map(function(r){ return window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : ''; }).filter(Boolean))].sort();
+}
+function clPoblarFiltrosRutaEmpresa(){
   var selRuta = document.getElementById('cl-filtro-ruta');
   if(selRuta){
     var valRuta = selRuta.value;
-    var rutas = [...new Set((window.SEGR_HOJA||[]).map(function(r){ return r['Ruta']; }).filter(Boolean))].sort();
+    var rutas = clRutaOptions();
     selRuta.innerHTML = '<option value="">Todas las rutas</option>' + rutas.map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('');
-    if(rutas.indexOf(valRuta) !== -1) selRuta.value = valRuta;
+    if(rutas.indexOf(valRuta) !== -1) selRuta.value = valRuta; else selRuta.value = '';
   }
-
-  // Poblar el filtro de Empresa, guiándonos de las placas de Seguimiento de Rutas
   var selEmpresa = document.getElementById('cl-filtro-empresa');
   if(selEmpresa){
     var valEmpresa = selEmpresa.value;
-    var empresas = [...new Set((window.SEGR_HOJA||[]).map(function(r){ return window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : ''; }).filter(Boolean))].sort();
+    var empresas = clEmpresaOptions();
     selEmpresa.innerHTML = '<option value="">Todas las empresas</option>' + empresas.map(function(e){ return '<option value="'+e+'">'+e+'</option>'; }).join('');
-    if(empresas.indexOf(valEmpresa) !== -1) selEmpresa.value = valEmpresa;
+    if(empresas.indexOf(valEmpresa) !== -1) selEmpresa.value = valEmpresa; else selEmpresa.value = '';
   }
-
-  clRenderCruce();
-  clRenderDetalle();
 }
 
 // Calcula, para la fecha y ruta elegidas, el cruce entre las placas programadas
@@ -9155,16 +9173,19 @@ function clGetFiltradosDetalle(){
   var tipo = document.getElementById('cl-filtro-tipo').value;
   var fallasSel = document.getElementById('cl-filtro-fallas').value;
   var empresaSel = document.getElementById('cl-filtro-empresa').value;
+  var fechaSel = document.getElementById('cl-filtro-fecha').value;
+  var rutaSel = document.getElementById('cl-filtro-ruta').value;
 
-  // Empresa por placa (según Seguimiento de Rutas), para que el filtro de Empresa
-  // también afecte esta tabla, igual que en el cuadro de Cruce.
-  var empresaPorPlaca = {};
-  if(empresaSel){
+  // Empresa y Ruta por placa (según Seguimiento de Rutas), para que esos filtros
+  // también afecten esta tabla, igual que en el cuadro de Cruce.
+  var empresaPorPlaca = {}, rutaPorPlaca = {};
+  if(empresaSel || rutaSel){
     (window.SEGR_HOJA||[]).forEach(function(r){
       var placa = r['Vehiculo'] || r['Placa'] || '';
       if(!placa) return;
       var norm = clNormalizarPlaca(placa);
       if(!empresaPorPlaca[norm]) empresaPorPlaca[norm] = window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : '';
+      if(!rutaPorPlaca[norm]) rutaPorPlaca[norm] = r['Ruta'] || '';
     });
   }
 
@@ -9172,6 +9193,8 @@ function clGetFiltradosDetalle(){
     if(tipo && r.tipo !== tipo) return false;
     if(fallasSel && (clTieneFallas(r.fallas) ? 'SI' : 'NO') !== fallasSel) return false;
     if(empresaSel && empresaPorPlaca[r.placaNorm] !== empresaSel) return false;
+    if(rutaSel && rutaPorPlaca[r.placaNorm] !== rutaSel) return false;
+    if(fechaSel && clFmtFecha(r.fecha) !== fechaSel) return false;
     if(search && !(String(r.placa||'').toLowerCase().indexOf(search) !== -1 || String(r.chofer||'').toLowerCase().indexOf(search) !== -1)) return false;
     return true;
   });
@@ -9239,17 +9262,18 @@ function clDescargarExcel(){
 
 document.addEventListener('DOMContentLoaded', function(){
   var clFecha = document.getElementById('cl-filtro-fecha');
-  if(clFecha) clFecha.addEventListener('change', clRenderCruce);
+  if(clFecha) clFecha.addEventListener('change', function(){ clRenderCruce(); CL_PAGE=1; clRenderDetalle(); });
   var clRuta = document.getElementById('cl-filtro-ruta');
-  if(clRuta) clRuta.addEventListener('change', clRenderCruce);
+  if(clRuta) clRuta.addEventListener('change', function(){ clPoblarFiltrosRutaEmpresa(); clRenderCruce(); CL_PAGE=1; clRenderDetalle(); });
   var clEmpresa = document.getElementById('cl-filtro-empresa');
-  if(clEmpresa) clEmpresa.addEventListener('change', function(){ clRenderCruce(); CL_PAGE=1; clRenderDetalle(); });
+  if(clEmpresa) clEmpresa.addEventListener('change', function(){ clPoblarFiltrosRutaEmpresa(); clRenderCruce(); CL_PAGE=1; clRenderDetalle(); });
   var clResetBtn = document.getElementById('cl-reset-btn');
   if(clResetBtn) clResetBtn.addEventListener('click', function(){
     document.getElementById('cl-filtro-ruta').value = '';
     document.getElementById('cl-filtro-empresa').value = '';
     var hoy = new Date();
     document.getElementById('cl-filtro-fecha').value = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+    clPoblarFiltrosRutaEmpresa();
     clRenderCruce();
     CL_PAGE = 1;
     clRenderDetalle();
