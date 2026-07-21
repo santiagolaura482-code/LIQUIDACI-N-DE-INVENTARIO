@@ -645,6 +645,7 @@ input, select, textarea{font-size:16px !important}
     <div class="sb-item" data-mod="segrutas" onclick="window.openModule('segrutas')"><span class="sb-item-icon">🛣️</span><span class="sb-item-label">Seguimiento de Rutas</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="cierrecaja" onclick="window.openModule('cierrecaja')"><span class="sb-item-icon">🧾</span><span class="sb-item-label">Cierre de Caja</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="pxq" onclick="window.openModule('pxq')"><span class="sb-item-icon">📦</span><span class="sb-item-label">PXQ - Productividad</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="checklist" onclick="window.openModule('checklist')"><span class="sb-item-icon">🚛</span><span class="sb-item-label">Check List de Flota</span><span class="sb-item-arrow">‹</span></div>
   </div>
   <div class="sb-section-label">Sesión</div>
   <div class="sb-nav">
@@ -1429,6 +1430,7 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
             <th data-key="capacidad" style="cursor:pointer">Capacidad</th>
             <th data-key="numDias" style="cursor:pointer">Días</th>
             <th data-key="numViajes" style="cursor:pointer">Viajes</th>
+            <th data-key="sumCajas" style="cursor:pointer">CJS FACT</th>
             <th data-key="sumFlete" style="cursor:pointer">Suma Flete</th>
             <th data-key="pagoTotal" style="cursor:pointer">Pago Total (Días)</th>
             <th data-key="utilidad" style="cursor:pointer">Utilidad</th>
@@ -1482,6 +1484,106 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
     </div>
   </div>
 </div>
+
+<!-- APP10 CHECK LIST DE FLOTA -->
+<div id="app10">
+  <div class="app-topbar">
+    <button class="back-btn" onclick="window.showWelcome(currentUser)">← Menú principal</button>
+    <div class="app-topbar-info"><span id="bar10-username">—</span><span class="topbar-sep">·</span><span id="bar10-role" style="color:var(--mut)">—</span></div>
+    <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+  </div>
+  <div class="a-card">
+      <div class="a-card-title"><span>🚛</span><span>Check List de Flota</span></div>
+      <p style="color:var(--mut);font-size:13px;margin-bottom:16px">Carga el export de checklists (VecFleet), y compáralo contra las placas programadas del día en Seguimiento de Rutas — para ver rápido a quién le falta hacer el checklist de <b>SALIDA</b> o de <b>RETORNO</b>, diferenciado por día.</p>
+
+      <div class="a-card" style="margin-bottom:0;background:var(--s2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span>🚛</span>
+            <div>
+              <div style="font-weight:700;font-size:13px">Checklists (VecFleet)</div>
+              <div id="cl-status-lbl" style="font-size:12px;color:var(--mut)">Sin archivo cargado</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="position:relative">
+              <button class="a-btn a-btn-grn" id="cl-upload-btn" style="cursor:pointer">📂 Cargar Checklists</button>
+              <input type="file" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="clUploadFile(this)">
+            </div>
+            <button class="a-btn a-btn-red" id="cl-delete-btn" onclick="clEliminarArchivo()" style="cursor:pointer">🗑️ Eliminar archivo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cl-dashboard" style="display:none">
+      <div class="a-card">
+        <div class="a-card-title" style="margin-bottom:12px"><span>🔎</span><span>Filtros</span></div>
+        <div class="a-toolbar">
+          <label style="font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px">
+            Fecha a revisar:
+            <input type="date" id="cl-filtro-fecha" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 10px;font-size:13px">
+          </label>
+          <select id="cl-filtro-ruta" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todas las rutas</option></select>
+          <button class="a-btn a-btn-red" id="cl-reset-btn">✕ Quitar filtros</button>
+          <span style="margin-left:auto;font-size:12px;color:var(--mut)" id="cl-result-count"></span>
+        </div>
+      </div>
+
+      <div class="st show" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-programadas" style="color:var(--blue)">—</div><div class="sl">Placas Programadas Hoy</div></div>
+        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-salida-ok" style="color:var(--grn)">—</div><div class="sl">Con Checklist Salida</div></div>
+        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-retorno-ok" style="color:var(--grn)">—</div><div class="sl">Con Checklist Retorno</div></div>
+        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-faltantes" style="color:var(--red)">—</div><div class="sl">Placas con Algo Pendiente</div></div>
+      </div>
+
+      <div class="a-card">
+        <div class="a-card-title" style="margin-bottom:12px"><span>⚠️</span><span>Cruce: Placas Programadas vs. Checklists Realizados</span></div>
+        <p style="color:var(--mut);font-size:12px;margin-bottom:12px">Se compara contra las placas cargadas actualmente en <b>Seguimiento de Rutas</b> (Hoja de Ruta), para la fecha elegida arriba.</p>
+        <div class="a-table-wrap" style="max-height:480px;overflow-y:auto">
+          <table class="a-table">
+            <thead><tr>
+              <th data-key="placa" style="cursor:pointer">Placa</th>
+              <th data-key="ruta" style="cursor:pointer">Ruta</th>
+              <th data-key="salida" style="cursor:pointer">Checklist Salida</th>
+              <th data-key="retorno" style="cursor:pointer">Checklist Retorno</th>
+              <th data-key="estado" style="cursor:pointer">Estado</th>
+            </tr></thead>
+            <tbody id="cl-cruce-tbody"></tbody>
+            <tfoot id="cl-cruce-tfoot" style="display:none"><tr></tr></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="a-card">
+        <div class="a-card-title" style="margin-bottom:12px"><span>📄</span><span>Detalle de Checklists Cargados</span></div>
+        <div class="a-toolbar">
+          <input type="text" id="cl-search" placeholder="Buscar placa o chofer…" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 14px;font-size:13px;min-width:200px">
+          <select id="cl-filtro-tipo" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px">
+            <option value="">Salida y Retorno</option>
+            <option value="SALIDA">Solo Salida</option>
+            <option value="RETORNO">Solo Retorno</option>
+          </select>
+          <button class="a-btn a-btn-grn" id="cl-download-btn" onclick="clDescargarExcel()">📥 Descargar Excel</button>
+        </div>
+        <div class="a-table-wrap" style="max-height:480px;overflow-y:auto">
+          <table class="a-table">
+            <thead><tr>
+              <th data-key="fecha" style="cursor:pointer">Fecha</th>
+              <th data-key="placa" style="cursor:pointer">Placa</th>
+              <th data-key="chofer" style="cursor:pointer">Chofer</th>
+              <th data-key="tipo" style="cursor:pointer">Tipo</th>
+              <th data-key="estado" style="cursor:pointer">Estado</th>
+              <th data-key="fallas" style="cursor:pointer">Fallas</th>
+              <th data-key="comentarios" style="cursor:pointer">Comentarios</th>
+            </tr></thead>
+            <tbody id="cl-detalle-tbody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;padding:14px" id="cl-detalle-pager"></div>
+      </div>
+    </div>
+  </div>
 
 <footer>Procesamiento 100% local · CONTROLES JRGRODVAL</footer>
 </div>
@@ -6001,7 +6103,7 @@ window.brxClearExcel=function(){
 function pushHistory(screen){ history.pushState({screen:screen},'',''); }
 
 window.addEventListener('popstate',function(e){
-  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'||currentScreen==='app9'){
+  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'||currentScreen==='app9'||currentScreen==='app10'){
     if(currentUser) _showWelcomeRaw(currentUser);
     else _showLoginRaw();
   } else if(currentScreen==='welcome'){
@@ -6012,11 +6114,11 @@ window.addEventListener('popstate',function(e){
 });
 
 function _hideAll(){
-  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8','app9'].forEach(function(id){
+  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8','app9','app10'].forEach(function(id){
     document.getElementById(id).style.display='none';
   });
 }
-var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel', app9:'pxq'};
+var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel', app9:'pxq', app10:'checklist'};
 function sbShowUser(user){
   var nombre = (user && user.nombre) || '—';
   var inicial = nombre.trim().slice(0,2).toUpperCase() || '—';
@@ -6105,6 +6207,11 @@ window.showApp9=function(){
   sesionGuardar(currentUser,'app9'); pushHistory('app9');
   if(window.pxqInit) window.pxqInit();
 };
+window.showApp10=function(){
+  _showAppRaw('app10','bar10-username','bar10-role');
+  sesionGuardar(currentUser,'app10'); pushHistory('app10');
+  if(window.checklistInit) window.checklistInit();
+};
 window.showApp4=function(){
   _showAppRaw('app4','bar4-username','bar4-role');
   sesionGuardar(currentUser,'app4'); pushHistory('app4');
@@ -6119,6 +6226,7 @@ window.openModule=function(mod){
   if(mod==='cierrecaja')  window.showApp7();
   if(mod==='importarexcel') window.showApp8();
   if(mod==='pxq')          window.showApp9();
+  if(mod==='checklist')    window.showApp10();
 };
 window.doLogin=function(){
   var u=document.getElementById('login-user').value.trim().toLowerCase();
@@ -7409,12 +7517,13 @@ function cierreCajaPrint(){
       '.info-box p{margin:4px 0;font-size:11px;font-weight:700;line-height:1.7;color:#000}'+
       '.info-box p span{font-weight:400;color:#305496}'+
       '.info-ruta{font-size:10px;color:#333;margin-bottom:8px}'+
-      'table{width:100%;border-collapse:collapse;font-size:9px;border:2px solid #000;margin-bottom:10px}'+
-      'thead th{background:#305496;color:#fff;padding:6px 4px;text-align:center;font-weight:700;border:1px solid #000;font-size:8.5px;letter-spacing:.2px}'+
+      'table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;border:2px solid #000;margin-bottom:10px}'+
+      'thead th{background:#305496;color:#fff;padding:6px 3px;text-align:center;font-weight:700;border:1px solid #000;font-size:8.5px;letter-spacing:.2px}'+
       'tbody tr:nth-child(even){background:#f0f4ff}'+
-      'tbody td{padding:4px 4px;border:1px solid #000;vertical-align:middle;text-align:center;word-break:break-word}'+
+      'tbody td{padding:4px 3px;border:1px solid #000;vertical-align:middle;text-align:center;word-break:break-word;overflow-wrap:break-word}'+
       'tr.grandtotal td{padding:7px 6px;font-weight:700;border:2px solid #000;background:#305496;color:#fff;text-align:center;font-size:11px}'+
       '.left{text-align:left}'+
+      '.right{text-align:right}'+
       '@media print{body{padding:8px}@page{margin:8mm;size:landscape}}'+
     '<\/style><\/head><body>'+
     '<h2>Cierre de Caja — Detalle Completo<\/h2>'+
@@ -7428,9 +7537,15 @@ function cierreCajaPrint(){
 
   html +=
     '<table>'+
+      '<colgroup>'+
+        '<col style="width:6%"><col style="width:6%"><col style="width:4%"><col style="width:7%">'+
+        '<col style="width:5%"><col style="width:5%"><col style="width:8%"><col style="width:11%">'+
+        '<col style="width:7%"><col style="width:6%"><col style="width:7%"><col style="width:6%">'+
+        '<col style="width:6%"><col style="width:7%"><col style="width:7%">'+
+      '<\/colgroup>'+
       '<thead><tr>'+
         '<th>Fecha<\/th><th>Ruta<\/th><th>Viaje<\/th><th>Tipo<\/th>'+
-        '<th>Botellas<\/th><th>Cajas<\/th><th>Líquido<\/th><th style="width:130px">Comentario<\/th>'+
+        '<th>Botellas<\/th><th>Cajas<\/th><th>Líquido<\/th><th>Comentario<\/th>'+
         '<th>Diferencia<\/th><th>Se le dio<\/th><th>Efectivo<\/th><th>Yape<\/th><th>Por Pagar<\/th><th>Dif. Descontar<\/th><th>Total<\/th>'+
       '<\/tr><\/thead><tbody>';
 
@@ -7446,15 +7561,15 @@ function cierreCajaPrint(){
         '<td>'+(r.tipo||'—')+'<\/td>'+
         '<td>'+r.botellas+'<\/td>'+
         '<td>'+r.cajas+'<\/td>'+
-        '<td>'+(r.liquido||'—')+'<\/td>'+
+        '<td class="left">'+(r.liquido||'—')+'<\/td>'+
         '<td class="left">'+(r.comentario||'—')+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.diferencia)+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.seLeDio)+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.efectivo)+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.yape)+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.porPagar)+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.diferenciaDescontar)+'<\/td>'+
-        '<td>'+cierreCajaFmt(r.total)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.diferencia)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.seLeDio)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.efectivo)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.yape)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.porPagar)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.diferenciaDescontar)+'<\/td>'+
+        '<td class="right">'+cierreCajaFmt(r.total)+'<\/td>'+
       '<\/tr>';
   });
 
@@ -8403,17 +8518,19 @@ function pxqRenderTabla(){
       '<td>'+r.capacidad+'</td>'+
       '<td>'+pxqFmtNum(r.numDias)+'</td>'+
       '<td>'+pxqFmtNum(r.numViajes)+'</td>'+
+      '<td>'+pxqFmtNum(r.sumCajas)+'</td>'+
       '<td>'+pxqFmtMoney(r.sumFlete)+'</td>'+
       '<td>'+(r.pagoTotal !== null ? pxqFmtMoney(r.pagoTotal) : '—')+'</td>'+
       '<td style="'+(r.utilidad !== null ? 'color:'+(r.utilidad>=0?'#3ddc97':'#f26d6d') : '')+'">'+(r.utilidad !== null ? pxqFmtMoney(r.utilidad) : '—')+'</td>'+
     '</tr>';
-  }).join('') || '<tr class="a-empty"><td colspan="12">Sin resultados para este filtro.</td></tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="13">Sin resultados para este filtro.</td></tr>';
 
   // Subtotales de TODO lo filtrado (no solo la página visible)
   var tfoot = document.getElementById('pxq-tfoot');
   if(filtrados.length){
     var subDias = filtrados.reduce(function(s,r){ return s + (r.numDias||0); }, 0);
     var subViajes = filtrados.reduce(function(s,r){ return s + (r.numViajes||0); }, 0);
+    var subCajas = filtrados.reduce(function(s,r){ return s + (r.sumCajas||0); }, 0);
     var subFlete = filtrados.reduce(function(s,r){ return s + (r.sumFlete||0); }, 0);
     var subPago = filtrados.reduce(function(s,r){ return s + (r.pagoTotal||0); }, 0);
     var subUtilidad = filtrados.reduce(function(s,r){ return s + (r.utilidad||0); }, 0);
@@ -8421,6 +8538,7 @@ function pxqRenderTabla(){
       '<td colspan="7" style="text-align:right;font-weight:700">SUBTOTAL ('+filtrados.length+' placas):</td>'+
       '<td style="font-weight:700">'+pxqFmtNum(subDias)+'</td>'+
       '<td style="font-weight:700">'+pxqFmtNum(subViajes)+'</td>'+
+      '<td style="font-weight:700">'+pxqFmtNum(subCajas)+'</td>'+
       '<td style="font-weight:700">'+pxqFmtMoney(subFlete)+'</td>'+
       '<td style="font-weight:700">'+pxqFmtMoney(subPago)+'</td>'+
       '<td style="font-weight:700;color:'+(subUtilidad>=0?'#3ddc97':'#f26d6d')+'">'+pxqFmtMoney(subUtilidad)+'</td>'+
@@ -8503,13 +8621,13 @@ function pxqDescargarExcel(){
 
   // ── Hoja 4: Detalle por Placa (todo lo filtrado actualmente, no solo la página visible) ──
   var filtradosDescarga = pxqGetFiltrados();
-  var placaData = [['Placa','Empresa','Dueño de la Placa','Tipo','Región','CD','Capacidad','Días','Viajes','Suma Flete','Pago Total','Utilidad']];
+  var placaData = [['Placa','Empresa','Dueño de la Placa','Tipo','Región','CD','Capacidad','Días','Viajes','CJS FACT','Suma Flete','Pago Total','Utilidad']];
   filtradosDescarga.forEach(function(r){
     placaData.push([r.placa, r.empresa||'—', r.dueno||'—', r.tipoPlaca||'—', r.region||'—', r.cd||'—',
-                     r.capacidad, r.numDias, r.numViajes, r.sumFlete, r.pagoTotal!==null?r.pagoTotal:'', r.utilidad!==null?r.utilidad:'']);
+                     r.capacidad, r.numDias, r.numViajes, r.sumCajas, r.sumFlete, r.pagoTotal!==null?r.pagoTotal:'', r.utilidad!==null?r.utilidad:'']);
   });
   var wsPlaca = XLSX.utils.aoa_to_sheet(placaData);
-  wsPlaca['!cols'] = [{wch:10},{wch:32},{wch:22},{wch:10},{wch:10},{wch:14},{wch:10},{wch:8},{wch:9},{wch:13},{wch:13},{wch:13}];
+  wsPlaca['!cols'] = [{wch:10},{wch:32},{wch:22},{wch:10},{wch:10},{wch:14},{wch:10},{wch:8},{wch:9},{wch:11},{wch:13},{wch:13},{wch:13}];
   XLSX.utils.book_append_sheet(wb, wsPlaca, 'Detalle por Placa');
 
   // ── Hoja 5: Detalle por Día (Resumen General) ──
@@ -8678,6 +8796,370 @@ document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('pxq-filter-mes').value = '';
     PXQ_PAGE = 1;
     pxqAplicarFiltrosGlobales();
+  });
+});
+
+// ═══════════════════ CHECK LIST DE FLOTA ═══════════════════
+var CL_RAW_DATA = [];   // registros crudos del export de VecFleet
+var CL_NOMBRE_ARCHIVO = '';
+var CL_SORT_KEY = 'fecha', CL_SORT_DIR = -1, CL_PAGE = 1;
+var CL_PAGE_SIZE = 50;
+var CL_DB_NAME='cl_db', CL_DB_VER=1, CL_STORE='data';
+var CL_DATA_VERSION = 1;
+var _CL_INICIADO = false;
+
+function clOpenDB(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open(CL_DB_NAME,CL_DB_VER);
+    r.onupgradeneeded=function(e){ try{e.target.result.createObjectStore(CL_STORE);}catch(x){} };
+    r.onsuccess=function(e){ res(e.target.result); };
+    r.onerror=function(){ rej(); };
+  });
+}
+function clSaveToStorage(){
+  return clOpenDB().then(function(db){
+    return new Promise(function(res){
+      var tx = db.transaction(CL_STORE,'readwrite');
+      tx.objectStore(CL_STORE).put({ RAW_DATA: CL_RAW_DATA, nombreArchivo: CL_NOMBRE_ARCHIVO, version: CL_DATA_VERSION, ts: Date.now() }, 'last');
+      tx.oncomplete = function(){ res(true); };
+      tx.onerror = function(){ console.warn('clSaveToStorage: no se pudo guardar.'); res(false); };
+    });
+  }).catch(function(){ console.warn('clSaveToStorage: IndexedDB no disponible.'); return false; });
+}
+function clLoadFromStorage(){
+  return clOpenDB().then(function(db){
+    return new Promise(function(res){
+      var r = db.transaction(CL_STORE,'readonly').objectStore(CL_STORE).get('last');
+      r.onsuccess = function(){
+        var d = r.result;
+        if(!d || !d.RAW_DATA || !d.RAW_DATA.length){ res(false); return; }
+        if(d.version !== CL_DATA_VERSION){
+          console.log('clLoadFromStorage: datos guardados de una versión anterior, limpiando automáticamente.');
+          CL_RAW_DATA = [];
+          clSaveToStorage();
+          res(false);
+          return;
+        }
+        CL_RAW_DATA = d.RAW_DATA;
+        CL_NOMBRE_ARCHIVO = d.nombreArchivo || '';
+        res(true);
+      };
+      r.onerror = function(){ console.error('clLoadFromStorage: no se pudo leer.'); res(false); };
+    });
+  }).catch(function(){ console.warn('clLoadFromStorage: IndexedDB no disponible.'); return false; });
+}
+
+function clInit(){
+  if(_CL_INICIADO) return;
+  _CL_INICIADO = true;
+  clLoadFromStorage().then(function(ok){
+    if(ok) clRenderDashboard();
+  });
+}
+
+// Normaliza una placa para poder comparar entre el archivo de checklists y la
+// Hoja de Ruta de Seguimiento de Rutas, sin importar prefijos de país o guiones.
+function clNormalizarPlaca(p){
+  return String(p||'').toUpperCase().replace(/^PE/, '').replace(/[^A-Z0-9]/g,'');
+}
+
+function clUploadFile(inp){
+  var file = inp.files[0]; if(!file) return;
+  var btn = document.getElementById('cl-upload-btn');
+  var lbl = document.getElementById('cl-status-lbl');
+  btn.textContent = '⏳ Procesando…'; btn.disabled = true;
+  lbl.textContent = 'Leyendo ' + file.name + '…';
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var arrayBuffer = e.target.result;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    try{
+      if(typeof XLSX === 'undefined') throw new Error('XLSX no disponible (sin conexión a internet).');
+      var wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+      var headers = raw[0].map(function(h){ return String(h||'').trim(); });
+      var idx = {};
+      headers.forEach(function(h,i){ idx[h] = i; });
+      ['ID','Fecha y hora de Creacion','Unidad','Movil','Chofer','TIPO DE CHECKLIST','Estado','Fallas'].forEach(function(col){
+        if(!(col in idx)) throw new Error('No se encontró la columna "'+col+'" en el archivo.');
+      });
+      var idxBase = idx['Base'];
+      var idxComentarios = idx['COMENTARIOS ADICIONALES'];
+
+      var nuevasFilas = [];
+      for(var r=1; r<raw.length; r++){
+        var row = raw[r];
+        var idReg = row[idx['ID']];
+        if(!idReg) continue;
+        var fechaRaw = row[idx['Fecha y hora de Creacion']];
+        var fecha = (fechaRaw instanceof Date) ? fechaRaw.toISOString() : null;
+        var placaRaw = row[idx['Unidad']] || row[idx['Movil']] || '';
+        nuevasFilas.push({
+          id: String(idReg),
+          fecha: fecha,
+          placa: String(placaRaw).trim(),
+          placaNorm: clNormalizarPlaca(placaRaw),
+          chofer: row[idx['Chofer']] || null,
+          tipo: String(row[idx['TIPO DE CHECKLIST']] || '').trim().toUpperCase(),
+          estado: row[idx['Estado']] || null,
+          fallas: row[idx['Fallas']] || null,
+          comentarios: idxComentarios !== undefined ? row[idxComentarios] : null,
+          base: idxBase !== undefined ? row[idxBase] : null,
+        });
+      }
+
+      // Acumular, evitando duplicados por ID (cada registro de VecFleet ya trae un ID único)
+      var existentes = {};
+      CL_RAW_DATA.forEach(function(r){ existentes[r.id] = true; });
+      var added = 0, dupes = 0;
+      nuevasFilas.forEach(function(r){
+        if(!existentes[r.id]){ CL_RAW_DATA.push(r); existentes[r.id] = true; added++; }
+        else dupes++;
+      });
+
+      CL_NOMBRE_ARCHIVO = file.name;
+      clSaveToStorage();
+      clRenderDashboard();
+
+      btn.textContent = '✅ Archivo cargado'; btn.disabled = false;
+      lbl.textContent = file.name + ' · +' + added + ' nuevos | ' + dupes + ' duplicados eliminados | Total: ' + CL_RAW_DATA.length + ' registros';
+    }catch(err){
+      console.error('clUploadFile:', err);
+      btn.textContent = '📂 Cargar Checklists'; btn.disabled = false;
+      lbl.textContent = 'Sin archivo cargado';
+      alert('❌ Error al leer el archivo: ' + err.message);
+    }
+    }); });
+  };
+  reader.onerror = function(){
+    console.error('clUploadFile: fallo la lectura del archivo.', reader.error);
+    btn.textContent = '📂 Cargar Checklists'; btn.disabled = false;
+    lbl.textContent = 'Sin archivo cargado';
+    alert('❌ No se pudo leer el archivo. Intenta de nuevo, o verifica que el archivo no esté dañado.');
+  };
+  reader.readAsArrayBuffer(file);
+  inp.value = '';
+}
+
+async function clEliminarArchivo(){
+  var total = CL_RAW_DATA.length;
+  if(!confirm('⚠️ ADVERTENCIA ⚠️\n\n¿Eliminar los '+total+' registro(s) de checklists cargados?\n\nEsta acción NO se puede deshacer.')) return;
+  var btn = document.getElementById('cl-delete-btn');
+  var textoOriginal = btn.textContent;
+  btn.textContent = '⏳ Eliminando…'; btn.disabled = true;
+  try{
+    CL_RAW_DATA = [];
+    CL_NOMBRE_ARCHIVO = '';
+    await clSaveToStorage();
+    document.getElementById('cl-dashboard').style.display = 'none';
+    document.getElementById('cl-status-lbl').textContent = 'Sin archivo cargado';
+    document.getElementById('cl-upload-btn').textContent = '📂 Cargar Checklists';
+    document.getElementById('cl-cruce-tbody').innerHTML = '';
+    document.getElementById('cl-detalle-tbody').innerHTML = '';
+    alert('✅ Datos eliminados.');
+  }catch(err){
+    alert('⚠️ Ocurrió un error al eliminar: ' + err.message);
+  }finally{
+    btn.textContent = textoOriginal; btn.disabled = false;
+  }
+}
+
+function clFmtFecha(iso){ return iso ? iso.slice(0,10) : '—'; }
+
+function clRenderDashboard(){
+  if(!CL_RAW_DATA.length) return;
+  document.getElementById('cl-dashboard').style.display = 'block';
+  document.getElementById('cl-status-lbl').textContent = (CL_NOMBRE_ARCHIVO||'Archivo cargado') + ' — ' + CL_RAW_DATA.length + ' registros';
+  document.getElementById('cl-upload-btn').textContent = '✅ Archivo cargado';
+
+  // Filtro de fecha: por defecto, hoy
+  var fechaInput = document.getElementById('cl-filtro-fecha');
+  if(fechaInput && !fechaInput.value){
+    var hoy = new Date();
+    fechaInput.value = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+  }
+
+  // Poblar el filtro de ruta a partir de la Hoja de Ruta cargada en Seguimiento de Rutas
+  var selRuta = document.getElementById('cl-filtro-ruta');
+  if(selRuta){
+    var valRuta = selRuta.value;
+    var rutas = [...new Set((window.SEGR_HOJA||[]).map(function(r){ return r['Ruta']; }).filter(Boolean))].sort();
+    selRuta.innerHTML = '<option value="">Todas las rutas</option>' + rutas.map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('');
+    if(rutas.indexOf(valRuta) !== -1) selRuta.value = valRuta;
+  }
+
+  clRenderCruce();
+  clRenderDetalle();
+}
+
+// Calcula, para la fecha y ruta elegidas, el cruce entre las placas programadas
+// en Seguimiento de Rutas (Hoja de Ruta cargada) y los checklists de SALIDA/RETORNO
+// realizados ese mismo día.
+function clRenderCruce(){
+  var fechaSel = document.getElementById('cl-filtro-fecha').value;
+  var rutaSel = document.getElementById('cl-filtro-ruta').value;
+
+  var hojaRuta = window.SEGR_HOJA || [];
+  var programadas = [];
+  var vistos = {};
+  hojaRuta.forEach(function(r){
+    var placa = r['Vehiculo'] || r['Placa'] || '';
+    if(!placa) return;
+    if(rutaSel && r['Ruta'] !== rutaSel) return;
+    var norm = clNormalizarPlaca(placa);
+    if(vistos[norm]) return;
+    vistos[norm] = true;
+    programadas.push({ placa: String(placa).trim(), placaNorm: norm, ruta: r['Ruta'] || '—' });
+  });
+
+  // Registros de checklist para la fecha elegida
+  var registrosDelDia = CL_RAW_DATA.filter(function(r){ return clFmtFecha(r.fecha) === fechaSel; });
+  var salidaSet = {}, retornoSet = {};
+  registrosDelDia.forEach(function(r){
+    if(r.tipo === 'SALIDA') salidaSet[r.placaNorm] = true;
+    if(r.tipo === 'RETORNO') retornoSet[r.placaNorm] = true;
+  });
+
+  var filas = programadas.map(function(p){
+    var tieneSalida = !!salidaSet[p.placaNorm];
+    var tieneRetorno = !!retornoSet[p.placaNorm];
+    var estado = (tieneSalida && tieneRetorno) ? 'Completo' : (!tieneSalida && !tieneRetorno) ? 'Sin ningún checklist' : 'Incompleto';
+    return { placa: p.placa, ruta: p.ruta, salida: tieneSalida, retorno: tieneRetorno, estado: estado };
+  });
+
+  filas.sort(function(a,b){
+    var va = a[CL_SORT_KEY], vb = b[CL_SORT_KEY];
+    if(typeof va === 'boolean'){ va = va?1:0; vb = vb?1:0; }
+    if(typeof va === 'string') return va.localeCompare(vb) * CL_SORT_DIR;
+    return ((va||0) - (vb||0)) * CL_SORT_DIR;
+  });
+
+  document.getElementById('cl-cruce-tbody').innerHTML = filas.map(function(f){
+    return '<tr>'+
+      '<td class="a-ruta">'+f.placa+'</td>'+
+      '<td>'+f.ruta+'</td>'+
+      '<td style="color:'+(f.salida?'#3ddc97':'#f26d6d')+';font-weight:700">'+(f.salida?'✅ Sí':'❌ Falta')+'</td>'+
+      '<td style="color:'+(f.retorno?'#3ddc97':'#f26d6d')+';font-weight:700">'+(f.retorno?'✅ Sí':'❌ Falta')+'</td>'+
+      '<td style="color:'+(f.estado==='Completo'?'#3ddc97':f.estado==='Incompleto'?'#f7c44f':'#f26d6d')+'">'+f.estado+'</td>'+
+    '</tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="5">No hay placas programadas en Seguimiento de Rutas para este filtro. Carga la Hoja de Ruta en ese módulo primero.</td></tr>';
+
+  var conSalida = filas.filter(function(f){ return f.salida; }).length;
+  var conRetorno = filas.filter(function(f){ return f.retorno; }).length;
+  var faltantes = filas.filter(function(f){ return f.estado !== 'Completo'; }).length;
+  document.getElementById('cl-kpi-programadas').textContent = pxqFmtNum(filas.length);
+  document.getElementById('cl-kpi-salida-ok').textContent = pxqFmtNum(conSalida);
+  document.getElementById('cl-kpi-retorno-ok').textContent = pxqFmtNum(conRetorno);
+  document.getElementById('cl-kpi-faltantes').textContent = pxqFmtNum(faltantes);
+
+  var tfoot = document.getElementById('cl-cruce-tfoot');
+  if(filas.length){
+    tfoot.innerHTML = '<tr><td colspan="5" style="text-align:center;font-weight:700">'+filas.length+' placa(s) programada(s) el '+(fechaSel||'—')+' · '+faltantes+' con algo pendiente</td></tr>';
+    tfoot.style.display = '';
+  } else {
+    tfoot.style.display = 'none';
+  }
+
+  document.getElementById('cl-result-count').textContent = filas.length + ' placas programadas · ' + registrosDelDia.length + ' checklists ese día';
+}
+
+function clGetFiltradosDetalle(){
+  var search = document.getElementById('cl-search').value.trim().toLowerCase();
+  var tipo = document.getElementById('cl-filtro-tipo').value;
+  return CL_RAW_DATA.filter(function(r){
+    if(tipo && r.tipo !== tipo) return false;
+    if(search && !(String(r.placa||'').toLowerCase().indexOf(search) !== -1 || String(r.chofer||'').toLowerCase().indexOf(search) !== -1)) return false;
+    return true;
+  });
+}
+
+function clRenderDetalle(){
+  var filtrados = clGetFiltradosDetalle();
+  filtrados.sort(function(a,b){ return ((a.fecha||'') < (b.fecha||'')) ? 1 : -1; });
+
+  var totalPages = Math.max(1, Math.ceil(filtrados.length / CL_PAGE_SIZE));
+  if(CL_PAGE > totalPages) CL_PAGE = totalPages;
+  var start = (CL_PAGE-1) * CL_PAGE_SIZE;
+  var pageRows = filtrados.slice(start, start+CL_PAGE_SIZE);
+
+  document.getElementById('cl-detalle-tbody').innerHTML = pageRows.map(function(r){
+    return '<tr>'+
+      '<td>'+clFmtFecha(r.fecha)+'</td>'+
+      '<td class="a-ruta">'+r.placa+'</td>'+
+      '<td>'+(r.chofer||'—')+'</td>'+
+      '<td>'+(r.tipo||'—')+'</td>'+
+      '<td>'+(r.estado||'—')+'</td>'+
+      '<td>'+(r.fallas||'—')+'</td>'+
+      '<td>'+(r.comentarios||'—')+'</td>'+
+    '</tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="7">Sin resultados para este filtro.</td></tr>';
+
+  var pager = document.getElementById('cl-detalle-pager');
+  var html = '<button class="a-btn" '+(CL_PAGE===1?'disabled':'')+' onclick="clChangePage('+(CL_PAGE-1)+')">‹</button>';
+  for(var p=1; p<=totalPages; p++){
+    if(p===1 || p===totalPages || Math.abs(p-CL_PAGE)<=2){
+      html += '<button class="a-btn'+(p===CL_PAGE?' a-btn-grn':'')+'" onclick="clChangePage('+p+')">'+p+'</button>';
+    } else if(Math.abs(p-CL_PAGE)===3){
+      html += '<span style="color:var(--mut);padding:6px 2px">…</span>';
+    }
+  }
+  html += '<button class="a-btn" '+(CL_PAGE===totalPages?'disabled':'')+' onclick="clChangePage('+(CL_PAGE+1)+')">›</button>';
+  pager.innerHTML = html;
+}
+window.clChangePage = function(p){ CL_PAGE = p; clRenderDetalle(); };
+
+function clDescargarExcel(){
+  if(!CL_RAW_DATA.length){ alert('No hay datos cargados para descargar.'); return; }
+  if(typeof XLSX === 'undefined'){ alert('❌ No se pudo generar el Excel (sin conexión a internet).'); return; }
+  var wb = XLSX.utils.book_new();
+  var today = new Date().toISOString().slice(0,10);
+
+  var cruceData = [['Placa','Ruta','Checklist Salida','Checklist Retorno','Estado']];
+  document.querySelectorAll('#cl-cruce-tbody tr').forEach(function(tr){
+    var celdas = [...tr.children].map(function(td){ return td.textContent.trim(); });
+    if(celdas.length === 5) cruceData.push(celdas);
+  });
+  var wsCruce = XLSX.utils.aoa_to_sheet(cruceData);
+  wsCruce['!cols'] = [{wch:12},{wch:14},{wch:16},{wch:16},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsCruce, 'Cruce del Día');
+
+  var detalleData = [['Fecha','Placa','Chofer','Tipo','Estado','Fallas','Comentarios']];
+  CL_RAW_DATA.forEach(function(r){
+    detalleData.push([clFmtFecha(r.fecha), r.placa, r.chofer||'—', r.tipo||'—', r.estado||'—', r.fallas||'—', r.comentarios||'—']);
+  });
+  var wsDetalle = XLSX.utils.aoa_to_sheet(detalleData);
+  wsDetalle['!cols'] = [{wch:12},{wch:12},{wch:26},{wch:10},{wch:12},{wch:14},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle Checklists');
+
+  XLSX.writeFile(wb, 'CheckList_Flota_'+today+'.xlsx');
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var clFecha = document.getElementById('cl-filtro-fecha');
+  if(clFecha) clFecha.addEventListener('change', clRenderCruce);
+  var clRuta = document.getElementById('cl-filtro-ruta');
+  if(clRuta) clRuta.addEventListener('change', clRenderCruce);
+  var clResetBtn = document.getElementById('cl-reset-btn');
+  if(clResetBtn) clResetBtn.addEventListener('click', function(){
+    document.getElementById('cl-filtro-ruta').value = '';
+    var hoy = new Date();
+    document.getElementById('cl-filtro-fecha').value = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+    clRenderCruce();
+  });
+  var clSearch = document.getElementById('cl-search');
+  if(clSearch) clSearch.addEventListener('input', function(){ CL_PAGE=1; clRenderDetalle(); });
+  var clTipo = document.getElementById('cl-filtro-tipo');
+  if(clTipo) clTipo.addEventListener('change', function(){ CL_PAGE=1; clRenderDetalle(); });
+
+  var tablaCruce = document.getElementById('cl-cruce-tbody');
+  if(tablaCruce) tablaCruce.closest('table').querySelectorAll('thead th[data-key]').forEach(function(th){
+    th.addEventListener('click', function(){
+      var key = th.getAttribute('data-key');
+      if(CL_SORT_KEY === key) CL_SORT_DIR *= -1; else { CL_SORT_KEY = key; CL_SORT_DIR = -1; }
+      clRenderCruce();
+    });
   });
 });
 
