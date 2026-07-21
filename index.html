@@ -592,6 +592,7 @@ footer{margin-top:26px;font-size:11px;color:var(--mut);text-align:center}
   .segr-bar-label{font-size:8.5px!important}
   .ts{overflow-x:auto!important;min-width:0}
   .st[style*="repeat(3,1fr);align-items:stretch;margin-bottom:9px"]{grid-template-columns:1fr!important}
+  .st[style*="1.3fr repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
   .st[style*="repeat(6,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
   #segr-combo, .segr-combo{width:100%!important}
   .a-toolbar input#segr-search{width:100%;flex-basis:100%}
@@ -1525,16 +1526,28 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
             <input type="date" id="cl-filtro-fecha" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 10px;font-size:13px">
           </label>
           <select id="cl-filtro-ruta" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todas las rutas</option></select>
+          <select id="cl-filtro-empresa" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px"><option value="">Todas las empresas</option></select>
           <button class="a-btn a-btn-red" id="cl-reset-btn">✕ Quitar filtros</button>
           <span style="margin-left:auto;font-size:12px;color:var(--mut)" id="cl-result-count"></span>
         </div>
       </div>
 
-      <div class="st show" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
-        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-programadas" style="color:var(--blue)">—</div><div class="sl">Placas Programadas Hoy</div></div>
-        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-salida-ok" style="color:var(--grn)">—</div><div class="sl">Con Checklist Salida</div></div>
-        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-retorno-ok" style="color:var(--grn)">—</div><div class="sl">Con Checklist Retorno</div></div>
-        <div class="sb segr-kpi-card-sm"><div class="sn" id="cl-kpi-faltantes" style="color:var(--red)">—</div><div class="sl">Placas con Algo Pendiente</div></div>
+      <div class="st show" style="grid-template-columns:1.3fr repeat(4,1fr);align-items:stretch;margin-bottom:20px">
+        <div class="sb segr-kpi-card" style="min-height:150px">
+          <svg id="cl-gauge" viewBox="0 0 200 140" style="width:100%;max-width:220px;display:block;margin:0 auto">
+            <path d="M 15 110 A 85 85 0 0 1 185 110" fill="none" stroke="var(--bor,#2a3648)" stroke-width="14" stroke-linecap="round"></path>
+            <path id="cl-gauge-arc" d="M 15 110 A 85 85 0 0 1 185 110" fill="none" stroke="#ffc107" stroke-width="14" stroke-linecap="round"
+                  stroke-dasharray="267.04" stroke-dashoffset="267.04"></path>
+            <line id="cl-gauge-needle" x1="100" y1="110" x2="30" y2="110" stroke="var(--txt,#e8eef4)" stroke-width="3" stroke-linecap="round"></line>
+            <circle cx="100" cy="110" r="6" fill="var(--txt,#e8eef4)"></circle>
+            <text id="cl-gauge-text" x="100" y="133" text-anchor="middle" font-size="22" font-weight="700" fill="var(--txt,#e8eef4)">0%</text>
+          </svg>
+          <div class="sl">% Cumplimiento de Checklist</div>
+        </div>
+        <div class="sb segr-kpi-card-sm" style="min-height:150px"><div class="sn" id="cl-kpi-programadas" style="color:var(--blue)">—</div><div class="sl">Placas Programadas Hoy</div></div>
+        <div class="sb segr-kpi-card-sm" style="min-height:150px"><div class="sn" id="cl-kpi-salida-ok" style="color:var(--grn)">—</div><div class="sl">Con Checklist Salida</div></div>
+        <div class="sb segr-kpi-card-sm" style="min-height:150px"><div class="sn" id="cl-kpi-retorno-ok" style="color:var(--grn)">—</div><div class="sl">Con Checklist Retorno</div></div>
+        <div class="sb segr-kpi-card-sm" style="min-height:150px"><div class="sn" id="cl-kpi-faltantes" style="color:var(--red)">—</div><div class="sl">Placas con Algo Pendiente</div></div>
       </div>
 
       <div class="a-card">
@@ -1545,6 +1558,7 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
             <thead><tr>
               <th data-key="placa" style="cursor:pointer">Placa</th>
               <th data-key="ruta" style="cursor:pointer">Ruta</th>
+              <th data-key="empresa" style="cursor:pointer">Empresa</th>
               <th data-key="salida" style="cursor:pointer">Checklist Salida</th>
               <th data-key="retorno" style="cursor:pointer">Checklist Retorno</th>
               <th data-key="estado" style="cursor:pointer">Estado</th>
@@ -1564,6 +1578,11 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
             <option value="SALIDA">Solo Salida</option>
             <option value="RETORNO">Solo Retorno</option>
           </select>
+          <select id="cl-filtro-fallas" style="background:var(--s2);border:1px solid var(--bor);color:var(--txt);border-radius:8px;padding:8px 12px;font-size:13px">
+            <option value="">Fallas: Todas</option>
+            <option value="SI">Fallas: Sí</option>
+            <option value="NO">Fallas: No</option>
+          </select>
           <button class="a-btn a-btn-grn" id="cl-download-btn" onclick="clDescargarExcel()">📥 Descargar Excel</button>
         </div>
         <div class="a-table-wrap" style="max-height:480px;overflow-y:auto">
@@ -1571,7 +1590,6 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
             <thead><tr>
               <th data-key="fecha" style="cursor:pointer">Fecha</th>
               <th data-key="placa" style="cursor:pointer">Placa</th>
-              <th data-key="chofer" style="cursor:pointer">Chofer</th>
               <th data-key="tipo" style="cursor:pointer">Tipo</th>
               <th data-key="estado" style="cursor:pointer">Estado</th>
               <th data-key="fallas" style="cursor:pointer">Fallas</th>
@@ -6210,7 +6228,7 @@ window.showApp9=function(){
 window.showApp10=function(){
   _showAppRaw('app10','bar10-username','bar10-role');
   sesionGuardar(currentUser,'app10'); pushHistory('app10');
-  if(window.checklistInit) window.checklistInit();
+  if(window.clInit) window.clInit();
 };
 window.showApp4=function(){
   _showAppRaw('app4','bar4-username','bar4-role');
@@ -8850,7 +8868,12 @@ function clLoadFromStorage(){
 }
 
 function clInit(){
-  if(_CL_INICIADO) return;
+  if(_CL_INICIADO){
+    // No es la primera vez: no hace falta releer IndexedDB, pero sí conviene
+    // refrescar el cruce por si Seguimiento de Rutas cambió mientras tanto.
+    if(CL_RAW_DATA.length) clRenderDashboard();
+    return;
+  }
   _CL_INICIADO = true;
   clLoadFromStorage().then(function(ok){
     if(ok) clRenderDashboard();
@@ -8861,6 +8884,26 @@ function clInit(){
 // Hoja de Ruta de Seguimiento de Rutas, sin importar prefijos de país o guiones.
 function clNormalizarPlaca(p){
   return String(p||'').toUpperCase().replace(/^PE/, '').replace(/[^A-Z0-9]/g,'');
+}
+
+function clSetGauge(prefix, pct){
+  var ARC_LEN = 267.04;
+  var visualPct = Math.max(0, Math.min(100, pct));
+  var color = pct < 40 ? '#f75b5b' : (pct < 75 ? '#ffc107' : '#22d98e');
+  var arc = document.getElementById(prefix+'-arc');
+  var needle = document.getElementById(prefix+'-needle');
+  var text = document.getElementById(prefix+'-text');
+  if(arc){
+    arc.setAttribute('stroke-dashoffset', ARC_LEN - (ARC_LEN * visualPct / 100));
+    arc.setAttribute('stroke', color);
+  }
+  if(needle){
+    needle.setAttribute('transform', 'rotate('+(visualPct/100*180)+' 100 110)');
+  }
+  if(text){
+    text.textContent = pct.toFixed(2) + '%';
+    text.setAttribute('fill', color);
+  }
 }
 
 function clUploadFile(inp){
@@ -8894,7 +8937,19 @@ function clUploadFile(inp){
         var idReg = row[idx['ID']];
         if(!idReg) continue;
         var fechaRaw = row[idx['Fecha y hora de Creacion']];
-        var fecha = (fechaRaw instanceof Date) ? fechaRaw.toISOString() : null;
+        var fecha = null;
+        if(fechaRaw instanceof Date && !isNaN(fechaRaw)){
+          // Se arma la fecha/hora con los componentes LOCALES (tal como Excel/SheetJS
+          // los interpretó), sin pasar por toISOString() — eso convierte a UTC y puede
+          // correr la fecha al día siguiente para horas cercanas a la medianoche.
+          var yyyy = fechaRaw.getFullYear();
+          var mm = String(fechaRaw.getMonth()+1).padStart(2,'0');
+          var dd = String(fechaRaw.getDate()).padStart(2,'0');
+          var hh = String(fechaRaw.getHours()).padStart(2,'0');
+          var mi = String(fechaRaw.getMinutes()).padStart(2,'0');
+          var ss = String(fechaRaw.getSeconds()).padStart(2,'0');
+          fecha = yyyy+'-'+mm+'-'+dd+'T'+hh+':'+mi+':'+ss;
+        }
         var placaRaw = row[idx['Unidad']] || row[idx['Movil']] || '';
         nuevasFilas.push({
           id: String(idReg),
@@ -8990,6 +9045,15 @@ function clRenderDashboard(){
     if(rutas.indexOf(valRuta) !== -1) selRuta.value = valRuta;
   }
 
+  // Poblar el filtro de Empresa, guiándonos de las placas de Seguimiento de Rutas
+  var selEmpresa = document.getElementById('cl-filtro-empresa');
+  if(selEmpresa){
+    var valEmpresa = selEmpresa.value;
+    var empresas = [...new Set((window.SEGR_HOJA||[]).map(function(r){ return window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : ''; }).filter(Boolean))].sort();
+    selEmpresa.innerHTML = '<option value="">Todas las empresas</option>' + empresas.map(function(e){ return '<option value="'+e+'">'+e+'</option>'; }).join('');
+    if(empresas.indexOf(valEmpresa) !== -1) selEmpresa.value = valEmpresa;
+  }
+
   clRenderCruce();
   clRenderDetalle();
 }
@@ -9000,6 +9064,7 @@ function clRenderDashboard(){
 function clRenderCruce(){
   var fechaSel = document.getElementById('cl-filtro-fecha').value;
   var rutaSel = document.getElementById('cl-filtro-ruta').value;
+  var empresaSel = document.getElementById('cl-filtro-empresa').value;
 
   var hojaRuta = window.SEGR_HOJA || [];
   var programadas = [];
@@ -9007,11 +9072,17 @@ function clRenderCruce(){
   hojaRuta.forEach(function(r){
     var placa = r['Vehiculo'] || r['Placa'] || '';
     if(!placa) return;
+    // La Hoja de Ruta trae su propia Fecha (YYYY-MM-DD): si está presente, solo se
+    // consideran "programadas" las filas de la fecha elegida en el filtro.
+    var fechaFila = String(r['Fecha'] || '').trim();
+    if(fechaFila && fechaSel && fechaFila !== fechaSel) return;
     if(rutaSel && r['Ruta'] !== rutaSel) return;
+    var empresaFila = window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : '';
+    if(empresaSel && empresaFila !== empresaSel) return;
     var norm = clNormalizarPlaca(placa);
     if(vistos[norm]) return;
     vistos[norm] = true;
-    programadas.push({ placa: String(placa).trim(), placaNorm: norm, ruta: r['Ruta'] || '—' });
+    programadas.push({ placa: String(placa).trim(), placaNorm: norm, ruta: r['Ruta'] || '—', empresa: empresaFila || '—' });
   });
 
   // Registros de checklist para la fecha elegida
@@ -9026,7 +9097,7 @@ function clRenderCruce(){
     var tieneSalida = !!salidaSet[p.placaNorm];
     var tieneRetorno = !!retornoSet[p.placaNorm];
     var estado = (tieneSalida && tieneRetorno) ? 'Completo' : (!tieneSalida && !tieneRetorno) ? 'Sin ningún checklist' : 'Incompleto';
-    return { placa: p.placa, ruta: p.ruta, salida: tieneSalida, retorno: tieneRetorno, estado: estado };
+    return { placa: p.placa, ruta: p.ruta, empresa: p.empresa, salida: tieneSalida, retorno: tieneRetorno, estado: estado };
   });
 
   filas.sort(function(a,b){
@@ -9040,23 +9111,28 @@ function clRenderCruce(){
     return '<tr>'+
       '<td class="a-ruta">'+f.placa+'</td>'+
       '<td>'+f.ruta+'</td>'+
+      '<td>'+f.empresa+'</td>'+
       '<td style="color:'+(f.salida?'#3ddc97':'#f26d6d')+';font-weight:700">'+(f.salida?'✅ Sí':'❌ Falta')+'</td>'+
       '<td style="color:'+(f.retorno?'#3ddc97':'#f26d6d')+';font-weight:700">'+(f.retorno?'✅ Sí':'❌ Falta')+'</td>'+
       '<td style="color:'+(f.estado==='Completo'?'#3ddc97':f.estado==='Incompleto'?'#f7c44f':'#f26d6d')+'">'+f.estado+'</td>'+
     '</tr>';
-  }).join('') || '<tr class="a-empty"><td colspan="5">No hay placas programadas en Seguimiento de Rutas para este filtro. Carga la Hoja de Ruta en ese módulo primero.</td></tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="6">No hay placas programadas en Seguimiento de Rutas para este filtro. Carga la Hoja de Ruta en ese módulo primero.</td></tr>';
 
   var conSalida = filas.filter(function(f){ return f.salida; }).length;
   var conRetorno = filas.filter(function(f){ return f.retorno; }).length;
+  var completos = filas.filter(function(f){ return f.estado === 'Completo'; }).length;
   var faltantes = filas.filter(function(f){ return f.estado !== 'Completo'; }).length;
   document.getElementById('cl-kpi-programadas').textContent = pxqFmtNum(filas.length);
   document.getElementById('cl-kpi-salida-ok').textContent = pxqFmtNum(conSalida);
   document.getElementById('cl-kpi-retorno-ok').textContent = pxqFmtNum(conRetorno);
   document.getElementById('cl-kpi-faltantes').textContent = pxqFmtNum(faltantes);
 
+  var pctCumplimiento = filas.length ? (completos / filas.length * 100) : 0;
+  clSetGauge('cl-gauge', pctCumplimiento);
+
   var tfoot = document.getElementById('cl-cruce-tfoot');
   if(filas.length){
-    tfoot.innerHTML = '<tr><td colspan="5" style="text-align:center;font-weight:700">'+filas.length+' placa(s) programada(s) el '+(fechaSel||'—')+' · '+faltantes+' con algo pendiente</td></tr>';
+    tfoot.innerHTML = '<tr><td colspan="6" style="text-align:center;font-weight:700">'+filas.length+' placa(s) programada(s) el '+(fechaSel||'—')+' · '+faltantes+' con algo pendiente</td></tr>';
     tfoot.style.display = '';
   } else {
     tfoot.style.display = 'none';
@@ -9065,11 +9141,37 @@ function clRenderCruce(){
   document.getElementById('cl-result-count').textContent = filas.length + ' placas programadas · ' + registrosDelDia.length + ' checklists ese día';
 }
 
+// "Fallas" trae un número (cantidad de fallas encontradas) o el texto "Sin Fallas".
+// Se traduce a un simple SI/NO para que sea más fácil de leer y filtrar.
+function clTieneFallas(fallas){
+  var txt = String(fallas||'').trim();
+  if(!txt || txt.toLowerCase().indexOf('sin fallas') !== -1) return false;
+  var num = Number(txt);
+  return !isNaN(num) && num > 0;
+}
+
 function clGetFiltradosDetalle(){
   var search = document.getElementById('cl-search').value.trim().toLowerCase();
   var tipo = document.getElementById('cl-filtro-tipo').value;
+  var fallasSel = document.getElementById('cl-filtro-fallas').value;
+  var empresaSel = document.getElementById('cl-filtro-empresa').value;
+
+  // Empresa por placa (según Seguimiento de Rutas), para que el filtro de Empresa
+  // también afecte esta tabla, igual que en el cuadro de Cruce.
+  var empresaPorPlaca = {};
+  if(empresaSel){
+    (window.SEGR_HOJA||[]).forEach(function(r){
+      var placa = r['Vehiculo'] || r['Placa'] || '';
+      if(!placa) return;
+      var norm = clNormalizarPlaca(placa);
+      if(!empresaPorPlaca[norm]) empresaPorPlaca[norm] = window.cierreCajaEmpresaNombre ? cierreCajaEmpresaNombre(r) : '';
+    });
+  }
+
   return CL_RAW_DATA.filter(function(r){
     if(tipo && r.tipo !== tipo) return false;
+    if(fallasSel && (clTieneFallas(r.fallas) ? 'SI' : 'NO') !== fallasSel) return false;
+    if(empresaSel && empresaPorPlaca[r.placaNorm] !== empresaSel) return false;
     if(search && !(String(r.placa||'').toLowerCase().indexOf(search) !== -1 || String(r.chofer||'').toLowerCase().indexOf(search) !== -1)) return false;
     return true;
   });
@@ -9088,13 +9190,12 @@ function clRenderDetalle(){
     return '<tr>'+
       '<td>'+clFmtFecha(r.fecha)+'</td>'+
       '<td class="a-ruta">'+r.placa+'</td>'+
-      '<td>'+(r.chofer||'—')+'</td>'+
       '<td>'+(r.tipo||'—')+'</td>'+
       '<td>'+(r.estado||'—')+'</td>'+
       '<td>'+(r.fallas||'—')+'</td>'+
       '<td>'+(r.comentarios||'—')+'</td>'+
     '</tr>';
-  }).join('') || '<tr class="a-empty"><td colspan="7">Sin resultados para este filtro.</td></tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="6">Sin resultados para este filtro.</td></tr>';
 
   var pager = document.getElementById('cl-detalle-pager');
   var html = '<button class="a-btn" '+(CL_PAGE===1?'disabled':'')+' onclick="clChangePage('+(CL_PAGE-1)+')">‹</button>';
@@ -9116,13 +9217,13 @@ function clDescargarExcel(){
   var wb = XLSX.utils.book_new();
   var today = new Date().toISOString().slice(0,10);
 
-  var cruceData = [['Placa','Ruta','Checklist Salida','Checklist Retorno','Estado']];
+  var cruceData = [['Placa','Ruta','Empresa','Checklist Salida','Checklist Retorno','Estado']];
   document.querySelectorAll('#cl-cruce-tbody tr').forEach(function(tr){
     var celdas = [...tr.children].map(function(td){ return td.textContent.trim(); });
-    if(celdas.length === 5) cruceData.push(celdas);
+    if(celdas.length === 6) cruceData.push(celdas);
   });
   var wsCruce = XLSX.utils.aoa_to_sheet(cruceData);
-  wsCruce['!cols'] = [{wch:12},{wch:14},{wch:16},{wch:16},{wch:18}];
+  wsCruce['!cols'] = [{wch:12},{wch:14},{wch:28},{wch:16},{wch:16},{wch:18}];
   XLSX.utils.book_append_sheet(wb, wsCruce, 'Cruce del Día');
 
   var detalleData = [['Fecha','Placa','Chofer','Tipo','Estado','Fallas','Comentarios']];
@@ -9141,17 +9242,24 @@ document.addEventListener('DOMContentLoaded', function(){
   if(clFecha) clFecha.addEventListener('change', clRenderCruce);
   var clRuta = document.getElementById('cl-filtro-ruta');
   if(clRuta) clRuta.addEventListener('change', clRenderCruce);
+  var clEmpresa = document.getElementById('cl-filtro-empresa');
+  if(clEmpresa) clEmpresa.addEventListener('change', function(){ clRenderCruce(); CL_PAGE=1; clRenderDetalle(); });
   var clResetBtn = document.getElementById('cl-reset-btn');
   if(clResetBtn) clResetBtn.addEventListener('click', function(){
     document.getElementById('cl-filtro-ruta').value = '';
+    document.getElementById('cl-filtro-empresa').value = '';
     var hoy = new Date();
     document.getElementById('cl-filtro-fecha').value = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
     clRenderCruce();
+    CL_PAGE = 1;
+    clRenderDetalle();
   });
   var clSearch = document.getElementById('cl-search');
   if(clSearch) clSearch.addEventListener('input', function(){ CL_PAGE=1; clRenderDetalle(); });
   var clTipo = document.getElementById('cl-filtro-tipo');
   if(clTipo) clTipo.addEventListener('change', function(){ CL_PAGE=1; clRenderDetalle(); });
+  var clFallas = document.getElementById('cl-filtro-fallas');
+  if(clFallas) clFallas.addEventListener('change', function(){ CL_PAGE=1; clRenderDetalle(); });
 
   var tablaCruce = document.getElementById('cl-cruce-tbody');
   if(tablaCruce) tablaCruce.closest('table').querySelectorAll('thead th[data-key]').forEach(function(th){
