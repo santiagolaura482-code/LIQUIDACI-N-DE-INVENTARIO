@@ -1274,7 +1274,10 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
     </div>
   </div>
   <div class="a-card">
-    <div style="text-align:center;font-size:26px;font-weight:700;color:var(--txt,#e8eef4);margin-bottom:16px" id="cc-fecha-grande"></div>
+    <div style="text-align:center;margin-bottom:16px">
+      <input type="date" id="cc-fecha-cabecera" style="font-size:20px;font-weight:700;color:var(--txt,#e8eef4);background:var(--s2,#1e2330);border:1px solid var(--bor,#2a3648);border-radius:8px;padding:8px 14px;text-align:center;cursor:pointer">
+      <div id="cc-fecha-grande" style="font-size:15px;color:var(--mut,#7a869e);margin-top:6px"></div>
+    </div>
     <div class="a-toolbar">
       <span class="a-toolbar-title">🧾 Cierres de Caja registrados</span>
       <button class="a-btn a-btn-grn" id="cc-copy-btn" onclick="cierreCajaCopyTable()">📋 Copiar</button>
@@ -7271,6 +7274,12 @@ function cierreCajaInit(){
     sdInput.addEventListener('input', cierreCajaRecalcEfectivo);
   }
 
+  var fechaCabeceraInput = document.getElementById('cc-fecha-cabecera');
+  if(fechaCabeceraInput && !fechaCabeceraInput._wired){
+    fechaCabeceraInput._wired = true;
+    fechaCabeceraInput.addEventListener('change', cierreCajaActualizarTextoFecha);
+  }
+
   cierreCajaRenderFechaGrande();
   if(!_CC_INICIADO){
     _CC_INICIADO = true;
@@ -7293,10 +7302,24 @@ function cierreCajaInit(){
 }
 
 function cierreCajaRenderFechaGrande(){
+  var input = document.getElementById('cc-fecha-cabecera');
   var el = document.getElementById('cc-fecha-grande');
-  if(!el) return;
-  var hoy = new Date();
-  var texto = hoy.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  if(!input || !el) return;
+  if(!input.value){
+    var hoy = new Date();
+    input.value = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+  }
+  cierreCajaActualizarTextoFecha();
+}
+function cierreCajaActualizarTextoFecha(){
+  var input = document.getElementById('cc-fecha-cabecera');
+  var el = document.getElementById('cc-fecha-grande');
+  if(!input || !el || !input.value) return;
+  // Se parsea con año/mes/día locales (no con "new Date(string)") para evitar que
+  // la conversión a UTC corra la fecha un día, según la zona horaria del navegador.
+  var partes = input.value.split('-');
+  var fechaLocal = new Date(Number(partes[0]), Number(partes[1])-1, Number(partes[2]));
+  var texto = fechaLocal.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   el.textContent = texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
@@ -7523,7 +7546,14 @@ function cierreCajaExport(){
 
 function cierreCajaPrint(){
   if(!CIERRE_RECORDS.length){ alert('Sin registros para imprimir.'); return; }
-  var fecha = new Date().toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit', year:'numeric'});
+  var fechaInput = document.getElementById('cc-fecha-cabecera');
+  var fecha;
+  if(fechaInput && fechaInput.value){
+    var partes = fechaInput.value.split('-');
+    fecha = partes[2]+'/'+partes[1]+'/'+partes[0];
+  } else {
+    fecha = new Date().toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit', year:'numeric'});
+  }
 
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
     '<title>Cierre de Caja<\/title>'+
@@ -7539,6 +7569,7 @@ function cierreCajaPrint(){
       'thead th{background:#305496;color:#fff;padding:6px 3px;text-align:center;font-weight:700;border:1px solid #000;font-size:8.5px;letter-spacing:.2px}'+
       'tbody tr:nth-child(even){background:#f0f4ff}'+
       'tbody td{padding:4px 3px;border:1px solid #000;vertical-align:middle;text-align:center;word-break:break-word;overflow-wrap:break-word}'+
+      'tr.subtotal td{padding:6px 3px;font-weight:700;border:2px solid #000;background:#d9e2f3;text-align:center;font-size:9px}'+
       'tr.grandtotal td{padding:7px 6px;font-weight:700;border:2px solid #000;background:#305496;color:#fff;text-align:center;font-size:11px}'+
       '.left{text-align:left}'+
       '.right{text-align:right}'+
@@ -7551,7 +7582,7 @@ function cierreCajaPrint(){
     '<\/div>'+
     '<p class="info-ruta">Total: '+CIERRE_RECORDS.length+' registro(s)<\/p>';
 
-  var granEfectivo = 0, granYape = 0, granTotal = 0;
+  var sub = { botellas:0, cajas:0, diferencia:0, seLeDio:0, efectivo:0, yape:0, porPagar:0, diferenciaDescontar:0, total:0 };
 
   html +=
     '<table>'+
@@ -7568,9 +7599,15 @@ function cierreCajaPrint(){
       '<\/tr><\/thead><tbody>';
 
   CIERRE_RECORDS.forEach(function(r){
-    granEfectivo += Number(r.efectivo)||0;
-    granYape += Number(r.yape)||0;
-    granTotal += Number(r.total)||0;
+    sub.botellas += Number(r.botellas)||0;
+    sub.cajas += Number(r.cajas)||0;
+    sub.diferencia += Number(r.diferencia)||0;
+    sub.seLeDio += Number(r.seLeDio)||0;
+    sub.efectivo += Number(r.efectivo)||0;
+    sub.yape += Number(r.yape)||0;
+    sub.porPagar += Number(r.porPagar)||0;
+    sub.diferenciaDescontar += Number(r.diferenciaDescontar)||0;
+    sub.total += Number(r.total)||0;
     html +=
       '<tr>'+
         '<td>'+(r.fecha||'—')+'<\/td>'+
@@ -7591,18 +7628,35 @@ function cierreCajaPrint(){
       '<\/tr>';
   });
 
+  // Subtotal de cada columna que tenga números
+  html +=
+    '<tr class="subtotal">'+
+      '<td colspan="4">SUBTOTAL ('+CIERRE_RECORDS.length+' registro(s))<\/td>'+
+      '<td>'+pxqFmtNum(sub.botellas)+'<\/td>'+
+      '<td>'+pxqFmtNum(sub.cajas)+'<\/td>'+
+      '<td colspan="2"><\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.diferencia)+'<\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.seLeDio)+'<\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.efectivo)+'<\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.yape)+'<\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.porPagar)+'<\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.diferenciaDescontar)+'<\/td>'+
+      '<td class="right">'+cierreCajaFmt(sub.total)+'<\/td>'+
+    '<\/tr>';
+
   html += '<\/tbody><\/table>';
 
   html +=
     '<table><tbody><tr class="grandtotal">'+
       '<td style="width:70%">TOTAL GENERAL ('+CIERRE_RECORDS.length+' registro(s))<\/td>'+
-      '<td>Efectivo: '+cierreCajaFmt(granEfectivo)+'<\/td>'+
-      '<td>Yape: '+cierreCajaFmt(granYape)+'<\/td>'+
-      '<td>Total: '+cierreCajaFmt(granTotal)+'<\/td>'+
+      '<td>Efectivo: '+cierreCajaFmt(sub.efectivo)+'<\/td>'+
+      '<td>Yape: '+cierreCajaFmt(sub.yape)+'<\/td>'+
+      '<td>Total: '+cierreCajaFmt(sub.total)+'<\/td>'+
     '<\/tr><\/tbody><\/table>'+
     '<\/body><\/html>';
 
   var w = window.open('', '_blank', 'width=1100,height=750');
+  if(!w){ alert('⚠️ El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
   w.document.write(html); w.document.close(); w.focus();
   setTimeout(function(){ w.print(); }, 500);
 }
@@ -10734,6 +10788,7 @@ function mkPrint(){
     '<\/tr><\/tfoot>'+
     '<\/table><\/body><\/html>';
   var w=window.open('','_blank','width=1100,height=750');
+  if(!w){ alert('⚠️ El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
   w.document.write(html);w.document.close();w.focus();
   setTimeout(function(){w.print();},500);
 }
