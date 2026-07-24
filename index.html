@@ -1268,7 +1268,7 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       <div class="a-field"><label>Efectivo (Diferencia - Yape - Por Pagar - Se le dio)</label><input type="number" step="0.01" id="cc-efectivo" placeholder="0.00" readonly style="opacity:.85;cursor:not-allowed"></div>
       <div class="a-field"><label>YAPE - DEPOSITO</label><input type="number" step="0.01" id="cc-yape" placeholder="0.00"></div>
       <div class="a-field"><label>Por Pagar</label><input type="number" step="0.01" id="cc-porpagar" placeholder="0.00"></div>
-      <div class="a-field"><label>Total (Efectivo + Yape)</label><input type="number" step="0.01" id="cc-total" placeholder="0.00" readonly style="opacity:.85;cursor:not-allowed"></div>
+      <div class="a-field"><label>Total (Diferencia - (Se le dio - Yape - Por Pagar))</label><input type="number" step="0.01" id="cc-total" placeholder="0.00" readonly style="opacity:.85;cursor:not-allowed"></div>
       <div class="a-form-btns"><button class="a-btn-save" onclick="cierreCajaSubmit()">💾 Guardar registro</button><button class="a-btn-cancel" onclick="cierreCajaCancel()">Cancelar</button></div>
     </div>
   </div>
@@ -1304,11 +1304,11 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         <thead><tr>
           <th>Fecha</th><th>Ruta</th><th>Viaje</th><th>Tipo</th>
           <th>Botellas</th><th>Cajas</th><th>Líquido</th><th>Comentario</th><th>Diferencia</th>
-          <th>Se le dio</th><th>Efectivo</th><th>Yape</th><th>Por Pagar</th><th>Dif. Descontar</th><th>Total</th>
+          <th>Se le dio</th><th>Yape</th><th>Por Pagar</th><th>Total</th>
           <th style="text-align:center">Acciones</th>
         </tr></thead>
         <tbody id="cc-tbody"></tbody>
-        <tfoot id="cc-foot" style="display:none"><tr><td colspan="15" id="cc-total-foot" style="text-align:right"></td><td></td></tr></tfoot>
+        <tfoot id="cc-foot" style="display:none"><tr><td colspan="13" id="cc-total-foot" style="text-align:right"></td><td></td></tr></tfoot>
       </table>
     </div>
   </div>
@@ -7332,9 +7332,11 @@ function cierreCajaRecalcEfectivo(){
 }
 
 function cierreCajaRecalcTotal(){
-  var ef = cierreCajaNum('cc-efectivo');
+  var dif = cierreCajaNum('cc-diferencia');
   var ya = cierreCajaNum('cc-yape');
-  document.getElementById('cc-total').value = (ef + ya).toFixed(2);
+  var pp = cierreCajaNum('cc-porpagar');
+  var sd = cierreCajaNum('cc-seledio');
+  document.getElementById('cc-total').value = (dif - (sd - ya - pp)).toFixed(2);
 }
 
 // ── Combos de Ruta y Viaje, alimentados desde la Hoja de Ruta (módulo Seguimiento de Rutas) ──
@@ -7495,7 +7497,7 @@ function cierreCajaRenderTable(){
 
   tbody.innerHTML = '';
   if(!CIERRE_RECORDS.length){
-    tbody.innerHTML = '<tr class="a-empty"><td colspan="16">Sin registros. Agrega el primer cierre de caja arriba.</td></tr>';
+    tbody.innerHTML = '<tr class="a-empty"><td colspan="14">Sin registros. Agrega el primer cierre de caja arriba.</td></tr>';
     foot.style.display = 'none'; return;
   }
   CIERRE_RECORDS.forEach(function(r,i){
@@ -7511,10 +7513,8 @@ function cierreCajaRenderTable(){
       '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+String(r.comentario||'').replace(/"/g,'&quot;')+'">'+(r.comentario||'—')+'</td>'+
       '<td>'+cierreCajaFmt(r.diferencia)+'</td>'+
       '<td>'+cierreCajaFmt(r.seLeDio)+'</td>'+
-      '<td>'+cierreCajaFmt(r.efectivo)+'</td>'+
       '<td>'+cierreCajaFmt(r.yape)+'</td>'+
       '<td>'+cierreCajaFmt(r.porPagar)+'</td>'+
-      '<td>'+cierreCajaFmt(r.diferenciaDescontar)+'</td>'+
       '<td style="font-weight:700">'+cierreCajaFmt(r.total)+'</td>'+
       '<td class="a-acts">'+
         '<button class="a-btn-ed" onclick="cierreCajaEdit('+i+')">✏️</button>'+
@@ -7582,20 +7582,20 @@ function cierreCajaPrint(){
     '<\/div>'+
     '<p class="info-ruta">Total: '+CIERRE_RECORDS.length+' registro(s)<\/p>';
 
-  var sub = { botellas:0, cajas:0, diferencia:0, seLeDio:0, efectivo:0, yape:0, porPagar:0, diferenciaDescontar:0, total:0 };
+  var sub = { botellas:0, cajas:0, diferencia:0, seLeDio:0, yape:0, porPagar:0, total:0 };
 
   html +=
     '<table>'+
       '<colgroup>'+
-        '<col style="width:6%"><col style="width:6%"><col style="width:4%"><col style="width:7%">'+
-        '<col style="width:5%"><col style="width:5%"><col style="width:8%"><col style="width:11%">'+
-        '<col style="width:7%"><col style="width:6%"><col style="width:7%"><col style="width:6%">'+
-        '<col style="width:6%"><col style="width:7%"><col style="width:7%">'+
+        '<col style="width:7%"><col style="width:7%"><col style="width:5%"><col style="width:8%">'+
+        '<col style="width:6%"><col style="width:6%"><col style="width:9%"><col style="width:13%">'+
+        '<col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:8%">'+
+        '<col style="width:9%">'+
       '<\/colgroup>'+
       '<thead><tr>'+
         '<th>Fecha<\/th><th>Ruta<\/th><th>Viaje<\/th><th>Tipo<\/th>'+
         '<th>Botellas<\/th><th>Cajas<\/th><th>Líquido<\/th><th>Comentario<\/th>'+
-        '<th>Diferencia<\/th><th>Se le dio<\/th><th>Efectivo<\/th><th>Yape<\/th><th>Por Pagar<\/th><th>Dif. Descontar<\/th><th>Total<\/th>'+
+        '<th>Diferencia<\/th><th>Se le dio<\/th><th>Yape<\/th><th>Por Pagar<\/th><th>Total<\/th>'+
       '<\/tr><\/thead><tbody>';
 
   CIERRE_RECORDS.forEach(function(r){
@@ -7603,10 +7603,8 @@ function cierreCajaPrint(){
     sub.cajas += Number(r.cajas)||0;
     sub.diferencia += Number(r.diferencia)||0;
     sub.seLeDio += Number(r.seLeDio)||0;
-    sub.efectivo += Number(r.efectivo)||0;
     sub.yape += Number(r.yape)||0;
     sub.porPagar += Number(r.porPagar)||0;
-    sub.diferenciaDescontar += Number(r.diferenciaDescontar)||0;
     sub.total += Number(r.total)||0;
     html +=
       '<tr>'+
@@ -7620,10 +7618,8 @@ function cierreCajaPrint(){
         '<td class="left">'+(r.comentario||'—')+'<\/td>'+
         '<td class="right">'+cierreCajaFmt(r.diferencia)+'<\/td>'+
         '<td class="right">'+cierreCajaFmt(r.seLeDio)+'<\/td>'+
-        '<td class="right">'+cierreCajaFmt(r.efectivo)+'<\/td>'+
         '<td class="right">'+cierreCajaFmt(r.yape)+'<\/td>'+
         '<td class="right">'+cierreCajaFmt(r.porPagar)+'<\/td>'+
-        '<td class="right">'+cierreCajaFmt(r.diferenciaDescontar)+'<\/td>'+
         '<td class="right">'+cierreCajaFmt(r.total)+'<\/td>'+
       '<\/tr>';
   });
@@ -7637,10 +7633,8 @@ function cierreCajaPrint(){
       '<td colspan="2"><\/td>'+
       '<td class="right">'+cierreCajaFmt(sub.diferencia)+'<\/td>'+
       '<td class="right">'+cierreCajaFmt(sub.seLeDio)+'<\/td>'+
-      '<td class="right">'+cierreCajaFmt(sub.efectivo)+'<\/td>'+
       '<td class="right">'+cierreCajaFmt(sub.yape)+'<\/td>'+
       '<td class="right">'+cierreCajaFmt(sub.porPagar)+'<\/td>'+
-      '<td class="right">'+cierreCajaFmt(sub.diferenciaDescontar)+'<\/td>'+
       '<td class="right">'+cierreCajaFmt(sub.total)+'<\/td>'+
     '<\/tr>';
 
@@ -7649,7 +7643,6 @@ function cierreCajaPrint(){
   html +=
     '<table><tbody><tr class="grandtotal">'+
       '<td style="width:70%">TOTAL GENERAL ('+CIERRE_RECORDS.length+' registro(s))<\/td>'+
-      '<td>Efectivo: '+cierreCajaFmt(sub.efectivo)+'<\/td>'+
       '<td>Yape: '+cierreCajaFmt(sub.yape)+'<\/td>'+
       '<td>Total: '+cierreCajaFmt(sub.total)+'<\/td>'+
     '<\/tr><\/tbody><\/table>'+
