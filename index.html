@@ -1193,12 +1193,12 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
     <div id="segr-status" style="padding:0 16px 12px;font-size:12.5px;color:var(--mut,#9db0c2)"></div>
     <div class="segr-top-row" style="display:flex;gap:16px;padding:0 16px 16px;align-items:flex-start">
       <div id="segr-map-wrap" class="segr-map-col" style="flex:0 0 38%;border:1.5px solid #3d4560;border-radius:10px;padding:10px">
-        <div id="segr-map-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:11.5px;color:var(--mut,#9db0c2)">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#0f7a45;margin-right:3px"></span>Entregado</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#b8860b;margin-right:3px"></span>Entrega Parcial</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#a3312f;margin-right:3px"></span>Rechazo</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#a83d84;margin-right:3px"></span>Pendiente</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#5b2fa8;margin-right:3px"></span>Atendiendo</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <div id="segr-map-legend" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--mut,#9db0c2)"></div>
+          <select id="segr-map-legend-mode" style="background:var(--s2,#1e2330);border:1px solid var(--bor,#2a3648);color:var(--txt,#e8eef4);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">
+            <option value="status">Leyenda: Status</option>
+            <option value="ruta">Leyenda: Por Ruta</option>
+          </select>
         </div>
         <div id="segr-map" style="width:100%;height:560px;border-radius:10px;border:1px solid var(--bor)"></div>
         <div id="segr-map-status" style="font-size:12px;color:var(--mut,#9db0c2);margin-top:6px"></div>
@@ -1344,6 +1344,30 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         </div>
       </div>
       <div class="brx-cloud-info" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(34,217,142,.12);border:1px solid rgba(34,217,142,.5);border-radius:9px;font-size:13px;font-weight:600;color:var(--grn)"></div>
+    </div>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-title"><span>🗂️</span><span>Actualizar Maestro de Clientes</span></div>
+    <div style="font-size:13.5px;color:var(--mut,#7a869e);margin-bottom:16px;line-height:1.5">
+      El Maestro de Clientes (dirección, distrito y coordenadas por cliente) se configuró al iniciar el sistema.
+      Si tienes una versión más reciente del archivo, cárgala aquí para actualizarlo — se usa en
+      <b>Seguimiento de Rutas</b> (mapa) y en las direcciones que se muestran en otros módulos.
+    </div>
+    <div class="brx-upload-zone" style="background:var(--panel-2,#1c2530);border:1px solid var(--line,#2a3648);border-radius:12px;padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">🗂️ Maestro de Clientes</div>
+          <div style="font-size:12px;color:var(--mut)" id="maestro-status-lbl">Usando la versión configurada al iniciar el sistema.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="position:relative">
+            <button class="brx-upload-btn" id="maestro-upload-btn">📂 Cargar Excel actualizado</button>
+            <input type="file" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="maestroUploadFile(this)">
+          </div>
+          <button class="logout-btn" id="maestro-clear-btn" onclick="maestroClearUpdate()" style="border-color:rgba(247,91,91,.4);color:var(--red);display:none">✕ Volver a la versión original</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -6003,6 +6027,11 @@ var _SEGR_COORDS_B64 = [
 var MAESTRO = null;
 async function maestroLoad(){
   if(MAESTRO) return MAESTRO;
+  var actualizado = await maestroUpdateLoad();
+  if(actualizado && actualizado.clientes){
+    MAESTRO = actualizado.clientes;
+    return MAESTRO;
+  }
   try{
     var bin=atob(_MB64);
     var bytes=new Uint8Array(bin.length);
@@ -6023,11 +6052,159 @@ function maestroGet(idcli){
   return MAESTRO[String(idcli)]||{calle:'',distrito:''};
 }
 
+// ── Actualización del Maestro de Clientes (guardada en IndexedDB, tiene prioridad
+// sobre los datos incrustados al iniciar el sistema) ──
+var MAESTRO_UPDATE_DB = 'maestro_update_db', MAESTRO_UPDATE_STORE = 'data';
+var _maestroUpdateCache;
+function maestroUpdateOpenDB(){
+  return new Promise(function(res,rej){
+    var r = indexedDB.open(MAESTRO_UPDATE_DB, 1);
+    r.onupgradeneeded = function(e){ try{ e.target.result.createObjectStore(MAESTRO_UPDATE_STORE); }catch(x){} };
+    r.onsuccess = function(e){ res(e.target.result); };
+    r.onerror = function(){ rej(); };
+  });
+}
+function maestroUpdateSave(payload){
+  return maestroUpdateOpenDB().then(function(db){
+    return new Promise(function(res){
+      var tx = db.transaction(MAESTRO_UPDATE_STORE,'readwrite');
+      tx.objectStore(MAESTRO_UPDATE_STORE).put(payload, 'maestro');
+      tx.oncomplete = function(){ res(true); };
+      tx.onerror = function(){ res(false); };
+    });
+  }).catch(function(){ return false; });
+}
+function maestroUpdateLoad(){
+  if(_maestroUpdateCache !== undefined) return Promise.resolve(_maestroUpdateCache);
+  return maestroUpdateOpenDB().then(function(db){
+    return new Promise(function(res){
+      var r = db.transaction(MAESTRO_UPDATE_STORE,'readonly').objectStore(MAESTRO_UPDATE_STORE).get('maestro');
+      r.onsuccess = function(){ _maestroUpdateCache = r.result || null; res(_maestroUpdateCache); };
+      r.onerror = function(){ _maestroUpdateCache = null; res(null); };
+    });
+  }).catch(function(){ _maestroUpdateCache = null; return null; });
+}
+function maestroUpdateClear(){
+  return maestroUpdateOpenDB().then(function(db){
+    return new Promise(function(res){
+      var tx = db.transaction(MAESTRO_UPDATE_STORE,'readwrite');
+      tx.objectStore(MAESTRO_UPDATE_STORE).delete('maestro');
+      tx.oncomplete = function(){ res(true); };
+      tx.onerror = function(){ res(false); };
+    });
+  }).catch(function(){ return false; });
+}
+
+async function maestroRenderStatus(){
+  var lbl = document.getElementById('maestro-status-lbl');
+  var clearBtn = document.getElementById('maestro-clear-btn');
+  if(!lbl) return;
+  var actualizado = await maestroUpdateLoad();
+  if(actualizado){
+    var fecha = new Date(actualizado.ts).toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit', year:'numeric'});
+    lbl.textContent = '✅ '+(actualizado.nombreArchivo||'Actualizado')+' · '+actualizado.totalRegistros+' clientes · cargado el '+fecha;
+    lbl.style.color = 'var(--grn)';
+    if(clearBtn) clearBtn.style.display = '';
+  } else {
+    lbl.textContent = 'Usando la versión configurada al iniciar el sistema.';
+    lbl.style.color = '';
+    if(clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function maestroUploadFile(inp){
+  var file = inp.files[0]; if(!file) return;
+  var btn = document.getElementById('maestro-upload-btn');
+  var lbl = document.getElementById('maestro-status-lbl');
+  btn.textContent = '⏳ Procesando…'; btn.disabled = true;
+  lbl.textContent = 'Leyendo ' + file.name + '…';
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var arrayBuffer = e.target.result;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    try{
+      if(typeof XLSX === 'undefined') throw new Error('XLSX no disponible (sin conexión a internet).');
+      var wb = XLSX.read(arrayBuffer, {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+      var headers = raw[0].map(function(h){ return String(h||'').trim(); });
+      var idx = {};
+      headers.forEach(function(h,i){ idx[h] = i; });
+      ['Cod_cli','Calle','Distrito'].forEach(function(col){
+        if(!(col in idx)) throw new Error('No se encontró la columna "'+col+'" en el archivo.');
+      });
+      var idxLat = idx['Latitud'], idxLng = idx['Longitud'];
+
+      var clientes = {}, coords = {};
+      for(var r=1; r<raw.length; r++){
+        var row = raw[r];
+        var codigo = row[idx['Cod_cli']];
+        if(!codigo) continue;
+        var codigoStr = String(codigo).trim();
+        clientes[codigoStr] = { calle: row[idx['Calle']] || '', distrito: row[idx['Distrito']] || '' };
+        if(idxLat !== undefined && idxLng !== undefined){
+          var lat = Number(row[idxLat]), lng = Number(row[idxLng]);
+          if(!isNaN(lat) && !isNaN(lng) && lat && lng) coords[codigoStr] = { lat: lat, lng: lng };
+        }
+      }
+
+      var totalRegistros = Object.keys(clientes).length;
+      var payload = { clientes: clientes, coords: coords, nombreArchivo: file.name, ts: Date.now(), totalRegistros: totalRegistros };
+
+      maestroUpdateSave(payload).then(function(){
+        _maestroUpdateCache = payload;
+        MAESTRO = clientes;
+        SEGR_COORDS = coords;
+        _SEGR_COORDS_LOADED = true;
+        maestroRenderStatus();
+        btn.textContent = '📂 Cargar Excel actualizado'; btn.disabled = false;
+        alert('✅ Maestro de Clientes actualizado: '+totalRegistros+' clientes, '+Object.keys(coords).length+' con coordenadas.');
+      });
+    }catch(err){
+      console.error('maestroUploadFile:', err);
+      btn.textContent = '📂 Cargar Excel actualizado'; btn.disabled = false;
+      maestroRenderStatus();
+      alert('❌ Error al leer el archivo: ' + err.message);
+    }
+    }); });
+  };
+  reader.onerror = function(){
+    console.error('maestroUploadFile: fallo la lectura del archivo.', reader.error);
+    btn.textContent = '📂 Cargar Excel actualizado'; btn.disabled = false;
+    maestroRenderStatus();
+    alert('❌ No se pudo leer el archivo. Intenta de nuevo, o verifica que el archivo no esté dañado.');
+  };
+  reader.readAsArrayBuffer(file);
+  inp.value = '';
+}
+
+async function maestroClearUpdate(){
+  if(!confirm('¿Volver a la versión del Maestro de Clientes que se configuró al iniciar el sistema? Se descartará el archivo que cargaste.')) return;
+  await maestroUpdateClear();
+  _maestroUpdateCache = null;
+  MAESTRO = null;
+  SEGR_COORDS = {};
+  _SEGR_COORDS_LOADED = false;
+  await maestroLoad();
+  await segRutasCoordsLoad();
+  maestroRenderStatus();
+  alert('✅ Se restauró la versión original del Maestro de Clientes.');
+}
+
+document.addEventListener('DOMContentLoaded', function(){ maestroRenderStatus(); });
+
 // Coordenadas (Latitud/Longitud) del Maestro de Clientes, incrustadas de forma
 // permanente en el sistema — no requieren cargarse manualmente.
 var _SEGR_COORDS_LOADED = false;
 async function segRutasCoordsLoad(){
   if(_SEGR_COORDS_LOADED) return SEGR_COORDS;
+  var actualizado = await maestroUpdateLoad();
+  if(actualizado && actualizado.coords){
+    SEGR_COORDS = actualizado.coords;
+    _SEGR_COORDS_LOADED = true;
+    return SEGR_COORDS;
+  }
   try{
     var bin=atob(_SEGR_COORDS_B64);
     var bytes=new Uint8Array(bin.length);
@@ -9681,6 +9858,7 @@ async function segRutasInit(){
 
   segRutasLoadFromStorage(); // respaldo local mientras se consulta la nube
   await segRutasCoordsLoad(); // coordenadas ya incrustadas de forma permanente
+  segRutasRenderMapLegend([]);
   var searchInput = document.getElementById('segr-search');
   if(searchInput && !searchInput._wired){
     searchInput._wired = true;
@@ -9689,6 +9867,15 @@ async function segRutasInit(){
       SEGR_SEARCH = this.value;
       clearTimeout(_segrSearchDebounce);
       _segrSearchDebounce = setTimeout(segRutasRenderTable, 250);
+    });
+  }
+  var legendModeSelect = document.getElementById('segr-map-legend-mode');
+  if(legendModeSelect && !legendModeSelect._wired){
+    legendModeSelect._wired = true;
+    legendModeSelect.value = SEGR_MAP_LEGEND_MODE;
+    legendModeSelect.addEventListener('change', function(){
+      SEGR_MAP_LEGEND_MODE = this.value;
+      segRutasRenderMap();
     });
   }
   segRutasSetupCombo('segr-ruta-input', 'segr-ruta-menu',
@@ -10418,6 +10605,42 @@ var SEGR_ESTADO_COLOR_MAP = {
   'ATENDIENDO': '#5b2fa8',
 };
 
+// Paleta fija de colores OSCUROS para diferenciar rutas en el mapa (se repite
+// cíclicamente si hay más rutas que colores) — tonos oscuros para que se puedan
+// analizar bien los puntos, a diferencia de colores claros que se pierden.
+var SEGR_RUTA_PALETTE = [
+  '#7a0d26','#1f5c2e','#8a6d00','#1a3a7a','#a3480f','#5c1470','#0d6b6b','#8a1a6b',
+  '#5c6b0d','#7a3d3d','#0d4d4d','#4d3d7a','#5c3300','#4d0d0d','#1f5c47','#4d4d0d',
+  '#7a4d1f','#1f1f5c','#4d4d4d','#0d5c5c',
+];
+var SEGR_MAP_LEGEND_MODE = 'status'; // 'status' | 'ruta'
+var SEGR_RUTA_COLOR_CACHE = {};
+function segRutasColorPorRuta(ruta){
+  if(!SEGR_RUTA_COLOR_CACHE[ruta]){
+    var idx = Object.keys(SEGR_RUTA_COLOR_CACHE).length % SEGR_RUTA_PALETTE.length;
+    SEGR_RUTA_COLOR_CACHE[ruta] = SEGR_RUTA_PALETTE[idx];
+  }
+  return SEGR_RUTA_COLOR_CACHE[ruta];
+}
+
+function segRutasRenderMapLegend(rutasEnMapa){
+  var el = document.getElementById('segr-map-legend');
+  if(!el) return;
+  function dot(color){ return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+color+';margin-right:3px"></span>'; }
+  if(SEGR_MAP_LEGEND_MODE === 'ruta'){
+    el.innerHTML = (rutasEnMapa||[]).map(function(ruta){
+      return '<span>'+dot(segRutasColorPorRuta(ruta))+ruta+'</span>';
+    }).join('') || '<span style="color:var(--mut)">Sin rutas para mostrar.</span>';
+  } else {
+    el.innerHTML =
+      '<span>'+dot(SEGR_ESTADO_COLOR_MAP['ENTREGADO'])+'Entregado</span>'+
+      '<span>'+dot(SEGR_ESTADO_COLOR_MAP['ENTREGA PARCIAL'])+'Entrega Parcial</span>'+
+      '<span>'+dot(SEGR_ESTADO_COLOR_MAP['RECHAZO'])+'Rechazo</span>'+
+      '<span>'+dot(SEGR_ESTADO_COLOR_MAP['PENDIENTE'])+'Pendiente</span>'+
+      '<span>'+dot(SEGR_ESTADO_COLOR_MAP['ATENDIENDO'])+'Atendiendo</span>';
+  }
+}
+
 function segRutasRenderMap(){
   var el = document.getElementById('segr-map');
   if(!el || typeof L === 'undefined') return;
@@ -10440,6 +10663,7 @@ function segRutasRenderMap(){
 
   if(!SEGR_HOJA.length){
     document.getElementById('segr-map-status').textContent = 'Carga la Hoja de Ruta para ver el mapa.';
+    segRutasRenderMapLegend([]);
     return;
   }
 
@@ -10452,8 +10676,13 @@ function segRutasRenderMap(){
   var conCoord = bySeleccion.filter(function(r){ return r._COORD; });
   var bounds = [];
 
+  var rutasEnMapa = [...new Set(conCoord.map(function(r){ return r['Ruta'] || '—'; }))].sort();
+  segRutasRenderMapLegend(rutasEnMapa);
+
   conCoord.forEach(function(r){
-    var color = SEGR_ESTADO_COLOR_MAP[r._ESTADO] || '#9db0c2';
+    var color = SEGR_MAP_LEGEND_MODE === 'ruta'
+      ? segRutasColorPorRuta(r['Ruta'] || '—')
+      : (SEGR_ESTADO_COLOR_MAP[r._ESTADO] || '#9db0c2');
     var hl = parseFloat(String(r['Hl_Programado'] || '0').replace(',', '.'));
     if(isNaN(hl)) hl = 0;
     var radius = Math.max(4, Math.min(22, 4 + Math.sqrt(hl) * 1.8));
