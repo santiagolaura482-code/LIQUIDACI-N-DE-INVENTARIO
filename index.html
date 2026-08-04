@@ -638,6 +638,7 @@ input, select, textarea{font-size:16px !important}
   <div class="sb-section-label">Opciones</div>
   <div class="sb-nav" id="sb-nav">
     <div class="sb-item" data-mod="importarexcel" onclick="window.openModule('importarexcel')"><span class="sb-item-icon">📥</span><span class="sb-item-label">Importar Excel</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="usuarios" id="sb-item-usuarios" style="display:none" onclick="window.openModule('usuarios')"><span class="sb-item-icon">👤</span><span class="sb-item-label">Usuarios</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="liquidacion" onclick="window.openModule('liquidacion')"><span class="sb-item-icon">📋</span><span class="sb-item-label">Liquidación de Inventario</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="desplan" onclick="window.openModule('desplan')"><span class="sb-item-icon">🗺️</span><span class="sb-item-label">Desplanificación</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="asistencia" onclick="window.openModule('asistencia')"><span class="sb-item-icon">👥</span><span class="sb-item-label">Control de Asistencias</span><span class="sb-item-arrow">‹</span></div>
@@ -645,7 +646,7 @@ input, select, textarea{font-size:16px !important}
     <div class="sb-item" data-mod="diferencias" onclick="window.openModule('diferencias')"><span class="sb-item-icon">⚖️</span><span class="sb-item-label">Control de Diferencias</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="segrutas" onclick="window.openModule('segrutas')"><span class="sb-item-icon">🛣️</span><span class="sb-item-label">Seguimiento de Rutas</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="cierrecaja" onclick="window.openModule('cierrecaja')"><span class="sb-item-icon">🧾</span><span class="sb-item-label">Cierre de Caja</span><span class="sb-item-arrow">‹</span></div>
-    <div class="sb-item" data-mod="pxq" onclick="window.openModule('pxq')"><span class="sb-item-icon">📦</span><span class="sb-item-label">PXQ - Productividad</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="pxq" id="sb-item-pxq" onclick="window.openModule('pxq')"><span class="sb-item-icon">📦</span><span class="sb-item-label">PXQ - Productividad</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="checklist" onclick="window.openModule('checklist')"><span class="sb-item-icon">🚛</span><span class="sb-item-label">Check List de Flota</span><span class="sb-item-arrow">‹</span></div>
   </div>
   <div class="sb-section-label">Sesión</div>
@@ -1628,6 +1629,45 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       </div>
     </div>
   </div>
+
+<!-- APP11 USUARIOS -->
+<div id="app11">
+  <div class="app-topbar">
+    <button class="back-btn" onclick="window.showWelcome(currentUser)">← Menú principal</button>
+    <div class="app-topbar-info"><span id="bar11-username">—</span><span class="topbar-sep">·</span><span id="bar11-role" style="color:var(--mut)">—</span></div>
+    <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+  </div>
+  <div class="a-card">
+    <div class="a-card-title"><span>👤</span><span>Usuarios</span></div>
+    <p style="color:var(--mut);font-size:13px;margin-bottom:16px">Administra quién puede entrar al sistema. Si cambias la contraseña de alguien, cualquier sesión abierta con ese usuario (en otra computadora o celular) se cerrará automáticamente en cuanto el sistema revise de nuevo (cada 15 segundos, o al volver a esa pestaña) — tendrá que ingresar con la clave nueva.</p>
+
+    <div class="a-toolbar">
+      <button class="a-btn a-btn-grn" onclick="usrAbrirFormulario()">➕ Nuevo Usuario</button>
+    </div>
+
+    <div id="usr-form-wrap" style="display:none;background:var(--s2);border:1px solid var(--bor);border-radius:10px;padding:16px;margin-bottom:16px">
+      <div class="a-form-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+        <div class="a-field"><label>Usuario</label><input type="text" id="usr-f-user" placeholder="ej. jperez" autocomplete="off"></div>
+        <div class="a-field"><label>Nombre completo</label><input type="text" id="usr-f-nombre" placeholder="ej. Juan Pérez" autocomplete="off"></div>
+        <div class="a-field"><label>Contraseña</label><input type="text" id="usr-f-pass" placeholder="Contraseña" autocomplete="off"></div>
+        <div class="a-field"><label>Rol</label><input type="text" id="usr-f-rol" placeholder="ej. Supervisor" autocomplete="off"></div>
+      </div>
+      <div class="a-form-btns" style="margin-top:12px">
+        <button class="a-btn-save" onclick="usrGuardar()">💾 Guardar</button>
+        <button class="a-btn-cancel" onclick="usrCerrarFormulario()">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="a-table-wrap">
+      <table class="a-table">
+        <thead><tr>
+          <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Contraseña</th><th>—</th>
+        </tr></thead>
+        <tbody id="usr-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <footer>Procesamiento 100% local · CONTROLES JRGRODVAL</footer>
 </div>
@@ -6237,11 +6277,139 @@ function edtDeRuta(ruta){
 
 
 <script>
-const USUARIOS = [
-  { user:'admin',     pass:'Esparta2026',  nombre:'Administrador',            rol:'Supervisor' },
+var USUARIOS_SEED = [
+  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor' },
   { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución' },
   { user:'revisor',   pass:'rev2024',   nombre:'Revisor de Liquidaciones',  rol:'Revisor' },
 ];
+function usuariosCargar(){
+  try{
+    var guardado = localStorage.getItem('jrg_usuarios');
+    if(guardado){ var arr = JSON.parse(guardado); if(Array.isArray(arr) && arr.length) return arr; }
+  }catch(e){}
+  return USUARIOS_SEED.slice();
+}
+function usuariosGuardar(lista){
+  try{ localStorage.setItem('jrg_usuarios', JSON.stringify(lista)); }catch(e){}
+  usrCloudSave(lista); // intenta sincronizar a la nube, si está configurada (ver módulo Usuarios)
+}
+var USUARIOS = usuariosCargar();
+
+// ── Nube (JSONBin) — para que un cambio de contraseña se refleje en todos los
+// equipos, no solo en el navegador donde se hizo. Reemplaza el bin/clave de abajo
+// por los tuyos (mismo esquema que Maestro de Clientes y Control de Diferencias)
+// para activar la sincronización compartida entre dispositivos.
+function usrCloudId(){
+  return { bin: window.USR_BIN_ID || 'PONER_BIN_ID_AQUI', key: window.USR_API_KEY || 'PONER_API_KEY_AQUI' };
+}
+function usrCloudConfigured(){
+  return usrCloudId().bin !== 'PONER_BIN_ID_AQUI';
+}
+async function usrCloudSave(lista){
+  if(!usrCloudConfigured()) return false;
+  var id = usrCloudId();
+  try{
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':id.key,'X-Bin-Versioning':'false'},
+      body: JSON.stringify({ USUARIOS: lista, ts: Date.now() })
+    });
+    return res.ok;
+  }catch(e){ console.warn('usrCloudSave:', e.message); return false; }
+}
+async function usrCloudLoad(){
+  if(!usrCloudConfigured()) return null;
+  var id = usrCloudId();
+  try{
+    var res = await fetch('https://api.jsonbin.io/v3/b/'+id.bin+'/latest', { headers:{'X-Master-Key':id.key} });
+    if(!res.ok) return null;
+    var json = await res.json();
+    var lista = json && json.record && json.record.USUARIOS;
+    if(Array.isArray(lista) && lista.length){
+      USUARIOS = lista;
+      try{ localStorage.setItem('jrg_usuarios', JSON.stringify(lista)); }catch(e){}
+      return lista;
+    }
+  }catch(e){ console.warn('usrCloudLoad:', e.message); }
+  return null;
+}
+
+// ── Módulo Usuarios: alta, edición y borrado ──
+var _USR_EDITANDO = null; // usuario (string) que se está editando, o null si es nuevo
+var _USR_INICIADO = false;
+async function usrInit(){
+  if(usrCloudConfigured()) await usrCloudLoad();
+  usrRenderTabla();
+  if(!_USR_INICIADO){ _USR_INICIADO = true; }
+}
+function usrRenderTabla(){
+  var tbody = document.getElementById('usr-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = USUARIOS.map(function(u){
+    return '<tr>'+
+      '<td class="a-ruta">'+u.user+'</td>'+
+      '<td>'+u.nombre+'</td>'+
+      '<td>'+u.rol+'</td>'+
+      '<td style="letter-spacing:2px">••••••••</td>'+
+      '<td class="a-acts">'+
+        '<button class="a-btn-ed" onclick="usrEditar(\''+u.user+'\')">✏️</button>'+
+        (u.user==='admin' ? '' : '<button class="a-btn-dl" onclick="usrEliminar(\''+u.user+'\')">🗑️</button>')+
+      '</td>'+
+    '</tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="5">No hay usuarios.</td></tr>';
+}
+function usrAbrirFormulario(){
+  _USR_EDITANDO = null;
+  document.getElementById('usr-f-user').value = '';
+  document.getElementById('usr-f-user').disabled = false;
+  document.getElementById('usr-f-nombre').value = '';
+  document.getElementById('usr-f-pass').value = '';
+  document.getElementById('usr-f-rol').value = '';
+  document.getElementById('usr-form-wrap').style.display = 'block';
+}
+function usrEditar(user){
+  var u = USUARIOS.find(function(x){ return x.user === user; });
+  if(!u) return;
+  _USR_EDITANDO = u.user;
+  document.getElementById('usr-f-user').value = u.user;
+  document.getElementById('usr-f-user').disabled = true; // el nombre de usuario no se cambia al editar
+  document.getElementById('usr-f-nombre').value = u.nombre;
+  document.getElementById('usr-f-pass').value = u.pass;
+  document.getElementById('usr-f-rol').value = u.rol;
+  document.getElementById('usr-form-wrap').style.display = 'block';
+  document.getElementById('usr-form-wrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function usrCerrarFormulario(){
+  document.getElementById('usr-form-wrap').style.display = 'none';
+  _USR_EDITANDO = null;
+}
+function usrGuardar(){
+  var user = document.getElementById('usr-f-user').value.trim().toLowerCase();
+  var nombre = document.getElementById('usr-f-nombre').value.trim();
+  var pass = document.getElementById('usr-f-pass').value;
+  var rol = document.getElementById('usr-f-rol').value.trim();
+  if(!user || !nombre || !pass || !rol){ alert('⚠️ Completa todos los campos.'); return; }
+
+  if(_USR_EDITANDO){
+    var idx = USUARIOS.findIndex(function(u){ return u.user === _USR_EDITANDO; });
+    if(idx === -1){ alert('⚠️ No se encontró el usuario.'); return; }
+    USUARIOS[idx] = { user: _USR_EDITANDO, nombre: nombre, pass: pass, rol: rol };
+  } else {
+    if(USUARIOS.some(function(u){ return u.user === user; })){ alert('⚠️ Ya existe un usuario con ese nombre.'); return; }
+    USUARIOS.push({ user: user, nombre: nombre, pass: pass, rol: rol });
+  }
+  usuariosGuardar(USUARIOS);
+  usrRenderTabla();
+  usrCerrarFormulario();
+  alert('✅ Guardado. Si cambiaste una contraseña, cualquier sesión abierta con ese usuario se cerrará automáticamente en las próximas sesiones/segundos.');
+}
+function usrEliminar(user){
+  if(user === 'admin'){ alert('⚠️ No se puede eliminar al usuario admin.'); return; }
+  if(!confirm('¿Eliminar al usuario "'+user+'"? Su sesión (si está abierta en algún equipo) se cerrará automáticamente.')) return;
+  USUARIOS = USUARIOS.filter(function(u){ return u.user !== user; });
+  usuariosGuardar(USUARIOS);
+  usrRenderTabla();
+}
 
 var currentUser = null;
 var currentScreen = 'login';
@@ -6300,7 +6468,7 @@ window.brxClearExcel=function(){
 function pushHistory(screen){ history.pushState({screen:screen},'',''); }
 
 window.addEventListener('popstate',function(e){
-  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'||currentScreen==='app9'||currentScreen==='app10'){
+  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'||currentScreen==='app9'||currentScreen==='app10'||currentScreen==='app11'){
     if(currentUser) _showWelcomeRaw(currentUser);
     else _showLoginRaw();
   } else if(currentScreen==='welcome'){
@@ -6311,17 +6479,22 @@ window.addEventListener('popstate',function(e){
 });
 
 function _hideAll(){
-  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8','app9','app10'].forEach(function(id){
+  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8','app9','app10','app11'].forEach(function(id){
     document.getElementById(id).style.display='none';
   });
 }
-var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel', app9:'pxq', app10:'checklist'};
+var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel', app9:'pxq', app10:'checklist', app11:'usuarios'};
 function sbShowUser(user){
   var nombre = (user && user.nombre) || '—';
   var inicial = nombre.trim().slice(0,2).toUpperCase() || '—';
   var av = document.getElementById('sb-user-avatar'); if(av) av.textContent = inicial;
   var nm = document.getElementById('sb-user-name'); if(nm) nm.textContent = nombre;
   var rl = document.getElementById('sb-user-role'); if(rl) rl.textContent = (user && user.rol) || '—';
+  var esPrivilegiado = !!(user && (user.user === 'admin' || user.user === 'guillermo'));
+  var itemUsuarios = document.getElementById('sb-item-usuarios');
+  if(itemUsuarios) itemUsuarios.style.display = esPrivilegiado ? '' : 'none';
+  var itemPXQ = document.getElementById('sb-item-pxq');
+  if(itemPXQ) itemPXQ.style.display = esPrivilegiado ? '' : 'none';
 }
 function sbSetActive(modKey){
   var items = document.querySelectorAll('#app-sidebar .sb-item');
@@ -6399,7 +6572,11 @@ window.showApp8=function(){
   _showAppRaw('app8','bar8-username','bar8-role');
   sesionGuardar(currentUser,'app8'); pushHistory('app8');
 };
+function usuarioTienePermisoAvanzado(){
+  return !!(currentUser && (currentUser.user === 'admin' || currentUser.user === 'guillermo'));
+}
 window.showApp9=function(){
+  if(!usuarioTienePermisoAvanzado()){ alert('No tienes permiso para acceder a PXQ - Productividad.'); return; }
   _showAppRaw('app9','bar9-username','bar9-role');
   sesionGuardar(currentUser,'app9'); pushHistory('app9');
   if(window.pxqInit) window.pxqInit();
@@ -6408,6 +6585,12 @@ window.showApp10=function(){
   _showAppRaw('app10','bar10-username','bar10-role');
   sesionGuardar(currentUser,'app10'); pushHistory('app10');
   if(window.clInit) window.clInit();
+};
+window.showApp11=function(){
+  if(!usuarioTienePermisoAvanzado()){ alert('No tienes permiso para acceder a Usuarios.'); return; }
+  _showAppRaw('app11','bar11-username','bar11-role');
+  sesionGuardar(currentUser,'app11'); pushHistory('app11');
+  if(window.usrInit) window.usrInit();
 };
 window.showApp4=function(){
   _showAppRaw('app4','bar4-username','bar4-role');
@@ -6424,6 +6607,7 @@ window.openModule=function(mod){
   if(mod==='importarexcel') window.showApp8();
   if(mod==='pxq')          window.showApp9();
   if(mod==='checklist')    window.showApp10();
+  if(mod==='usuarios')     window.showApp11();
 };
 window.doLogin=function(){
   var u=document.getElementById('login-user').value.trim().toLowerCase();
@@ -6442,10 +6626,35 @@ window.doLogin=function(){
   }
 };
 
+// ── VALIDACIÓN DE SESIÓN (cierre automático si cambia la contraseña) ──
+// Compara la contraseña con la que tenía el usuario al momento de iniciar sesión
+// (guardada en la sesión) contra la lista de usuarios actual (recién releída de
+// localStorage, por si otra pestaña/dispositivo la actualizó). Si ya no coincide
+// -o el usuario fue eliminado- se cierra la sesión automáticamente.
+function sesionEsValida(userGuardado){
+  if(!userGuardado || !userGuardado.user) return false;
+  var actuales = usuariosCargar();
+  var actual = actuales.find(function(u){ return u.user.toLowerCase() === userGuardado.user.toLowerCase(); });
+  if(!actual) return false;
+  return actual.pass === userGuardado.pass;
+}
+async function sesionValidarPeriodicamente(){
+  if(currentScreen === 'login' || !currentUser) return;
+  if(usrCloudConfigured()) await usrCloudLoad();
+  if(!sesionEsValida(currentUser)){
+    sesionLimpiar(); currentUser=null;
+    _showLoginRaw(); pushHistory('login');
+    alert('⚠️ Tu contraseña fue actualizada. Por seguridad, tu sesión se cerró — ingresa de nuevo con tu usuario y clave actuales.');
+  }
+}
+setInterval(sesionValidarPeriodicamente, 15000);
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) sesionValidarPeriodicamente(); });
+window.addEventListener('focus', sesionValidarPeriodicamente);
+
 // ── RESTAURAR SESIÓN AL CARGAR ────────────────────────────────
 (function iniciarApp(){
   var saved=sesionCargar();
-  if(saved&&saved.user){
+  if(saved&&saved.user&&sesionEsValida(saved.user)){
     currentUser=saved.user;
     // Al entrar o actualizar la página, siempre mostrar el panel principal de
     // módulos (Bienvenida), sin importar en qué módulo se estaba trabajando antes.
@@ -6462,6 +6671,7 @@ window.doLogin=function(){
       }
     });
   } else {
+    if(saved&&saved.user){ sesionLimpiar(); } // sesión de una clave ya cambiada: no restaurar
     _showLoginRaw();
     pushHistory('login');
   }
