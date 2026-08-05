@@ -6343,8 +6343,9 @@ function edtDeRuta(ruta){
 
 <script>
 var USUARIOS_SEED = [
-  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor', aprobado:true },
-  { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución', aprobado:true },
+  { user:'superadmin', pass:'2Elogistic', nombre:'SUPER ADMIN',            rol:'Super Administrador', aprobado:true },
+  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor', aprobado:false },
+  { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución', aprobado:false },
   { user:'revisor',   pass:'rev2024',   nombre:'Revisor de Liquidaciones',  rol:'Revisor', aprobado:false },
 ];
 // Versión de la migración de seguridad de usuarios. Al subirla, cualquier
@@ -6352,7 +6353,7 @@ var USUARIOS_SEED = [
 // revoca la aprobación de todos los usuarios (menos admin y guillermo), lo cual
 // cierra sus sesiones activas (ver sesionEsValida) y bloquea que vuelvan a
 // entrar hasta que el admin los apruebe de nuevo desde el módulo Usuarios.
-var USUARIOS_SEGURIDAD_VERSION = 2;
+var USUARIOS_SEGURIDAD_VERSION = 3;
 function usuariosCargar(){
   var lista;
   try{
@@ -6364,8 +6365,13 @@ function usuariosCargar(){
   var versionAplicada = 0;
   try{ versionAplicada = Number(localStorage.getItem('jrg_usuarios_seguridad_version')) || 0; }catch(e){}
   if(versionAplicada < USUARIOS_SEGURIDAD_VERSION){
+    // Si la lista guardada es de antes de que existiera "superadmin", se agrega.
+    if(!lista.some(function(u){ return u.user === 'superadmin'; })){
+      var semillaSuperAdmin = USUARIOS_SEED.find(function(u){ return u.user === 'superadmin'; });
+      if(semillaSuperAdmin) lista.unshift(Object.assign({}, semillaSuperAdmin));
+    }
     lista = lista.map(function(u){
-      var esConfiable = (u.user === 'admin' || u.user === 'guillermo');
+      var esConfiable = (u.user === 'superadmin');
       return Object.assign({}, u, { aprobado: esConfiable ? true : false });
     });
     try{
@@ -6442,7 +6448,7 @@ function usrRenderTabla(){
       '<td class="a-acts">'+
         (aprobado ? '' : '<button class="a-btn-ed" style="color:#3ddc97" onclick="usrAprobar(\''+u.user+'\')">✅ Aprobar</button>')+
         '<button class="a-btn-ed" onclick="usrEditar(\''+u.user+'\')">✏️</button>'+
-        (u.user==='admin' ? '' : '<button class="a-btn-dl" onclick="usrEliminar(\''+u.user+'\')">🗑️</button>')+
+        (u.user==='superadmin' ? '' : '<button class="a-btn-dl" onclick="usrEliminar(\''+u.user+'\')">🗑️</button>')+
       '</td>'+
     '</tr>';
   }).join('') || '<tr class="a-empty"><td colspan="6">No hay usuarios.</td></tr>';
@@ -6501,7 +6507,7 @@ function usrGuardar(){
   alert('✅ Guardado. Si cambiaste una contraseña, cualquier sesión abierta con ese usuario se cerrará automáticamente en las próximas sesiones/segundos.');
 }
 function usrEliminar(user){
-  if(user === 'admin'){ alert('⚠️ No se puede eliminar al usuario admin.'); return; }
+  if(user === 'superadmin'){ alert('⚠️ No se puede eliminar al usuario superadmin.'); return; }
   if(!confirm('¿Eliminar al usuario "'+user+'"? Su sesión (si está abierta en algún equipo) se cerrará automáticamente.')) return;
   USUARIOS = USUARIOS.filter(function(u){ return u.user !== user; });
   usuariosGuardar(USUARIOS);
@@ -6882,7 +6888,7 @@ function sbShowUser(user){
   var av = document.getElementById('sb-user-avatar'); if(av) av.textContent = inicial;
   var nm = document.getElementById('sb-user-name'); if(nm) nm.textContent = nombre;
   var rl = document.getElementById('sb-user-role'); if(rl) rl.textContent = (user && user.rol) || '—';
-  var esPrivilegiado = !!(user && (user.user === 'admin' || user.user === 'guillermo'));
+  var esPrivilegiado = !!(user && (user.user === 'superadmin' || user.user === 'admin' || user.user === 'guillermo'));
   var itemUsuarios = document.getElementById('sb-item-usuarios');
   if(itemUsuarios) itemUsuarios.style.display = esPrivilegiado ? '' : 'none';
   var itemPXQ = document.getElementById('sb-item-pxq');
@@ -6965,7 +6971,7 @@ window.showApp8=function(){
   sesionGuardar(currentUser,'app8'); pushHistory('app8');
 };
 function usuarioTienePermisoAvanzado(){
-  return !!(currentUser && (currentUser.user === 'admin' || currentUser.user === 'guillermo'));
+  return !!(currentUser && (currentUser.user === 'superadmin' || currentUser.user === 'admin' || currentUser.user === 'guillermo'));
 }
 window.showApp9=function(){
   if(!usuarioTienePermisoAvanzado()){ alert('No tienes permiso para acceder a PXQ - Productividad.'); return; }
