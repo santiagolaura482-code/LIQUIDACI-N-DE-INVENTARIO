@@ -1662,7 +1662,7 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
     <div class="a-table-wrap">
       <table class="a-table">
         <thead><tr>
-          <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Contraseña</th><th>—</th>
+          <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Contraseña</th><th>Estado</th><th>—</th>
         </tr></thead>
         <tbody id="usr-tbody"></tbody>
       </table>
@@ -6343,16 +6343,37 @@ function edtDeRuta(ruta){
 
 <script>
 var USUARIOS_SEED = [
-  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor' },
-  { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución' },
-  { user:'revisor',   pass:'rev2024',   nombre:'Revisor de Liquidaciones',  rol:'Revisor' },
+  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor', aprobado:true },
+  { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución', aprobado:true },
+  { user:'revisor',   pass:'rev2024',   nombre:'Revisor de Liquidaciones',  rol:'Revisor', aprobado:false },
 ];
+// Versión de la migración de seguridad de usuarios. Al subirla, cualquier
+// navegador que cargue esta versión revisa si ya aplicó esta migración; si no,
+// revoca la aprobación de todos los usuarios (menos admin y guillermo), lo cual
+// cierra sus sesiones activas (ver sesionEsValida) y bloquea que vuelvan a
+// entrar hasta que el admin los apruebe de nuevo desde el módulo Usuarios.
+var USUARIOS_SEGURIDAD_VERSION = 2;
 function usuariosCargar(){
+  var lista;
   try{
     var guardado = localStorage.getItem('jrg_usuarios');
-    if(guardado){ var arr = JSON.parse(guardado); if(Array.isArray(arr) && arr.length) return arr; }
+    if(guardado){ var arr = JSON.parse(guardado); if(Array.isArray(arr) && arr.length) lista = arr; }
   }catch(e){}
-  return USUARIOS_SEED.slice();
+  if(!lista) lista = USUARIOS_SEED.slice();
+
+  var versionAplicada = 0;
+  try{ versionAplicada = Number(localStorage.getItem('jrg_usuarios_seguridad_version')) || 0; }catch(e){}
+  if(versionAplicada < USUARIOS_SEGURIDAD_VERSION){
+    lista = lista.map(function(u){
+      var esConfiable = (u.user === 'admin' || u.user === 'guillermo');
+      return Object.assign({}, u, { aprobado: esConfiable ? true : false });
+    });
+    try{
+      localStorage.setItem('jrg_usuarios', JSON.stringify(lista));
+      localStorage.setItem('jrg_usuarios_seguridad_version', String(USUARIOS_SEGURIDAD_VERSION));
+    }catch(e){}
+  }
+  return lista;
 }
 function usuariosGuardar(lista){
   try{ localStorage.setItem('jrg_usuarios', JSON.stringify(lista)); }catch(e){}
@@ -6411,17 +6432,28 @@ function usrRenderTabla(){
   var tbody = document.getElementById('usr-tbody');
   if(!tbody) return;
   tbody.innerHTML = USUARIOS.map(function(u){
+    var aprobado = u.aprobado !== false;
     return '<tr>'+
       '<td class="a-ruta">'+u.user+'</td>'+
       '<td>'+u.nombre+'</td>'+
       '<td>'+u.rol+'</td>'+
       '<td style="letter-spacing:2px">••••••••</td>'+
+      '<td style="color:'+(aprobado?'#3ddc97':'#f7c44f')+';font-weight:700">'+(aprobado?'✅ Aprobado':'⏳ Pendiente')+'</td>'+
       '<td class="a-acts">'+
+        (aprobado ? '' : '<button class="a-btn-ed" style="color:#3ddc97" onclick="usrAprobar(\''+u.user+'\')">✅ Aprobar</button>')+
         '<button class="a-btn-ed" onclick="usrEditar(\''+u.user+'\')">✏️</button>'+
         (u.user==='admin' ? '' : '<button class="a-btn-dl" onclick="usrEliminar(\''+u.user+'\')">🗑️</button>')+
       '</td>'+
     '</tr>';
-  }).join('') || '<tr class="a-empty"><td colspan="5">No hay usuarios.</td></tr>';
+  }).join('') || '<tr class="a-empty"><td colspan="6">No hay usuarios.</td></tr>';
+}
+function usrAprobar(user){
+  var idx = USUARIOS.findIndex(function(u){ return u.user === user; });
+  if(idx === -1) return;
+  USUARIOS[idx].aprobado = true;
+  usuariosGuardar(USUARIOS);
+  usrRenderTabla();
+  alert('✅ "'+user+'" ya puede ingresar al sistema.');
 }
 function usrAbrirFormulario(){
   _USR_EDITANDO = null;
@@ -6458,10 +6490,10 @@ function usrGuardar(){
   if(_USR_EDITANDO){
     var idx = USUARIOS.findIndex(function(u){ return u.user === _USR_EDITANDO; });
     if(idx === -1){ alert('⚠️ No se encontró el usuario.'); return; }
-    USUARIOS[idx] = { user: _USR_EDITANDO, nombre: nombre, pass: pass, rol: rol };
+    USUARIOS[idx] = { user: _USR_EDITANDO, nombre: nombre, pass: pass, rol: rol, aprobado: USUARIOS[idx].aprobado };
   } else {
     if(USUARIOS.some(function(u){ return u.user === user; })){ alert('⚠️ Ya existe un usuario con ese nombre.'); return; }
-    USUARIOS.push({ user: user, nombre: nombre, pass: pass, rol: rol });
+    USUARIOS.push({ user: user, nombre: nombre, pass: pass, rol: rol, aprobado: false });
   }
   usuariosGuardar(USUARIOS);
   usrRenderTabla();
@@ -6975,12 +7007,19 @@ window.openModule=function(mod){
   if(mod==='usuarios')     window.showApp11();
   if(mod==='liquidacionn3') window.showApp12();
 };
-window.doLogin=function(){
+window.doLogin=async function(){
+  if(usrCloudConfigured()) await usrCloudLoad().catch(function(){});
   var u=document.getElementById('login-user').value.trim().toLowerCase();
   var p=document.getElementById('login-pass').value;
   var found=null;
   for(var i=0;i<USUARIOS.length;i++){
     if(USUARIOS[i].user.toLowerCase()===u&&USUARIOS[i].pass===p){found=USUARIOS[i];break;}
+  }
+  if(found && found.aprobado===false){
+    document.getElementById('login-err').classList.remove('show');
+    alert('⏳ Tu usuario y clave son correctos, pero tu acceso está pendiente de aprobación. Pide al administrador que te apruebe desde el módulo Usuarios.');
+    document.getElementById('login-pass').value='';
+    return;
   }
   if(found){
     document.getElementById('login-err').classList.remove('show');
@@ -7002,6 +7041,7 @@ function sesionEsValida(userGuardado){
   var actuales = usuariosCargar();
   var actual = actuales.find(function(u){ return u.user.toLowerCase() === userGuardado.user.toLowerCase(); });
   if(!actual) return false;
+  if(actual.aprobado===false) return false;
   return actual.pass === userGuardado.pass;
 }
 async function sesionValidarPeriodicamente(){
