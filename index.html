@@ -640,6 +640,7 @@ input, select, textarea{font-size:16px !important}
     <div class="sb-item" data-mod="importarexcel" onclick="window.openModule('importarexcel')"><span class="sb-item-icon">📥</span><span class="sb-item-label">Importar Excel</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="usuarios" id="sb-item-usuarios" style="display:none" onclick="window.openModule('usuarios')"><span class="sb-item-icon">👤</span><span class="sb-item-label">Usuarios</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="liquidacion" onclick="window.openModule('liquidacion')"><span class="sb-item-icon">📋</span><span class="sb-item-label">Liquidación de Inventario</span><span class="sb-item-arrow">‹</span></div>
+    <div class="sb-item" data-mod="liquidacionn3" onclick="window.openModule('liquidacionn3')"><span class="sb-item-icon">💰</span><span class="sb-item-label">Liquidación Financiera - N3</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="desplan" onclick="window.openModule('desplan')"><span class="sb-item-icon">🗺️</span><span class="sb-item-label">Desplanificación</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="asistencia" onclick="window.openModule('asistencia')"><span class="sb-item-icon">👥</span><span class="sb-item-label">Control de Asistencias</span><span class="sb-item-arrow">‹</span></div>
     <div class="sb-item" data-mod="marcajes" onclick="window.openModule('marcajes')"><span class="sb-item-icon">📍</span><span class="sb-item-label">Control de Marcajes</span><span class="sb-item-arrow">‹</span></div>
@@ -1665,6 +1666,70 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
         </tr></thead>
         <tbody id="usr-tbody"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- APP12 LIQUIDACIÓN FINANCIERA - N3 -->
+<div id="app12">
+  <div class="app-topbar">
+    <button class="back-btn" onclick="window.showWelcome(currentUser)">← Menú principal</button>
+    <div class="app-topbar-info"><span id="bar12-username">—</span><span class="topbar-sep">·</span><span id="bar12-role" style="color:var(--mut)">—</span></div>
+    <button class="logout-btn" onclick="window.showLogin()">Cerrar sesión</button>
+  </div>
+
+  <div class="a-card">
+    <div class="a-card-title"><span>💰</span><span>Liquidación Financiera - N3</span></div>
+    <p style="color:var(--mut);font-size:13px;margin-bottom:16px">Carga el Maestro de Clientes N3 y el PDF del "Acuerdo de liquidación financiera" (BEES). El sistema revisa la sección <b>Dinero</b> del PDF y avisa si alguno de esos clientes es N3, o si algún monto cobrado en efectivo supera S/ 2000.</p>
+
+    <div class="a-card" style="margin-bottom:18px;background:var(--s2)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span>🗂️</span>
+          <div>
+            <div style="font-weight:700;font-size:13px">Maestro de Clientes N3</div>
+            <div id="n3-maestro-status-lbl" style="font-size:12px;color:var(--mut)">Sin archivo cargado</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="position:relative">
+            <button class="a-btn a-btn-grn" id="n3-maestro-upload-btn" style="cursor:pointer">📂 Cargar / Actualizar Excel</button>
+            <input type="file" accept=".xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="n3MaestroUpload(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dz" id="n3-dz" style="margin:0 0 18px">
+      <input type="file" id="n3-fi" accept=".pdf">
+      <span class="dz-icon">📂</span>
+      <div class="dz-title">Suelta el PDF de liquidación aquí</div>
+      <div class="dz-hint">o <b>haz clic para seleccionar</b> — solo archivos .pdf</div>
+    </div>
+    <div class="finfo" id="n3-finfo" style="margin:0 0 18px"><span class="fi-ic">📑</span><div class="fi-mt"><div class="fi-nm" id="n3-fnm">—</div><div class="fi-sz" id="n3-fsz">—</div></div><button class="rm" id="n3-rm">✕</button></div>
+    <button class="cvt" id="n3-cvt" disabled style="width:100%;margin:0"><span class="shine"></span>⚡ Analizar PDF</button>
+    <div id="n3-pdf-status-lbl" style="text-align:center;font-size:12px;color:var(--mut);padding-top:10px"></div>
+  </div>
+
+  <div id="n3-alertas" style="display:none"></div>
+
+  <div id="n3-resultado" style="display:none">
+    <div class="a-card">
+      <div class="a-card-title" style="margin-bottom:12px"><span>🧾</span><span>Datos de la Liquidación</span></div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px" id="n3-meta-grid"></div>
+    </div>
+
+    <div class="a-card">
+      <div class="a-card-title" style="margin-bottom:12px"><span>💵</span><span>Detalle — Sección "Dinero"</span></div>
+      <div class="a-table-wrap">
+        <table class="a-table">
+          <thead><tr>
+            <th>ID Cliente</th><th>Nombre (N3)</th><th>Monto</th><th>¿Es N3?</th><th>¿Mayor a S/2000?</th>
+          </tr></thead>
+          <tbody id="n3-dinero-tbody"></tbody>
+          <tfoot id="n3-dinero-tfoot" style="display:none"><tr></tr></tfoot>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -6411,6 +6476,301 @@ function usrEliminar(user){
   usrRenderTabla();
 }
 
+// ═══════════════════ LIQUIDACIÓN FINANCIERA - N3 ═══════════════════
+var N3_MAESTRO = {};      // { codigo: nombre }
+var N3_MAESTRO_NOMBRE_ARCHIVO = '';
+var N3_PDF_NOMBRE_ARCHIVO = '';
+var N3_DB_NAME='n3_db', N3_STORE='data';
+var _N3_INICIADO = false;
+
+function n3OpenDB(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open(N3_DB_NAME,1);
+    r.onupgradeneeded=function(e){ try{e.target.result.createObjectStore(N3_STORE);}catch(x){} };
+    r.onsuccess=function(e){ res(e.target.result); };
+    r.onerror=function(){ rej(); };
+  });
+}
+function n3SaveMaestro(){
+  return n3OpenDB().then(function(db){
+    return new Promise(function(res){
+      var tx = db.transaction(N3_STORE,'readwrite');
+      tx.objectStore(N3_STORE).put({ maestro: N3_MAESTRO, nombreArchivo: N3_MAESTRO_NOMBRE_ARCHIVO }, 'maestro_n3');
+      tx.oncomplete = function(){ res(true); };
+      tx.onerror = function(){ res(false); };
+    });
+  }).catch(function(){ return false; });
+}
+function n3LoadMaestro(){
+  return n3OpenDB().then(function(db){
+    return new Promise(function(res){
+      var r = db.transaction(N3_STORE,'readonly').objectStore(N3_STORE).get('maestro_n3');
+      r.onsuccess = function(){
+        var d = r.result;
+        if(d && d.maestro){ N3_MAESTRO = d.maestro; N3_MAESTRO_NOMBRE_ARCHIVO = d.nombreArchivo || ''; res(true); }
+        else res(false);
+      };
+      r.onerror = function(){ res(false); };
+    });
+  }).catch(function(){ return false; });
+}
+
+var N3_PDF_SELECCIONADO = null;
+function n3FmtBytes(b){ return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(2)+' MB'; }
+function n3HandleFile(f){
+  if(!f || !f.name.toLowerCase().endsWith('.pdf')){ alert('Selecciona un archivo .pdf'); return; }
+  N3_PDF_SELECCIONADO = f;
+  document.getElementById('n3-fnm').textContent = f.name;
+  document.getElementById('n3-fsz').textContent = n3FmtBytes(f.size);
+  document.getElementById('n3-finfo').classList.add('show');
+  document.getElementById('n3-dz').style.display = 'none';
+  document.getElementById('n3-cvt').disabled = false;
+  document.getElementById('n3-pdf-status-lbl').textContent = '';
+}
+function n3Init(){
+  if(_N3_INICIADO){
+    n3LoadMaestro().then(function(ok){ if(ok) n3RenderMaestroStatus(); });
+    return;
+  }
+  _N3_INICIADO = true;
+  n3LoadMaestro().then(function(ok){
+    if(ok) n3RenderMaestroStatus();
+  });
+
+  var dz = document.getElementById('n3-dz'), fi = document.getElementById('n3-fi');
+  var rm = document.getElementById('n3-rm'), cvt = document.getElementById('n3-cvt');
+  fi.addEventListener('change', function(e){ if(e.target.files[0]) n3HandleFile(e.target.files[0]); });
+  dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('over'); });
+  dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files[0]) n3HandleFile(e.dataTransfer.files[0]); });
+  rm.addEventListener('click', function(){
+    N3_PDF_SELECCIONADO = null; fi.value = '';
+    document.getElementById('n3-finfo').classList.remove('show');
+    dz.style.display = '';
+    cvt.disabled = true;
+  });
+  cvt.addEventListener('click', function(){ if(N3_PDF_SELECCIONADO) n3ProcesarPDF(N3_PDF_SELECCIONADO); });
+}
+function n3RenderMaestroStatus(){
+  var lbl = document.getElementById('n3-maestro-status-lbl');
+  if(!lbl) return;
+  var total = Object.keys(N3_MAESTRO).length;
+  lbl.textContent = total ? (N3_MAESTRO_NOMBRE_ARCHIVO+' · '+total+' clientes N3') : 'Sin archivo cargado';
+}
+
+function n3MaestroUpload(inp){
+  var file = inp.files[0]; if(!file) return;
+  var btn = document.getElementById('n3-maestro-upload-btn');
+  var lbl = document.getElementById('n3-maestro-status-lbl');
+  btn.textContent = '⏳ Procesando…'; btn.disabled = true;
+  lbl.textContent = 'Leyendo ' + file.name + '…';
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var arrayBuffer = e.target.result;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    try{
+      if(typeof XLSX === 'undefined') throw new Error('XLSX no disponible (sin conexión a internet).');
+      var wb = XLSX.read(arrayBuffer, {type:'array'});
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+      var headers = raw[0].map(function(h){ return String(h||'').trim(); });
+      var idx = {}; headers.forEach(function(h,i){ idx[h]=i; });
+      if(!('Código' in idx)) throw new Error('No se encontró la columna "Código" en el archivo.');
+
+      var maestro = {};
+      for(var r=1; r<raw.length; r++){
+        var row = raw[r];
+        var codigo = row[idx['Código']];
+        if(!codigo) continue;
+        maestro[String(codigo).trim()] = idx['Nombre']!==undefined ? (row[idx['Nombre']]||'') : '';
+      }
+      N3_MAESTRO = maestro;
+      N3_MAESTRO_NOMBRE_ARCHIVO = file.name;
+      n3SaveMaestro();
+      n3RenderMaestroStatus();
+      btn.textContent = '📂 Cargar Excel'; btn.disabled = false;
+      if(N3_DINERO_ROWS && N3_DINERO_ROWS.length) n3Analizar(); // si ya habia un PDF cargado, re-analizar
+    }catch(err){
+      console.error('n3MaestroUpload:', err);
+      btn.textContent = '📂 Cargar Excel'; btn.disabled = false;
+      lbl.textContent = 'Sin archivo cargado';
+      alert('❌ Error al leer el archivo: ' + err.message);
+    }
+    }); });
+  };
+  reader.onerror = function(){
+    btn.textContent = '📂 Cargar Excel'; btn.disabled = false;
+    lbl.textContent = 'Sin archivo cargado';
+    alert('❌ No se pudo leer el archivo.');
+  };
+  reader.readAsArrayBuffer(file);
+  inp.value = '';
+}
+
+// ── Extracción del PDF "Acuerdo de liquidación financiera" ──
+var N3_DINERO_ROWS = [];   // [{ idCli, monto }]
+var N3_META = {};          // { ped, conductor, ruta, viaje, fechaEntrega, fechaRevision }
+
+async function n3ProcesarPDF(file){
+  if(!file) return;
+  var lbl = document.getElementById('n3-pdf-status-lbl');
+  var cvtBtn = document.getElementById('n3-cvt');
+  cvtBtn.disabled = true; cvtBtn.innerHTML = '<span class="shine"></span>⏳ Procesando…';
+  lbl.textContent = 'Leyendo ' + file.name + '…';
+
+  try{
+    if(typeof pdfjsLib === 'undefined') throw new Error('pdf.js no disponible (sin conexión a internet).');
+    var buf = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({data:buf}).promise;
+
+    // Agrupar todos los items de texto de todas las páginas en filas (por Y),
+    // con un offset grande por página para mantener el orden entre páginas.
+    var filas = []; // [{ y, items:[{x,text}] }]
+    for(var pn=1; pn<=pdf.numPages; pn++){
+      var page = await pdf.getPage(pn);
+      var tc = await page.getTextContent();
+      var itemsPagina = tc.items.map(function(it){ return { x: it.transform[4], y: it.transform[5], text: it.str.trim() }; }).filter(function(it){ return it.text!==''; });
+      var yOffset = pn * 100000;
+      itemsPagina.forEach(function(it){
+        var yKey = yOffset - Math.round(it.y); // texto arriba = Y mayor en PDF; se invierte para orden natural
+        var filaExistente = filas.find(function(f){ return Math.abs(f.y - yKey) <= 2; });
+        if(filaExistente) filaExistente.items.push(it);
+        else filas.push({ y: yKey, items: [it] });
+      });
+    }
+    filas.sort(function(a,b){ return a.y - b.y; });
+    filas.forEach(function(f){ f.items.sort(function(a,b){ return a.x - b.x; }); });
+
+    function textoFila(f){ return f.items.map(function(it){ return it.text; }).join(' '); }
+
+    // Metadatos del encabezado
+    var meta = { placa:'', conductor:'', ruta:'', viaje:'', fechaEntrega:'', fechaRevision:'' };
+    filas.forEach(function(f, i){
+      var t = textoFila(f);
+      if(/^PE[A-Z0-9]/i.test(t) && !meta.placa) meta.placa = t;
+      if(t === 'Nombre del conductor ID de la Ruta ID de la Viaje Fecha de entrega Fecha de revisión de la liquidación'){
+        var datos = filas[i+1];
+        if(datos){
+          var vals = datos.items.map(function(it){ return it.text; });
+          // pdf.js agrupa fecha+hora en un solo texto ("04/08/2026 21:37"), así que
+          // hay 5 valores en esta fila, no 7: conductor, ruta, viaje, fechaEntrega, fechaRevision.
+          meta.conductor = vals[0]||'';
+          meta.ruta = vals[1]||'';
+          meta.viaje = vals[2]||'';
+          meta.fechaEntrega = vals[3]||'';
+          meta.fechaRevision = vals[4]||'';
+        }
+      }
+    });
+    N3_META = meta;
+
+    // Localizar la sección "Dinero" (encabezado de sección, solo) y extraer sus filas
+    // hasta la fila "Monto planeado" (subtotal, marca el fin de la sección).
+    var idxDinero = filas.findIndex(function(f){ return textoFila(f).trim() === 'Dinero'; });
+    var dineroRows = [];
+    if(idxDinero >= 0){
+      for(var i=idxDinero+1; i<filas.length; i++){
+        var f = filas[i];
+        var t = textoFila(f);
+        if(/^Monto planeado/i.test(t)) break; // fin de la sección Dinero
+        if(t === 'ID del Cliente Monto total') continue; // encabezado de columnas
+        var idItem = f.items.find(function(it){ return /^\d{5,12}$/.test(it.text) && it.x < 250; });
+        // El monto puede venir como un solo texto combinado ("S/ 1164.02") o partido
+        // en dos ("S/" y "1164.02"), según cómo pdf.js agrupe los caracteres del PDF.
+        var montoItem = f.items.find(function(it){ return /^S\/\s*[\d.,]+\.?\d*$/.test(it.text.trim()); });
+        var montoNum = null;
+        if(montoItem){
+          montoNum = parseFloat(montoItem.text.replace(/[^0-9.]/g,''));
+        } else {
+          var montoIdx = f.items.findIndex(function(it){ return it.text.trim() === 'S/'; });
+          if(montoIdx >= 0 && f.items[montoIdx+1]) montoNum = parseFloat(String(f.items[montoIdx+1].text).replace(/[^0-9.]/g,''));
+        }
+        if(idItem && montoNum!==null && !isNaN(montoNum)) dineroRows.push({ idCli: idItem.text, monto: montoNum });
+      }
+    }
+    N3_DINERO_ROWS = dineroRows;
+    N3_PDF_NOMBRE_ARCHIVO = file.name;
+
+    cvtBtn.disabled = false; cvtBtn.innerHTML = '<span class="shine"></span>⚡ Analizar PDF';
+    lbl.textContent = '✅ ' + file.name + ' · '+dineroRows.length+' registro(s) en Dinero';
+
+    if(idxDinero < 0){
+      alert('⚠️ No se encontró la sección "Dinero" en este PDF. Verifica que sea un Acuerdo de liquidación financiera de BEES.');
+    }
+    n3Analizar();
+  }catch(err){
+    console.error('n3ProcesarPDF:', err);
+    cvtBtn.disabled = false; cvtBtn.innerHTML = '<span class="shine"></span>⚡ Analizar PDF';
+    lbl.textContent = '';
+    alert('❌ Error al leer el PDF: ' + err.message);
+  }
+}
+
+function n3Analizar(){
+  if(!N3_DINERO_ROWS.length) return;
+
+  var coincidenciasN3 = N3_DINERO_ROWS.filter(function(r){ return N3_MAESTRO.hasOwnProperty(r.idCli); });
+  var mayoresA2000 = N3_DINERO_ROWS.filter(function(r){ return r.monto > 2000; });
+
+  // Alertas — solo la cantidad, sin montos ni códigos
+  var alertasHtml = '';
+  if(coincidenciasN3.length){
+    alertasHtml +=
+      '<div class="a-card" style="margin-bottom:12px;background:rgba(247,196,79,.12);border:1.5px solid rgba(247,196,79,.6)">'+
+        '<div style="font-weight:800;font-size:15px;color:#f7c44f">🔔 HAS COBRADO CLIENTE N3</div>'+
+        '<div style="font-size:13px;color:var(--txt);margin-top:4px">'+coincidenciasN3.length+' cliente(s)</div>'+
+      '</div>';
+  }
+  if(mayoresA2000.length){
+    alertasHtml +=
+      '<div class="a-card" style="margin-bottom:12px;background:rgba(247,91,91,.12);border:1.5px solid rgba(247,91,91,.6)">'+
+        '<div style="font-weight:800;font-size:15px;color:#f75b5b">⚠️ HAS COBRADO UN CLIENTE MAYOR A 2000</div>'+
+        '<div style="font-size:13px;color:var(--txt);margin-top:4px">'+mayoresA2000.length+' registro(s)</div>'+
+      '</div>';
+  }
+  var elAlertas = document.getElementById('n3-alertas');
+  elAlertas.innerHTML = alertasHtml;
+  elAlertas.style.display = alertasHtml ? 'block' : 'none';
+
+  // Metadatos
+  var metaHtml =
+    '<div><div style="font-size:11px;color:var(--mut);text-transform:uppercase">Placa</div><div style="font-weight:700">'+(N3_META.placa||'—')+'</div></div>'+
+    '<div><div style="font-size:11px;color:var(--mut);text-transform:uppercase">Conductor</div><div style="font-weight:700">'+(N3_META.conductor||'—')+'</div></div>'+
+    '<div><div style="font-size:11px;color:var(--mut);text-transform:uppercase">Ruta</div><div style="font-weight:700">'+(N3_META.ruta||'—')+'</div></div>'+
+    '<div><div style="font-size:11px;color:var(--mut);text-transform:uppercase">Viaje</div><div style="font-weight:700">'+(N3_META.viaje||'—')+'</div></div>'+
+    '<div><div style="font-size:11px;color:var(--mut);text-transform:uppercase">Fecha de Entrega</div><div style="font-weight:700">'+(N3_META.fechaEntrega||'—')+'</div></div>';
+  document.getElementById('n3-meta-grid').innerHTML = metaHtml;
+
+  // Tabla de detalle — se ordena para que los "Sí" (N3 o mayor a 2000) aparezcan primero
+  var tbody = document.getElementById('n3-dinero-tbody');
+  var filasConFlags = N3_DINERO_ROWS.map(function(r){
+    var esN3 = N3_MAESTRO.hasOwnProperty(r.idCli);
+    var mayor = r.monto > 2000;
+    return { r: r, esN3: esN3, mayor: mayor, prioridad: (esN3?2:0) + (mayor?1:0) };
+  });
+  filasConFlags.sort(function(a,b){ return b.prioridad - a.prioridad; });
+  tbody.innerHTML = filasConFlags.map(function(f){
+    var r = f.r, esN3 = f.esN3, mayor = f.mayor;
+    var nombreN3 = esN3 ? (N3_MAESTRO[r.idCli] || '—') : '—';
+    return '<tr>'+
+      '<td class="a-ruta">'+r.idCli+'</td>'+
+      '<td>'+nombreN3+'</td>'+
+      '<td>S/ '+r.monto.toFixed(2)+'</td>'+
+      '<td style="color:'+(esN3?'#f7c44f':'var(--mut)')+';font-weight:'+(esN3?'700':'400')+'">'+(esN3?'✅ Sí':'No')+'</td>'+
+      '<td style="color:'+(mayor?'#f75b5b':'var(--mut)')+';font-weight:'+(mayor?'700':'400')+'">'+(mayor?'⚠️ Sí':'No')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var totalMonto = N3_DINERO_ROWS.reduce(function(s,r){ return s+r.monto; }, 0);
+  document.getElementById('n3-dinero-tfoot').innerHTML =
+    '<tr><td colspan="2" style="text-align:right;font-weight:700">TOTAL ('+N3_DINERO_ROWS.length+' registro(s)):</td>'+
+    '<td style="font-weight:700">S/ '+totalMonto.toFixed(2)+'</td><td></td><td></td></tr>';
+  document.getElementById('n3-dinero-tfoot').style.display = '';
+
+  document.getElementById('n3-resultado').style.display = 'block';
+}
+
 var currentUser = null;
 var currentScreen = 'login';
 
@@ -6468,7 +6828,7 @@ window.brxClearExcel=function(){
 function pushHistory(screen){ history.pushState({screen:screen},'',''); }
 
 window.addEventListener('popstate',function(e){
-  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'||currentScreen==='app9'||currentScreen==='app10'||currentScreen==='app11'){
+  if(currentScreen==='app'||currentScreen==='app2'||currentScreen==='app3'||currentScreen==='app4'||currentScreen==='app5'||currentScreen==='app6'||currentScreen==='app7'||currentScreen==='app8'||currentScreen==='app9'||currentScreen==='app10'||currentScreen==='app11'||currentScreen==='app12'){
     if(currentUser) _showWelcomeRaw(currentUser);
     else _showLoginRaw();
   } else if(currentScreen==='welcome'){
@@ -6479,11 +6839,11 @@ window.addEventListener('popstate',function(e){
 });
 
 function _hideAll(){
-  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8','app9','app10','app11'].forEach(function(id){
+  ['login-screen','welcome-screen','app','app2','app3','app4','app5','app6','app7','app8','app9','app10','app11','app12'].forEach(function(id){
     document.getElementById(id).style.display='none';
   });
 }
-var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel', app9:'pxq', app10:'checklist', app11:'usuarios'};
+var SB_ID_TO_MOD = {app:'liquidacion', app2:'desplan', app3:'asistencia', app4:'marcajes', app5:'diferencias', app6:'segrutas', app7:'cierrecaja', app8:'importarexcel', app9:'pxq', app10:'checklist', app11:'usuarios', app12:'liquidacionn3'};
 function sbShowUser(user){
   var nombre = (user && user.nombre) || '—';
   var inicial = nombre.trim().slice(0,2).toUpperCase() || '—';
@@ -6592,6 +6952,11 @@ window.showApp11=function(){
   sesionGuardar(currentUser,'app11'); pushHistory('app11');
   if(window.usrInit) window.usrInit();
 };
+window.showApp12=function(){
+  _showAppRaw('app12','bar12-username','bar12-role');
+  sesionGuardar(currentUser,'app12'); pushHistory('app12');
+  if(window.n3Init) window.n3Init();
+};
 window.showApp4=function(){
   _showAppRaw('app4','bar4-username','bar4-role');
   sesionGuardar(currentUser,'app4'); pushHistory('app4');
@@ -6608,6 +6973,7 @@ window.openModule=function(mod){
   if(mod==='pxq')          window.showApp9();
   if(mod==='checklist')    window.showApp10();
   if(mod==='usuarios')     window.showApp11();
+  if(mod==='liquidacionn3') window.showApp12();
 };
 window.doLogin=function(){
   var u=document.getElementById('login-user').value.trim().toLowerCase();
