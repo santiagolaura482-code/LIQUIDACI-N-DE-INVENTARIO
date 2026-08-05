@@ -7017,6 +7017,13 @@ setInterval(sesionValidarPeriodicamente, 15000);
 document.addEventListener('visibilitychange', function(){ if(!document.hidden) sesionValidarPeriodicamente(); });
 window.addEventListener('focus', sesionValidarPeriodicamente);
 
+// ── ACTUALIZACIÓN AUTOMÁTICA DE LA PÁGINA ──────────────────────
+// Cada 5 minutos se refresca la página sola, para que quien tenga abierta una
+// versión anterior del sistema pase a la más reciente sin tener que hacerlo a
+// mano. Al recargar, la sesión se revalida igual que siempre (ver más abajo):
+// si la contraseña ya cambió, no se restaura y queda pedida de nuevo.
+setInterval(function(){ window.location.reload(); }, 5*60*1000);
+
 // ── RESTAURAR SESIÓN AL CARGAR ────────────────────────────────
 (function iniciarApp(){
   var saved=sesionCargar();
