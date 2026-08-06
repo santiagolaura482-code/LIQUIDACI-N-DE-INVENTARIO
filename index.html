@@ -618,6 +618,7 @@ input, select, textarea{font-size:16px !important}
 }
 /* Viewport meta ya está en head — agregar también para escritorio request */
 
+@keyframes flotanteAparece{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
 </style>
 </head>
 <body>
@@ -7014,6 +7015,7 @@ window.openModule=function(mod){
   if(mod==='liquidacionn3') window.showApp12();
 };
 window.doLogin=async function(){
+  USUARIOS = usuariosCargar(); // refrescar por si otra pestaña/sesión aprobó a alguien
   if(usrCloudConfigured()) await usrCloudLoad().catch(function(){});
   var u=document.getElementById('login-user').value.trim().toLowerCase();
   var p=document.getElementById('login-pass').value;
@@ -7023,6 +7025,7 @@ window.doLogin=async function(){
   }
   if(found && found.aprobado===false){
     document.getElementById('login-err').classList.remove('show');
+    pendienteRegistrar(found);
     alert('⏳ Tu usuario y clave son correctos, pero tu acceso está pendiente de aprobación. Pide al administrador que te apruebe desde el módulo Usuarios.');
     document.getElementById('login-pass').value='';
     return;
@@ -7036,6 +7039,75 @@ window.doLogin=async function(){
     document.getElementById('login-pass').focus();
   }
 };
+
+// ── Solicitudes de acceso pendientes: se registran cuando alguien sin
+// aprobar intenta entrar, para que superadmin las vea como aviso flotante ──
+function pendienteRegistrar(user){
+  var lista = [];
+  try{ lista = JSON.parse(localStorage.getItem('jrg_pendientes') || '[]'); }catch(e){}
+  var yaExiste = lista.find(function(p){ return p.user === user.user; });
+  if(yaExiste) yaExiste.ts = Date.now();
+  else lista.push({ user: user.user, nombre: user.nombre, ts: Date.now() });
+  try{ localStorage.setItem('jrg_pendientes', JSON.stringify(lista)); }catch(e){}
+  if(usrCloudConfigured()) usrPendientesCloudSave(lista);
+}
+function pendienteQuitar(user){
+  var lista = [];
+  try{ lista = JSON.parse(localStorage.getItem('jrg_pendientes') || '[]'); }catch(e){}
+  lista = lista.filter(function(p){ return p.user !== user; });
+  try{ localStorage.setItem('jrg_pendientes', JSON.stringify(lista)); }catch(e){}
+  if(usrCloudConfigured()) usrPendientesCloudSave(lista);
+  var el = document.getElementById('flotante-'+user);
+  if(el) el.remove();
+}
+async function usrPendientesCloudSave(lista){
+  if(!usrCloudConfigured()) return;
+  var id = usrCloudId();
+  try{
+    await fetch('https://api.jsonbin.io/v3/b/'+id.bin+'-pendientes', {
+      method:'PUT', headers:{'Content-Type':'application/json','X-Master-Key':id.key,'X-Bin-Versioning':'false'},
+      body: JSON.stringify({ PENDIENTES: lista, ts: Date.now() })
+    });
+  }catch(e){}
+}
+var _PENDIENTES_MOSTRADOS = {};
+function superadminRevisarPendientes(){
+  if(!currentUser || currentUser.user !== 'superadmin') return;
+  var lista = [];
+  try{ lista = JSON.parse(localStorage.getItem('jrg_pendientes') || '[]'); }catch(e){}
+  var wrap = document.getElementById('flotantes-wrap');
+  if(!wrap){
+    wrap = document.createElement('div');
+    wrap.id = 'flotantes-wrap';
+    wrap.style.cssText = 'position:fixed;top:70px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:320px';
+    document.body.appendChild(wrap);
+  }
+  lista.forEach(function(p){
+    if(_PENDIENTES_MOSTRADOS[p.user]) return; // ya se mostró en esta sesión, no repetir
+    if(document.getElementById('flotante-'+p.user)) return;
+    _PENDIENTES_MOSTRADOS[p.user] = true;
+    var card = document.createElement('div');
+    card.id = 'flotante-'+p.user;
+    card.style.cssText = 'background:#1e2330;border:1.5px solid #f7c44f;border-radius:10px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:flotanteAparece .25s ease';
+    card.innerHTML =
+      '<div style="font-weight:800;font-size:13px;color:#f7c44f;margin-bottom:4px">🔔 Solicitud de acceso</div>'+
+      '<div style="font-size:13px;color:#e8eef4;margin-bottom:10px"><b>'+p.nombre+'</b> ('+p.user+') quiere entrar al sistema.</div>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button onclick="superadminAprobarDesdeFlotante(\''+p.user+'\')" style="flex:1;background:#22d98e;color:#08130d;border:none;border-radius:7px;padding:8px;font-weight:700;cursor:pointer;font-size:13px">✅ OK, dejarlo entrar</button>'+
+        '<button onclick="pendienteQuitar(\''+p.user+'\')" style="background:#2a3648;color:#9db0c2;border:none;border-radius:7px;padding:8px 12px;cursor:pointer;font-size:13px">✕</button>'+
+      '</div>';
+    wrap.appendChild(card);
+  });
+}
+function superadminAprobarDesdeFlotante(user){
+  var idx = USUARIOS.findIndex(function(u){ return u.user === user; });
+  if(idx !== -1){
+    USUARIOS[idx].aprobado = true;
+    usuariosGuardar(USUARIOS);
+    if(document.getElementById('usr-tbody')) usrRenderTabla();
+  }
+  pendienteQuitar(user);
+}
 
 // ── VALIDACIÓN DE SESIÓN (cierre automático si cambia la contraseña) ──
 // Compara la contraseña con la que tenía el usuario al momento de iniciar sesión
@@ -7060,15 +7132,11 @@ async function sesionValidarPeriodicamente(){
   }
 }
 setInterval(sesionValidarPeriodicamente, 15000);
+setInterval(superadminRevisarPendientes, 5000);
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) superadminRevisarPendientes(); });
+window.addEventListener('focus', superadminRevisarPendientes);
 document.addEventListener('visibilitychange', function(){ if(!document.hidden) sesionValidarPeriodicamente(); });
 window.addEventListener('focus', sesionValidarPeriodicamente);
-
-// ── ACTUALIZACIÓN AUTOMÁTICA DE LA PÁGINA ──────────────────────
-// Cada 5 minutos se refresca la página sola, para que quien tenga abierta una
-// versión anterior del sistema pase a la más reciente sin tener que hacerlo a
-// mano. Al recargar, la sesión se revalida igual que siempre (ver más abajo):
-// si la contraseña ya cambió, no se restaura y queda pedida de nuevo.
-setInterval(function(){ window.location.reload(); }, 5*60*1000);
 
 // ── RESTAURAR SESIÓN AL CARGAR ────────────────────────────────
 (function iniciarApp(){
