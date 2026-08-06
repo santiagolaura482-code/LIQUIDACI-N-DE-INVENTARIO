@@ -6345,8 +6345,8 @@ function edtDeRuta(ruta){
 <script>
 var USUARIOS_SEED = [
   { user:'superadmin', pass:'2Elogistic', nombre:'SUPER ADMIN',            rol:'Super Administrador', aprobado:true },
-  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor', aprobado:false },
-  { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución', aprobado:false },
+  { user:'admin',     pass:'bees2024',  nombre:'Administrador',            rol:'Supervisor', aprobado:true },
+  { user:'guillermo', pass:'centro123', nombre:'Guillermo',                 rol:'Supervisor de Distribución', aprobado:true },
   { user:'revisor',   pass:'rev2024',   nombre:'Revisor de Liquidaciones',  rol:'Revisor', aprobado:false },
 ];
 // Versión de la migración de seguridad de usuarios. Al subirla, cualquier
@@ -6354,7 +6354,7 @@ var USUARIOS_SEED = [
 // revoca la aprobación de todos los usuarios (menos admin y guillermo), lo cual
 // cierra sus sesiones activas (ver sesionEsValida) y bloquea que vuelvan a
 // entrar hasta que el admin los apruebe de nuevo desde el módulo Usuarios.
-var USUARIOS_SEGURIDAD_VERSION = 3;
+var USUARIOS_SEGURIDAD_VERSION = 4;
 function usuariosCargar(){
   var lista;
   try{
@@ -6372,7 +6372,7 @@ function usuariosCargar(){
       if(semillaSuperAdmin) lista.unshift(Object.assign({}, semillaSuperAdmin));
     }
     lista = lista.map(function(u){
-      var esConfiable = (u.user === 'superadmin');
+      var esConfiable = (u.user === 'superadmin' || u.user === 'admin' || u.user === 'guillermo');
       return Object.assign({}, u, { aprobado: esConfiable ? true : false });
     });
     try{
