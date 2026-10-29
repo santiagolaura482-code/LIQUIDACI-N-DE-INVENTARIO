@@ -19238,6 +19238,17 @@ function segRutasEstadoClass(estado){
   return map[estado] || 'segr-badge-otro';
 }
 
+var _SEGR_BEES_IDX = { n:-1, map:{} };
+function segRutasBeesPorCodigo(){
+  var keys = Object.keys(SEGR_BEES);
+  if(_SEGR_BEES_IDX.n !== keys.length || _SEGR_BEES_IDX.ref !== SEGR_BEES){
+    var m = {};
+    keys.forEach(function(k){ var i = k.indexOf('|'); if(i > 0) m[k.slice(0,i)] = SEGR_BEES[k]; });
+    _SEGR_BEES_IDX = { n: keys.length, ref: SEGR_BEES, map: m };
+  }
+  return _SEGR_BEES_IDX.map;
+}
+
 function segRutasMerged(){
   return SEGR_HOJA.map(function(row){
     var codigo = String(row['Codigo'] || '').trim();
@@ -19246,6 +19257,10 @@ function segRutasMerged(){
     // se deja sin estado (en vez de adivinar con el estado de otra ruta del
     // mismo cliente, que sería incorrecto).
     var beesEntry = transporteStripped ? SEGR_BEES[codigo + '|' + transporteStripped] : undefined;
+    // Las Hojas de Ruta "Cono Sur" y "BO" no traen Transporte: en ese caso el estado
+    // se busca solo por Código de cliente (si el cliente aparece en varias rutas
+    // de BEES, se usa la última cargada).
+    if(!beesEntry && !transporteStripped && codigo) beesEntry = segRutasBeesPorCodigo()[codigo];
     var statusCrudo = beesEntry ? beesEntry.status : '';
     var estado = statusCrudo ? (SEGR_STATUS_MAP[statusCrudo] || statusCrudo) : '';
     var empresaCrudo = String(row['Empresa'] || '').trim();
