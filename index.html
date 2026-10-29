@@ -1188,6 +1188,8 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       </div>
       <button class="a-btn a-btn-grn" onclick="document.getElementById('segr-hoja-input').click()">📋 Cargar Hoja de Ruta</button>
       <input type="file" id="segr-hoja-input" accept=".xls,.xlsx,.html" style="display:none" onchange="segRutasUploadHoja(this)">
+      <button class="a-btn a-btn-grn" onclick="document.getElementById('segr-hoja-input-add').click()">➕ Agregar una Hoja de Ruta más</button>
+      <input type="file" id="segr-hoja-input-add" accept=".xls,.xlsx,.html" style="display:none" onchange="segRutasUploadHoja(this, true)">
       <button class="a-btn a-btn-grn" onclick="document.getElementById('segr-bees-input').click()">📡 Carga Hoja de BEES</button>
       <input type="file" id="segr-bees-input" accept=".csv" style="display:none" onchange="segRutasUploadBees(this)">
       <button class="a-btn a-btn-grn" onclick="segRutasExport()">📥 Exportar Excel</button>
@@ -1209,7 +1211,10 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       <div style="flex:1;min-width:0;display:flex;flex-direction:column">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <span style="font-size:12px;color:var(--mut,#9db0c2);font-weight:600">Avance por Ruta</span>
-          <button class="a-btn a-btn-grn" style="padding:3px 8px;font-size:11px" onclick="segRutasExportRutaSummary()">📥 Exportar Excel</button>
+          <span style="display:flex;gap:6px">
+            <button class="a-btn a-btn-grn" style="padding:3px 8px;font-size:11px" onclick="segRutasDescargarTodosLosMapas()">🗺️ Descargar todos los mapas</button>
+            <button class="a-btn a-btn-grn" style="padding:3px 8px;font-size:11px" onclick="segRutasExportRutaSummary()">📥 Exportar Excel</button>
+          </span>
         </div>
         <div class="segr-summary-col" style="flex:1;min-width:0;max-height:560px;overflow-y:auto;border:1.5px solid #3d4560;border-radius:10px">
           <table class="dt" id="segr-ruta-summary" style="table-layout:auto"></table>
@@ -19115,7 +19120,23 @@ function segRutasParseHojaRutaXLSX(arrayBuffer){
   return { header: header, rows: rowsUnicas, duplicadosQuitados: duplicadosQuitados };
 }
 
-function segRutasUploadHoja(inp){
+// Combina las filas ya cargadas con las de un archivo nuevo, quitando los
+// duplicados por Ruta+Código+Viaje (se conserva la primera aparición, es
+// decir, lo que ya estaba cargado tiene prioridad sobre lo nuevo).
+function segRutasFusionarHojas(existentes, nuevas){
+  var vistos = {};
+  var combinadas = [];
+  var duplicadosQuitados = 0;
+  existentes.concat(nuevas).forEach(function(r){
+    var key = String(r['Ruta'] || '').trim() + '|' + String(r['Codigo'] || '').trim() + '|' + String(r['Viaje'] || '').trim();
+    if(vistos[key]){ duplicadosQuitados++; return; }
+    vistos[key] = true;
+    combinadas.push(r);
+  });
+  return { rows: combinadas, duplicadosQuitados: duplicadosQuitados };
+}
+
+function segRutasUploadHoja(inp, agregar){
   var file = inp.files[0]; if(!file) return;
   var reader = new FileReader();
   reader.onload = function(e){
@@ -19129,12 +19150,29 @@ function segRutasUploadHoja(inp){
       var parsed = esZip
         ? segRutasParseHojaRutaXLSX(buf)
         : segRutasParseHojaRutaHTML(new TextDecoder('utf-8').decode(buf));
-      SEGR_HOJA_HEADER = parsed.header;
-      SEGR_HOJA = parsed.rows;
+
+      var msg;
+      if(agregar && SEGR_HOJA && SEGR_HOJA.length){
+        // Modo "Agregar una Hoja de Ruta más": se suma a lo que ya había en vez
+        // de reemplazarlo. El encabezado se combina (unión de columnas de ambos
+        // archivos) para que ninguna hoja pierda sus campos propios.
+        var headerCombinado = (SEGR_HOJA_HEADER || []).slice();
+        parsed.header.forEach(function(h){ if(headerCombinado.indexOf(h) === -1) headerCombinado.push(h); });
+        var fusion = segRutasFusionarHojas(SEGR_HOJA, parsed.rows);
+        SEGR_HOJA_HEADER = headerCombinado;
+        SEGR_HOJA = fusion.rows;
+        msg = '✅ Hoja de Ruta agregada: '+parsed.rows.length+' fila(s) nueva(s). Total combinado: '+SEGR_HOJA.length+' fila(s).' +
+          (parsed.duplicadosQuitados ? ' ⚠️ '+parsed.duplicadosQuitados+' duplicado(s) dentro del archivo nuevo.' : '') +
+          (fusion.duplicadosQuitados ? ' ⚠️ '+fusion.duplicadosQuitados+' fila(s) ya existían (mismo Ruta+Código+Viaje) y no se duplicaron.' : '');
+      } else {
+        SEGR_HOJA_HEADER = parsed.header;
+        SEGR_HOJA = parsed.rows;
+        msg = '✅ Hoja de Ruta cargada: '+parsed.rows.length+' fila(s).' +
+          (parsed.duplicadosQuitados ? ' ⚠️ Se detectaron y quitaron '+parsed.duplicadosQuitados+' cliente(s) duplicado(s) dentro de la misma ruta.' : '');
+      }
+
       segRutasSaveToStorage();
       segRutasRenderTable();
-      var msg = '✅ Hoja de Ruta cargada: '+parsed.rows.length+' fila(s).' +
-        (parsed.duplicadosQuitados ? ' ⚠️ Se detectaron y quitaron '+parsed.duplicadosQuitados+' cliente(s) duplicado(s) dentro de la misma ruta.' : '');
       document.getElementById('segr-status').textContent = msg + (segRutasCloudConfigured() ? ' Subiendo a la nube…' : '');
       if(segRutasCloudConfigured()){
         segRutasCloudSave().then(function(ok){
@@ -19438,7 +19476,11 @@ function segRutasHoraCorta(h){
 function segRutasXmlEscape(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-async function segRutasGenerarKML(ruta, placa, viaje, transporte){
+async function segRutasGenerarKML(ruta, placa, viaje, transporte, opciones){
+  // opciones.silencioso=true: se usa en la descarga masiva — no muestra alert()
+  // por cada mapa (bloquearía la secuencia) y en vez de eso devuelve un resumen
+  // para que quien llama acumule los avisos y los muestre al final, una sola vez.
+  opciones = opciones || {};
   await maestroLoad();
   var merged = segRutasMerged(); // ya trae el nombre del cliente completado con el Maestro si venía vacío en la Hoja de Ruta
   var filas = merged.filter(function(r){
@@ -19447,7 +19489,11 @@ async function segRutasGenerarKML(ruta, placa, viaje, transporte){
            String(r['Viaje']||'—') === viaje &&
            String(r['Transporte']||'—') === transporte;
   });
-  if(!filas.length){ alert('⚠️ No se encontraron clientes para esta combinación de Ruta/Placa/Viaje/Transporte.'); return; }
+  if(!filas.length){
+    if(opciones.silencioso) return { ok:false, motivo:'sin-clientes' };
+    alert('⚠️ No se encontraron clientes para esta combinación de Ruta/Placa/Viaje/Transporte.');
+    return;
+  }
 
   var fecha = String(filas[0]['Fecha']||'').trim() || new Date().toISOString().slice(0,10);
   var nombreDoc = ruta+'_'+viaje+'_'+fecha;
@@ -19516,9 +19562,49 @@ async function segRutasGenerarKML(ruta, placa, viaje, transporte){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
+  if(opciones.silencioso) return { ok:true, filas: filas.length, sinCoord: sinCoord, nombreDoc: nombreDoc };
+
   if(sinCoord){
     alert('✅ Mapa generado con '+filas.length+' cliente(s). ⚠️ '+sinCoord+' de ellos no tenían coordenadas (no se pudieron ubicar en el mapa) — revisa el Maestro de Clientes.');
   }
+}
+
+// Genera y descarga, uno por uno (archivos .kml separados), el mapa de cada
+// combinación de Ruta+Placa+Viaje+Transporte que aparece en "Avance por Ruta".
+async function segRutasDescargarTodosLosMapas(){
+  await maestroLoad();
+  var merged = segRutasMerged();
+  var grupos = {};
+  merged.forEach(function(r){
+    var ruta = r['Ruta'] || '—', placa = r['Vehiculo'] || '—', viaje = r['Viaje'] || '—', transporte = r['Transporte'] || '—';
+    var key = ruta+'|'+placa+'|'+viaje+'|'+transporte;
+    if(!grupos[key]) grupos[key] = { ruta: ruta, placa: placa, viaje: viaje, transporte: transporte };
+  });
+  var lista = Object.keys(grupos).map(function(k){ return grupos[k]; });
+  if(!lista.length){ alert('⚠️ No hay datos cargados en Seguimiento de Rutas para generar mapas. Carga primero una Hoja de Ruta.'); return; }
+
+  var ok = confirm('Se van a descargar '+lista.length+' mapa(s), uno por cada Ruta+Placa+Viaje (archivos .kml separados). ' +
+    'Si el navegador pregunta si permites varias descargas de este sitio, debes aceptar para que no se corte a la mitad. ¿Continuar?');
+  if(!ok) return;
+
+  var statusEl = document.getElementById('segr-map-status');
+  var generados = 0, sinClientes = 0, totalSinCoord = 0;
+  for(var i=0;i<lista.length;i++){
+    var g = lista[i];
+    if(statusEl) statusEl.textContent = '⏳ Descargando mapas: '+(i+1)+'/'+lista.length+' ('+g.ruta+' - '+g.placa+')…';
+    var res = await segRutasGenerarKML(g.ruta, g.placa, g.viaje, g.transporte, { silencioso: true });
+    if(res && res.ok){ generados++; totalSinCoord += (res.sinCoord || 0); }
+    else sinClientes++;
+    // Pequeña pausa entre cada descarga para que el navegador no las bloquee
+    // por disparar demasiados archivos de golpe.
+    await new Promise(function(resolve){ setTimeout(resolve, 350); });
+  }
+
+  var msg = '✅ Se descargaron '+generados+' mapa(s) por separado (de '+lista.length+' en total).' +
+    (sinClientes ? ' ⚠️ '+sinClientes+' no se generaron por no tener clientes.' : '') +
+    (totalSinCoord ? ' ⚠️ '+totalSinCoord+' cliente(s) en total sin coordenadas (revisa el Maestro de Clientes).' : '');
+  if(statusEl) statusEl.textContent = msg;
+  alert(msg);
 }
 
 function segRutasSelectViaje(key){
