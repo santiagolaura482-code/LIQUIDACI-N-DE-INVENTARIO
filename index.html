@@ -19022,12 +19022,113 @@ function segRutasParseBeesCSV(text){
   return map;
 }
 
+// ── Parseo de la Hoja de Ruta: formato 2, Excel real (.xlsx binario, abierto con XLSX.js) ──
+function segRutasParseHojaRutaXLSX(arrayBuffer){
+  if(typeof XLSX === 'undefined') throw new Error('XLSX no disponible (sin conexión a internet).');
+  var wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+
+  // Si el libro trae una hoja llamada exactamente "Hoja de Ruta" (como el
+  // formato "Cono Sur", que además incluye otras hojas auxiliares: viajes,
+  // Validador, Resumen, SKU, beway, CLIENTES, VH), se usa esa. Si no, se usa
+  // la primera hoja del libro (formato de una sola hoja, ej. "HojaRuta (9)").
+  var nombreHoja = wb.SheetNames.find(function(n){ return n.trim().toLowerCase() === 'hoja de ruta'; });
+  var ws = wb.Sheets[nombreHoja || wb.SheetNames[0]];
+  var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+  if(!raw.length) throw new Error('El archivo Excel está vacío.');
+
+  var headerOriginal = raw[0].map(function(h){ return String(h||'').trim(); });
+
+  function fmtFecha(v){
+    // Misma lógica de componentes LOCALES usada en otros módulos (evita que
+    // toISOString() corra la fecha un día por la zona horaria.
+    if(v instanceof Date && !isNaN(v)){
+      var yyyy = v.getFullYear(), mm = String(v.getMonth()+1).padStart(2,'0'), dd = String(v.getDate()).padStart(2,'0');
+      return yyyy+'-'+mm+'-'+dd;
+    }
+    return String(v==null?'':v).trim();
+  }
+  function fmtHora(v){
+    if(v instanceof Date && !isNaN(v)){
+      var hh = String(v.getHours()).padStart(2,'0'), mi = String(v.getMinutes()).padStart(2,'0'), ss = String(v.getSeconds()).padStart(2,'0');
+      return hh+':'+mi+':'+ss;
+    }
+    return String(v==null?'':v).trim();
+  }
+
+  // Formato "Cono Sur": trae "Dirección" (con tilde), "Llegada"/"Salida" en vez
+  // de "Llega"/"Sale", el teléfono viene en una columna llamada "CLIENTES.Column12",
+  // y no trae "Transporte" ni "Empresa" (esas quedan vacías: la Hoja de Ruta de
+  // este formato no las incluye). Se detecta por la columna "Dirección" (con tilde),
+  // que no aparece en los otros dos formatos ya soportados.
+  var esConoSur = headerOriginal.indexOf('Dirección') !== -1;
+
+  // Mapa de columna-origen → clave interna canónica (la que usa el resto del
+  // sistema: Ruta, Vehiculo, Fecha, Codigo, Cliente, Direccion, Abre, Cierra,
+  // Viaje, Llega, Sale, Transporte, Empresa, etc.). Las columnas sin equivalente
+  // se conservan tal cual llegan (ej. "Peso", "Volumen", "Zn PVTA").
+  var renombrar = esConoSur ? {
+    'Dirección': 'Direccion',
+    'Llegada': 'Llega',
+    'Salida': 'Sale',
+    'CLIENTES.Column12': 'Telefono'
+  } : {};
+
+  var header = headerOriginal.map(function(h){ return renombrar[h] || h; });
+  var idxFecha = header.indexOf('Fecha');
+  var idxAbre = header.indexOf('Abre');
+  var idxCierra = header.indexOf('Cierra');
+  var idxLlega = header.indexOf('Llega');
+  var idxSale = header.indexOf('Sale');
+
+  var rows = [];
+  for(var i=1;i<raw.length;i++){
+    var row = raw[i];
+    if(!row || row.every(function(c){ return c===''||c==null; })) continue;
+    var obj = {};
+    header.forEach(function(h, idx){
+      var v = row[idx];
+      if(idx === idxFecha) v = fmtFecha(v);
+      else if(idx === idxAbre || idx === idxCierra || idx === idxLlega || idx === idxSale) v = fmtHora(v);
+      else v = (v==null) ? '' : String(v).trim();
+      obj[h] = v;
+    });
+    if(esConoSur){
+      // El formato "Cono Sur" no incluye Transporte ni Empresa: se dejan vacíos
+      // (el resto del sistema ya maneja estos campos vacíos mostrando "—").
+      if(!('Transporte' in obj)) obj['Transporte'] = '';
+      if(!('Empresa' in obj)) obj['Empresa'] = '';
+    }
+    rows.push(obj);
+  }
+
+  // Misma deduplicación por Ruta+Código+Viaje que el formato HTML.
+  var vistos = {};
+  var rowsUnicas = [];
+  var duplicadosQuitados = 0;
+  rows.forEach(function(r){
+    var key = String(r['Ruta'] || '').trim() + '|' + String(r['Codigo'] || '').trim() + '|' + String(r['Viaje'] || '').trim();
+    if(vistos[key]){ duplicadosQuitados++; return; }
+    vistos[key] = true;
+    rowsUnicas.push(r);
+  });
+
+  return { header: header, rows: rowsUnicas, duplicadosQuitados: duplicadosQuitados };
+}
+
 function segRutasUploadHoja(inp){
   var file = inp.files[0]; if(!file) return;
   var reader = new FileReader();
   reader.onload = function(e){
     try{
-      var parsed = segRutasParseHojaRutaHTML(e.target.result);
+      var buf = e.target.result;
+      // Detecta el formato por la firma real de los bytes, no por la extensión:
+      // un .xlsx verdadero es un ZIP y empieza con "PK" (0x50,0x4B); el formato
+      // anterior es una tabla HTML a la que solo se le cambió la extensión a .xls.
+      var bytes = new Uint8Array(buf.slice(0, 4));
+      var esZip = bytes[0] === 0x50 && bytes[1] === 0x4B;
+      var parsed = esZip
+        ? segRutasParseHojaRutaXLSX(buf)
+        : segRutasParseHojaRutaHTML(new TextDecoder('utf-8').decode(buf));
       SEGR_HOJA_HEADER = parsed.header;
       SEGR_HOJA = parsed.rows;
       segRutasSaveToStorage();
@@ -19045,7 +19146,7 @@ function segRutasUploadHoja(inp){
     }
     inp.value='';
   };
-  reader.readAsText(file, 'UTF-8');
+  reader.readAsArrayBuffer(file);
 }
 
 function segRutasUploadBees(inp){
@@ -19360,8 +19461,17 @@ async function segRutasGenerarKML(ruta, placa, viaje, transporte){
     var cajas = r['Entrega Cjs'] != null && r['Entrega Cjs'] !== '' ? r['Entrega Cjs'] : '';
     var abre = segRutasHoraCorta(m.abre || r['Abre']);
     var cierra = segRutasHoraCorta(m.cierra || r['Cierra']);
-    var tel = m.tel || '';
+    // El teléfono se toma del Maestro de Clientes y, si no está ahí, de la propia
+    // Hoja de Ruta cuando el formato cargado lo trae (ej. formato "Cono Sur").
+    var tel = m.tel || r['Telefono'] || '';
     var coord = SEGR_COORDS[codigo] || null;
+    // Si no hay coordenada en el dataset de coordenadas, se usa la Latitud/Longitud
+    // de la propia fila de la Hoja de Ruta cuando el formato cargado las trae.
+    if(!coord && r['Latitud'] !== undefined && r['Longitud'] !== undefined){
+      var latProp = parseFloat(String(r['Latitud']).replace(',', '.'));
+      var lngProp = parseFloat(String(r['Longitud']).replace(',', '.'));
+      if(!isNaN(latProp) && !isNaN(lngProp) && (latProp !== 0 || lngProp !== 0)) coord = { lat: latProp, lng: lngProp };
+    }
     if(!coord) sinCoord++;
 
     var nombrePlacemark = '|'+segRutasXmlEscape(cliente)+'|Cod:'+segRutasXmlEscape(codigo)+'|'+segRutasXmlEscape(direccion)+'|Cjs:'+cajas+'|VH:'+abre+'-'+cierra+'|Tel:'+tel;
