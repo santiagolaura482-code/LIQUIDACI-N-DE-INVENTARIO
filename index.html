@@ -1190,6 +1190,8 @@ qVDbvb/XnnbjKv6fV/y+3PjxwR4CLw60nqi/xjKFbnY7gN0ISK4pzcT4uduBqNf19oG2N8CzLIsgCHb0
       <input type="file" id="segr-hoja-input" accept=".xls,.xlsx,.html" style="display:none" onchange="segRutasUploadHoja(this)">
       <button class="a-btn a-btn-grn" onclick="document.getElementById('segr-hoja-input-add').click()">➕ Agregar una Hoja de Ruta más</button>
       <input type="file" id="segr-hoja-input-add" accept=".xls,.xlsx,.html" style="display:none" onchange="segRutasUploadHoja(this, true)">
+      <button class="a-btn a-btn-grn" onclick="document.getElementById('segr-hoja-bo-input').click()">📋 Cargar Hoja de Ruta BO</button>
+      <input type="file" id="segr-hoja-bo-input" accept=".xls,.xlsx,.html" style="display:none" onchange="segRutasUploadHoja(this)">
       <button class="a-btn a-btn-grn" onclick="document.getElementById('segr-bees-input').click()">📡 Carga Hoja de BEES</button>
       <input type="file" id="segr-bees-input" accept=".csv" style="display:none" onchange="segRutasUploadBees(this)">
       <button class="a-btn a-btn-grn" onclick="segRutasExport()">📥 Exportar Excel</button>
@@ -19060,18 +19062,30 @@ function segRutasParseHojaRutaXLSX(arrayBuffer){
     return String(v==null?'':v).trim();
   }
 
+  // Formato "BO" / Consolidado (hoja "Hoja de Ruta" con columnas "Vehículo",
+  // "Código" con tilde, y las columnas muy particulares "Sec2"/"Sec1" y
+  // "Entrega"/"Recojo" — esta combinación no aparece en ningún otro formato,
+  // así que se usa como huella digital para detectarlo primero.
+  var esBO = headerOriginal.indexOf('Sec2') !== -1 && headerOriginal.indexOf('Recojo') !== -1;
+
   // Formato "Cono Sur": trae "Dirección" (con tilde), "Llegada"/"Salida" en vez
   // de "Llega"/"Sale", el teléfono viene en una columna llamada "CLIENTES.Column12",
-  // y no trae "Transporte" ni "Empresa" (esas quedan vacías: la Hoja de Ruta de
-  // este formato no las incluye). Se detecta por la columna "Dirección" (con tilde),
-  // que no aparece en los otros dos formatos ya soportados.
-  var esConoSur = headerOriginal.indexOf('Dirección') !== -1;
+  // y no trae "Transporte" ni "Empresa". Se detecta por la columna "Dirección"
+  // (con tilde) — pero solo si no se detectó ya el formato "BO" arriba, porque
+  // ese formato también trae "Dirección" con tilde.
+  var esConoSur = !esBO && headerOriginal.indexOf('Dirección') !== -1;
 
   // Mapa de columna-origen → clave interna canónica (la que usa el resto del
   // sistema: Ruta, Vehiculo, Fecha, Codigo, Cliente, Direccion, Abre, Cierra,
   // Viaje, Llega, Sale, Transporte, Empresa, etc.). Las columnas sin equivalente
-  // se conservan tal cual llegan (ej. "Peso", "Volumen", "Zn PVTA").
-  var renombrar = esConoSur ? {
+  // se conservan tal cual llegan (ej. "Peso", "Volumen", "Zn PVTA", "Dist (Km)").
+  var renombrar = esBO ? {
+    'Vehículo': 'Vehiculo',
+    'Código': 'Codigo',
+    'Dirección': 'Direccion',
+    'Entrega': 'Entrega Cjs'
+    // "Llega"/"Sale" en este formato ya se llaman así, no hace falta renombrarlas.
+  } : esConoSur ? {
     'Dirección': 'Direccion',
     'Llegada': 'Llega',
     'Salida': 'Sale',
@@ -19091,18 +19105,17 @@ function segRutasParseHojaRutaXLSX(arrayBuffer){
     if(!row || row.every(function(c){ return c===''||c==null; })) continue;
     var obj = {};
     header.forEach(function(h, idx){
+      if(h === '') return; // columnas sin nombre (celdas en blanco sueltas al final de la fila) se ignoran
       var v = row[idx];
       if(idx === idxFecha) v = fmtFecha(v);
       else if(idx === idxAbre || idx === idxCierra || idx === idxLlega || idx === idxSale) v = fmtHora(v);
       else v = (v==null) ? '' : String(v).trim();
       obj[h] = v;
     });
-    if(esConoSur){
-      // El formato "Cono Sur" no incluye Transporte ni Empresa: se dejan vacíos
-      // (el resto del sistema ya maneja estos campos vacíos mostrando "—").
-      if(!('Transporte' in obj)) obj['Transporte'] = '';
-      if(!('Empresa' in obj)) obj['Empresa'] = '';
-    }
+    // Ni el formato "BO" ni "Cono Sur" incluyen Transporte/Empresa: se dejan
+    // vacíos (el resto del sistema ya maneja estos campos vacíos mostrando "—").
+    if(!('Transporte' in obj)) obj['Transporte'] = '';
+    if(!('Empresa' in obj)) obj['Empresa'] = '';
     rows.push(obj);
   }
 
@@ -19117,7 +19130,7 @@ function segRutasParseHojaRutaXLSX(arrayBuffer){
     rowsUnicas.push(r);
   });
 
-  return { header: header, rows: rowsUnicas, duplicadosQuitados: duplicadosQuitados };
+  return { header: header.filter(function(h){ return h !== ''; }), rows: rowsUnicas, duplicadosQuitados: duplicadosQuitados };
 }
 
 // Combina las filas ya cargadas con las de un archivo nuevo, quitando los
